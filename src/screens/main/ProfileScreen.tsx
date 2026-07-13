@@ -347,7 +347,12 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>הגדרות</Text>
           <View style={styles.card}>
-            <MenuRow icon="language-outline" label="שפה" onPress={() => {}} badge="עברית" />
+            <MenuRow
+              icon="language-outline"
+              label="שפה"
+              onPress={() => Alert.alert('בקרוב', 'תמיכה בשפות נוספות תתווסף בעתיד. כרגע האפליקציה זמינה בעברית בלבד.')}
+              badge="עברית"
+            />
             <MenuRow
               icon="location-outline"
               label="עיר"
