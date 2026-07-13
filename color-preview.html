@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<title>Kehila — Color Palette Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #EDEBE8; padding: 24px; }
+  h1 { text-align: center; font-size: 22px; margin-bottom: 6px; color: #222; }
+  .subtitle { text-align: center; font-size: 13px; color: #777; margin-bottom: 28px; }
+
+  .section-title { text-align: center; font-size: 13px; font-weight: 700; color: #999; letter-spacing: 1px; text-transform: uppercase; margin: 24px 0 14px; }
+
+  .row { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; margin-bottom: 8px; }
+
+  .palette {
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+    width: 220px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+  }
+  .palette-header {
+    padding: 18px 16px 14px;
+    color: white;
+    text-align: center;
+  }
+  .palette-header h2 { font-size: 16px; font-weight: 800; margin-bottom: 3px; }
+  .palette-header p  { font-size: 11px; opacity: 0.82; }
+
+  .swatches { display: flex; padding: 10px 12px; gap: 7px; justify-content: center; border-bottom: 1px solid #f0f0f0; }
+  .dot { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.08); flex-shrink: 0; }
+
+  /* mini mock-up */
+  .mock { margin: 10px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(0,0,0,0.08); }
+  .mock-header { padding: 11px 13px; color: white; font-size: 13px; font-weight: 700; }
+  .mock-bg { padding: 8px; }
+  .mock-card { background: white; border-radius: 8px; padding: 9px 11px; font-size: 12px; color: #333; margin-bottom: 6px; }
+  .mock-card-name { font-weight: 700; margin-bottom: 3px; }
+  .mock-card-addr { color: #999; font-size: 10px; }
+  .mock-chips { margin-top: 6px; display: flex; gap: 4px; flex-wrap: wrap; }
+  .mock-chip { display: inline-block; border-radius: 999px; padding: 2px 8px; font-size: 10px; font-weight: 700; }
+  .mock-btn { border-radius: 8px; padding: 9px; text-align: center; color: white; font-size: 12px; font-weight: 800; }
+  .mock-nav { display: flex; justify-content: space-around; padding: 8px 0 4px; border-top: 1px solid #f0f0f0; background: white; }
+  .mock-tab { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 9px; font-weight: 600; color: #aaa; }
+  .mock-tab.active-tab { color: inherit; }
+  .mock-tab span { font-size: 16px; }
+</style>
+</head>
+<body>
+
+<h1>🎨 בחר פלטת צבעים — קהילה</h1>
+<p class="subtitle">כל הפלטות שומרות: ★ זהב למועדפים · ירוק לכשרות · תכלת למקווה · סגול לאירועים</p>
+
+<!-- ═══ ORANGE SPECTRUM ═══ -->
+<div class="section-title">🟠 ספקטרום כתום</div>
+<div class="row">
+
+  <!-- 1. Burnt Sienna -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#7A3010,#C04A1A);">
+      <h2>שנהב שרוף</h2><p>Burnt Sienna — עמוק וחם</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#7A3010;" title="primaryDark"></div>
+      <div class="dot" style="background:#C04A1A;" title="primary"></div>
+      <div class="dot" style="background:#E87040;" title="primaryLight"></div>
+      <div class="dot" style="background:#FFF3EE;" title="background" style="border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#7A3010,#C04A1A);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#FFF3EE;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#C04A1A22;color:#C04A1A;">ספרד</span>
+            <span class="mock-chip" style="background:#F0C84C40;color:#9A6A00;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#C04A1A;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#C04A1A;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Terracotta -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#8B3A1E,#D2622A);">
+      <h2>טרה-קוטה</h2><p>Terracotta — אדמתי, חמים</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#8B3A1E;"></div>
+      <div class="dot" style="background:#D2622A;"></div>
+      <div class="dot" style="background:#F0905A;"></div>
+      <div class="dot" style="background:#FDF4EF;" style="border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#8B3A1E,#D2622A);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#FDF4EF;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#D2622A22;color:#D2622A;">ספרד</span>
+            <span class="mock-chip" style="background:#F0C84C40;color:#9A6A00;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#D2622A;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#D2622A;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Amber Saffron -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#9A5200,#D4820A);">
+      <h2>ענבר / כורכום</h2><p>Amber Saffron — ספרדי, חגיגי</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#9A5200;"></div>
+      <div class="dot" style="background:#D4820A;"></div>
+      <div class="dot" style="background:#F0A830;"></div>
+      <div class="dot" style="background:#FEF8EE;" style="border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#9A5200,#D4820A);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#FEF8EE;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#D4820A22;color:#D4820A;">ספרד</span>
+            <span class="mock-chip" style="background:#F0C84C40;color:#9A6A00;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#D4820A;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#D4820A;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Copper -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#7A4020,#C07840);">
+      <h2>נחושת</h2><p>Copper — ברונזה, כבוד</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#7A4020;"></div>
+      <div class="dot" style="background:#C07840;"></div>
+      <div class="dot" style="background:#DBA060;"></div>
+      <div class="dot" style="background:#FDF6EE;" style="border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#7A4020,#C07840);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#FDF6EE;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#C0784022;color:#C07840;">ספרד</span>
+            <span class="mock-chip" style="background:#F0C84C40;color:#9A6A00;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#C07840;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#C07840;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ ORANGE + DARK COMBOS ═══ -->
+<div class="section-title">🌆 כתום + רקע כהה</div>
+<div class="row">
+
+  <!-- 5. Dark Charcoal + Orange -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#1E1E1E,#3A2A1A);">
+      <h2>פחם + כתום</h2><p>חשוך אלגנטי עם כתום</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#1E1E1E;"></div>
+      <div class="dot" style="background:#E06A20;"></div>
+      <div class="dot" style="background:#F0A850;"></div>
+      <div class="dot" style="background:#F5F2EF;" style="border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#1E1E1E,#3A2A1A);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#F5F2EF;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#E06A2022;color:#E06A20;">ספרד</span>
+            <span class="mock-chip" style="background:#F0C84C40;color:#9A6A00;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#E06A20;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#E06A20;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Deep Brown + Saffron -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#3D1F08,#7A3C10);">
+      <h2>חום עמוק + זעפרן</h2><p>בגדד, מרוקאי, מסורתי</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#3D1F08;"></div>
+      <div class="dot" style="background:#7A3C10;"></div>
+      <div class="dot" style="background:#D4820A;"></div>
+      <div class="dot" style="background:#FBF5EE;" style="border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#3D1F08,#7A3C10);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#FBF5EE;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#7A3C1022;color:#7A3C10;">ספרד</span>
+            <span class="mock-chip" style="background:#D4820A40;color:#9A6A00;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#7A3C10;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#7A3C10;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Midnight + Flame -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#12243A,#1E3D5C);">
+      <h2>לילה + להבה</h2><p>Navy כהה, כתום בוהק</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#12243A;"></div>
+      <div class="dot" style="background:#1E3D5C;"></div>
+      <div class="dot" style="background:#E85E20;"></div>
+      <div class="dot" style="background:#F2F5F9;" style="border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#12243A,#1E3D5C);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#F2F5F9;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#1E3D5C22;color:#1E3D5C;">ספרד</span>
+            <span class="mock-chip" style="background:#E85E2040;color:#C04010;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#E85E20;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#E85E20;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Pomegranate Red-Orange -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#7A1020,#C03020);">
+      <h2>רימון</h2><p>Pomegranate — אדום-כתום, ישראלי</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#7A1020;"></div>
+      <div class="dot" style="background:#C03020;"></div>
+      <div class="dot" style="background:#E86040;"></div>
+      <div class="dot" style="background:#FEF2F0;" style="border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#7A1020,#C03020);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#FEF2F0;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#C0302022;color:#C03020;">ספרד</span>
+            <span class="mock-chip" style="background:#F0C84C40;color:#9A6A00;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#C03020;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#C03020;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ WARM NEUTRAL BASES ═══ -->
+<div class="section-title">🏜️ בסיסים חמים + כתום</div>
+<div class="row">
+
+  <!-- 9. Sand + Rust -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#8C5A2A,#B87840);">
+      <h2>חול + חלודה</h2><p>Sand & Rust — מדברי, ירושלמי</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#8C5A2A;"></div>
+      <div class="dot" style="background:#B87840;"></div>
+      <div class="dot" style="background:#D4A060;"></div>
+      <div class="dot" style="background:#FBF6EF;" style="border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#8C5A2A,#B87840);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#FBF6EF;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#B8784022;color:#B87840;">ספרד</span>
+            <span class="mock-chip" style="background:#F0C84C40;color:#9A6A00;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#B87840;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#B87840;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. Olive + Amber -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#4A5820,#7A8830);">
+      <h2>זית + ענבר</h2><p>ארץ ישראלי, אורגני</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#4A5820;"></div>
+      <div class="dot" style="background:#7A8830;"></div>
+      <div class="dot" style="background:#D4820A;"></div>
+      <div class="dot" style="background:#F5F8EE;" style="border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#4A5820,#7A8830);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#F5F8EE;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#7A883022;color:#7A8830;">ספרד</span>
+            <span class="mock-chip" style="background:#F0C84C40;color:#9A6A00;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#7A8830;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#7A8830;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. Jerusalem Stone -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#6B4E2A,#A07848);">
+      <h2>אבן ירושלים</h2><p>Jerusalem Stone — נצחי, כבוד</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#6B4E2A;"></div>
+      <div class="dot" style="background:#A07848;"></div>
+      <div class="dot" style="background:#C8A060;"></div>
+      <div class="dot" style="background:#FAF6F0;" style="border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#6B4E2A,#A07848);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#FAF6F0;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#A0784822;color:#A07848;">ספרד</span>
+            <span class="mock-chip" style="background:#F0C84C40;color:#9A6A00;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#A07848;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#A07848;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12. Sunset -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#C04A10,#E88020);">
+      <h2>שקיעה</h2><p>Sunset gradient — כתום-אש</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#C04A10;"></div>
+      <div class="dot" style="background:#E88020;"></div>
+      <div class="dot" style="background:#F5B040;"></div>
+      <div class="dot" style="background:#FEF8F2;" style="border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#C04A10,#E88020);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#FEF8F2;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#E8802022;color:#C04A10;">ספרד</span>
+            <span class="mock-chip" style="background:#F5B04040;color:#9A6A00;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:linear-gradient(90deg,#C04A10,#E88020);">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#C04A10;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ BRIGHT / VIVID ═══ -->
+<div class="section-title">⚡ צבעים בהירים ועזים</div>
+<div class="row">
+
+  <!-- 13. Electric Coral -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#E8320A,#FF6B35);">
+      <h2>אלמוג חשמלי</h2><p>Electric Coral — אנרגטי, צעיר</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#E8320A;"></div>
+      <div class="dot" style="background:#FF6B35;"></div>
+      <div class="dot" style="background:#FFAA80;"></div>
+      <div class="dot" style="background:#FFF5F2; border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#E8320A,#FF6B35);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#FFF5F2;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#FF6B3522;color:#E8320A;">ספרד</span>
+            <span class="mock-chip" style="background:#FFD70040;color:#B07000;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:linear-gradient(90deg,#E8320A,#FF6B35);">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#FF6B35;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 14. Vivid Orange -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#D94F00,#FF8C00);">
+      <h2>כתום עז</h2><p>Vivid Orange — נועז, ברור</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#D94F00;"></div>
+      <div class="dot" style="background:#FF8C00;"></div>
+      <div class="dot" style="background:#FFB84D;"></div>
+      <div class="dot" style="background:#FFF8F0; border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#D94F00,#FF8C00);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#FFF8F0;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#FF8C0025;color:#D94F00;">ספרד</span>
+            <span class="mock-chip" style="background:#FFD70040;color:#B07000;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:linear-gradient(90deg,#D94F00,#FF8C00);">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#FF8C00;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 15. Hot Magenta -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#B5006E,#F02090);">
+      <h2>מגנטה</h2><p>Hot Magenta — תוסס, בולט</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#B5006E;"></div>
+      <div class="dot" style="background:#F02090;"></div>
+      <div class="dot" style="background:#FF70C0;"></div>
+      <div class="dot" style="background:#FFF2F8; border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#B5006E,#F02090);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#FFF2F8;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#F0209025;color:#B5006E;">ספרד</span>
+            <span class="mock-chip" style="background:#FFD70040;color:#B07000;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:linear-gradient(90deg,#B5006E,#F02090);">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#F02090;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 16. Electric Blue -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#0050D0,#0090FF);">
+      <h2>כחול חשמלי</h2><p>Electric Blue — ישראל, ים</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#0050D0;"></div>
+      <div class="dot" style="background:#0090FF;"></div>
+      <div class="dot" style="background:#50C0FF;"></div>
+      <div class="dot" style="background:#F0F8FF; border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#0050D0,#0090FF);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#F0F8FF;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#0090FF25;color:#0050D0;">ספרד</span>
+            <span class="mock-chip" style="background:#FFD70040;color:#B07000;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:linear-gradient(90deg,#0050D0,#0090FF);">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#0090FF;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="row">
+
+  <!-- 17. Neon Teal -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#007A70,#00C8B8);">
+      <h2>טיל ניאון</h2><p>Neon Teal — רענן, מודרני</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#007A70;"></div>
+      <div class="dot" style="background:#00C8B8;"></div>
+      <div class="dot" style="background:#60E8E0;"></div>
+      <div class="dot" style="background:#F0FFFE; border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#007A70,#00C8B8);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#F0FFFE;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#00C8B825;color:#007A70;">ספרד</span>
+            <span class="mock-chip" style="background:#FFD70040;color:#B07000;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:linear-gradient(90deg,#007A70,#00C8B8);">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#00C8B8;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 18. Lime Green -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#3A8000,#70C000);">
+      <h2>ירוק ליים</h2><p>Lime Green — טרי, חי</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#3A8000;"></div>
+      <div class="dot" style="background:#70C000;"></div>
+      <div class="dot" style="background:#A8E040;"></div>
+      <div class="dot" style="background:#F5FEF0; border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#3A8000,#70C000);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#F5FEF0;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#70C00025;color:#3A8000;">ספרד</span>
+            <span class="mock-chip" style="background:#FFD70040;color:#B07000;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:linear-gradient(90deg,#3A8000,#70C000);">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#70C000;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 19. Bright Violet -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#6600CC,#9B30FF);">
+      <h2>סגול בהיר</h2><p>Bright Violet — קסום, יוקרה</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#6600CC;"></div>
+      <div class="dot" style="background:#9B30FF;"></div>
+      <div class="dot" style="background:#CC88FF;"></div>
+      <div class="dot" style="background:#F8F2FF; border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#6600CC,#9B30FF);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#F8F2FF;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#9B30FF25;color:#6600CC;">ספרד</span>
+            <span class="mock-chip" style="background:#FFD70040;color:#B07000;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:linear-gradient(90deg,#6600CC,#9B30FF);">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#9B30FF;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 20. Sunshine Yellow -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#C08000,#F0B800);">
+      <h2>שמש / צהוב</h2><p>Sunshine — בהיר, אופטימי</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#C08000;"></div>
+      <div class="dot" style="background:#F0B800;"></div>
+      <div class="dot" style="background:#FFD840;"></div>
+      <div class="dot" style="background:#FFFBF0; border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#C08000,#F0B800);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#FFFBF0;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#F0B80025;color:#C08000;">ספרד</span>
+            <span class="mock-chip" style="background:#FFD84060;color:#8A5800;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:linear-gradient(90deg,#C08000,#F0B800);">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#C08000;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ BOLD DARK + BRIGHT POP ═══ -->
+<div class="section-title">🌃 רקע כהה + פופ בהיר</div>
+<div class="row">
+
+  <!-- 21. Dark + Coral Pop -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#1A0A00,#3D1500);">
+      <h2>שחור + אלמוג</h2><p>Dark base, coral accent</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#1A0A00;"></div>
+      <div class="dot" style="background:#FF5733;"></div>
+      <div class="dot" style="background:#FF8C66;"></div>
+      <div class="dot" style="background:#FBF5F2; border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#1A0A00,#3D1500);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#FBF5F2;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#FF573325;color:#CC2200;">ספרד</span>
+            <span class="mock-chip" style="background:#FFD70040;color:#B07000;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#FF5733;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#FF5733;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 22. Dark Navy + Bright Orange -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#0A1628,#1A2E50);">
+      <h2>לילה + כתום</h2><p>Dark navy, bright orange pop</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#0A1628;"></div>
+      <div class="dot" style="background:#FF7220;"></div>
+      <div class="dot" style="background:#FFAA60;"></div>
+      <div class="dot" style="background:#F4F6FA; border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#0A1628,#1A2E50);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#F4F6FA;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#FF722025;color:#CC5000;">ספרד</span>
+            <span class="mock-chip" style="background:#FFD70040;color:#B07000;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#FF7220;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#FF7220;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 23. Forest + Bright Mint -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#0C2A1A,#1A4A2E);">
+      <h2>יער + מנטה</h2><p>Forest dark, mint pop</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#0C2A1A;"></div>
+      <div class="dot" style="background:#00C870;"></div>
+      <div class="dot" style="background:#60EAA8;"></div>
+      <div class="dot" style="background:#F2FBF7; border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#0C2A1A,#1A4A2E);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#F2FBF7;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#00C87025;color:#008048;">ספרד</span>
+            <span class="mock-chip" style="background:#FFD70040;color:#B07000;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#00C870;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#00C870;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 24. Graphite + Crimson -->
+  <div class="palette">
+    <div class="palette-header" style="background: linear-gradient(135deg,#252525,#404040);">
+      <h2>גרפיט + ארגמן</h2><p>Graphite dark, crimson pop</p>
+    </div>
+    <div class="swatches">
+      <div class="dot" style="background:#252525;"></div>
+      <div class="dot" style="background:#DC143C;"></div>
+      <div class="dot" style="background:#FF6080;"></div>
+      <div class="dot" style="background:#F8F8F8; border:1px solid #ddd;"></div>
+    </div>
+    <div class="mock">
+      <div class="mock-header" style="background:linear-gradient(135deg,#252525,#404040);">📿 בתי כנסת</div>
+      <div class="mock-bg" style="background:#F8F8F8;">
+        <div class="mock-card">
+          <div class="mock-card-name">בית כנסת הגדול</div>
+          <div class="mock-card-addr">רחוב הרב קוק 12</div>
+          <div class="mock-chips">
+            <span class="mock-chip" style="background:#DC143C25;color:#AA0028;">ספרד</span>
+            <span class="mock-chip" style="background:#FFD70040;color:#B07000;">★</span>
+          </div>
+        </div>
+        <div class="mock-btn" style="background:#DC143C;">שמור מועדף ★</div>
+      </div>
+      <div class="mock-nav">
+        <div class="mock-tab active-tab" style="color:#DC143C;"><span>🕍</span>תפילה</div>
+        <div class="mock-tab"><span>🥗</span>כשרות</div>
+        <div class="mock-tab"><span>📅</span>אירועים</div>
+        <div class="mock-tab"><span>👤</span>פרופיל</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center; margin-top:28px; color:#999; font-size:12px; padding-bottom:24px;">
+  אמור לי מה מוצא חן — אוכל לשלב, להכהות, להבהיר, או למזג בין שניים
+</p>
+</body>
+</html>

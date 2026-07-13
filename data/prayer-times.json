@@ -1,0 +1,405 @@
+{
+  "אביר יעקב": {
+    "shacharit": [{"time": "06:00", "days": [1,2,3,4,5,6], "notes": null}],
+    "mincha": [{"time": "19:00", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": [{"time": "19:35", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "אבני החושן": {
+    "shacharit": [
+      {"time": "netz", "days": [1,2,3,4,5,6], "notes": "05:10"},
+      {"time": "05:45", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "07:30", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "mincha": [
+      {"time": "13:15", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "15:30", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "18:20", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}
+    ],
+    "maariv": [
+      {"time": "18:40", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"},
+      {"time": "20:00", "days": [1,2,3,4,5,6], "notes": null}
+    ]
+  },
+  "אהבת ישראל": {
+    "shacharit": [
+      {"time": "netz", "days": [1,2,3,4,5,6], "notes": "05:15"},
+      {"time": "06:45", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "mincha": [
+      {"time": "13:15", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "18:30", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}
+    ],
+    "maariv": [
+      {"time": "18:50", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"},
+      {"time": "20:00", "days": [1,2,3,4,5,6], "notes": null}
+    ]
+  },
+  "אולמי גאמוס": {
+    "shacharit": [],
+    "mincha": [{"time": "13:15", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": []
+  },
+  "אור התורה": {
+    "shacharit": [
+      {"time": "netz", "days": [1,2,3,4,5,6], "notes": "05:10"},
+      {"time": "07:30", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "mincha": [
+      {"time": "13:15", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "19:10", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "maariv": [
+      {"time": "20:00", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "23:00", "days": [1,2,3,4,5,6], "notes": null}
+    ]
+  },
+  "אור זרוע": {
+    "shacharit": [{"time": "07:00", "days": [1,2,3,4,5,6], "notes": null}],
+    "mincha": [{"time": "19:15", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}],
+    "maariv": [{"time": "19:35", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}]
+  },
+  "אחדות ישראל": {
+    "shacharit": [],
+    "mincha": [],
+    "maariv": [{"time": "20:45", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "אמרי פי": {
+    "shacharit": [
+      {"time": "netz", "days": [1,2,3,4,5,6], "notes": "05:10"},
+      {"time": "07:55", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "08:30", "days": [1,2,3,4,5], "notes": "למטה, הודו"}
+    ],
+    "mincha": [
+      {"time": "17:40", "days": [1,2,3,4,5,6], "notes": "למטה, סמוך לערבית/מנחה"},
+      {"time": "18:30", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}
+    ],
+    "maariv": [
+      {"time": "18:00", "days": [1,2,3,4,5,6], "notes": "למטה, סמוך לערבית/מנחה"},
+      {"time": "18:45", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"},
+      {"time": "20:45", "days": [3], "notes": null},
+      {"time": "21:00", "days": [1], "notes": null}
+    ]
+  },
+  "בית רבינו": {
+    "shacharit": [],
+    "mincha": [],
+    "maariv": [{"time": "20:00", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "ברכת כהן": {
+    "shacharit": [
+      {"time": "netz", "days": [1,2,3,4,5,6], "notes": "05:10"},
+      {"time": "07:45", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "mincha": [
+      {"time": "13:15", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "18:00", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"},
+      {"time": "19:15", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}
+    ],
+    "maariv": [
+      {"time": "18:20", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"},
+      {"time": "19:35", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"},
+      {"time": "20:00", "days": [3], "notes": null},
+      {"time": "20:15", "days": [1,2,4], "notes": null}
+    ]
+  },
+  "דלתות המלך": {
+    "shacharit": [],
+    "mincha": [{"time": "13:30", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": []
+  },
+  "הגילגל": {
+    "shacharit": [
+      {"time": "06:20", "days": [2,5], "notes": "6:15, הודו"},
+      {"time": "07:00", "days": [6], "notes": null}
+    ],
+    "mincha": [],
+    "maariv": [{"time": "20:00", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "היכל אביעד": {
+    "shacharit": [],
+    "mincha": [{"time": "18:45", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}],
+    "maariv": [
+      {"time": "19:05", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"},
+      {"time": "20:45", "days": [1,2,3,4], "notes": null}
+    ]
+  },
+  "היכל עמרם": {
+    "shacharit": [],
+    "mincha": [{"time": "13:15", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": []
+  },
+  "היכל שמאע": {
+    "shacharit": [
+      {"time": "netz", "days": [2,5], "notes": "05:15, 5:10"},
+      {"time": "06:30", "days": [6], "notes": null},
+      {"time": "08:00", "days": [6], "notes": null}
+    ],
+    "mincha": [{"time": "19:10", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": [{"time": "19:50", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "המרכזי": {
+    "shacharit": [
+      {"time": "04:55", "days": [2,5], "notes": "4:50"},
+      {"time": "06:30", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "mincha": [{"time": "18:45", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": [
+      {"time": "19:50", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "22:20", "days": [1,2,4], "notes": null},
+      {"time": "22:30", "days": [3], "notes": null},
+      {"time": "23:15", "days": [5], "notes": null}
+    ]
+  },
+  "הר הלבונה": {
+    "shacharit": [],
+    "mincha": [],
+    "maariv": [{"time": "19:45", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "חב\"ד": {
+    "shacharit": [{"time": "08:30", "days": [1,2,3,4,5,6], "notes": null}],
+    "mincha": [],
+    "maariv": []
+  },
+  "חב\"ד 06": {
+    "shacharit": [],
+    "mincha": [],
+    "maariv": [{"time": "20:30", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "חסדי חנניה": {
+    "shacharit": [{"time": "05:50", "days": [1,2,3,4,5,6], "notes": null}],
+    "mincha": [{"time": "19:00", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}],
+    "maariv": [{"time": "19:20", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}]
+  },
+  "יצחקי": {
+    "shacharit": [
+      {"time": "05:45", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "06:45", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "07:30", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "08:00", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "mincha": [
+      {"time": "17:45", "days": [1,2,3,4,5,6], "notes": "למעלה"},
+      {"time": "18:30", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "maariv": [
+      {"time": "19:00", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "20:15", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "22:30", "days": [1,2,3,4,5,6], "notes": "למטה"}
+    ]
+  },
+  "ישי": {
+    "shacharit": [{"time": "06:00", "days": [2,5], "notes": "5:50"}],
+    "mincha": [{"time": "19:05", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": [{"time": "19:45", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "ישיבת ההסדר ברכת משה": {
+    "shacharit": [{"time": "07:00", "days": [1,2,3,4,5,6], "notes": null}],
+    "mincha": [{"time": "15:15", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": [{"time": "20:15", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "כולל מעלות החיים": {
+    "shacharit": [],
+    "mincha": [],
+    "maariv": [
+      {"time": "19:00", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "21:00", "days": [1,2,3,4,5,6], "notes": null}
+    ]
+  },
+  "מוסר אביך": {
+    "shacharit": [{"time": "06:30", "days": [6], "notes": null}],
+    "mincha": [{"time": "18:30", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": [{"time": "20:15", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "מחניים": {
+    "shacharit": [
+      {"time": "07:00", "days": [1,2,3,4,5,6], "notes": "הודו"},
+      {"time": "07:30", "days": [6], "notes": "הודו"}
+    ],
+    "mincha": [],
+    "maariv": [{"time": "22:00", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "מעלות דוד מ. נבו": {
+    "shacharit": [
+      {"time": "06:45", "days": [2,5], "notes": "6:35, הודו"},
+      {"time": "07:30", "days": [1,2,3,4,5,6], "notes": "הודו"}
+    ],
+    "mincha": [{"time": "13:20", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": [
+      {"time": "20:00", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "21:00", "days": [1,2,3,4,5,6], "notes": null}
+    ]
+  },
+  "מעלות לדוד 07": {
+    "shacharit": [{"time": "05:40", "days": [2,5], "notes": "5:30"}],
+    "mincha": [{"time": "19:10", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}],
+    "maariv": [{"time": "19:30", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}]
+  },
+  "מצפה מגדים": {
+    "shacharit": [
+      {"time": "netz", "days": [1,2,3,4,5,6], "notes": "05:05"},
+      {"time": "06:30", "days": [2,5], "notes": "6:20"}
+    ],
+    "mincha": [{"time": "19:05", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": [
+      {"time": "19:50", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "22:20", "days": [3], "notes": null}
+    ]
+  },
+  "מצפה נבו": {
+    "shacharit": [{"time": "06:00", "days": [2,5], "notes": "5:50, הודו"}],
+    "mincha": [],
+    "maariv": [{"time": "20:15", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "משה דיין": {
+    "shacharit": [
+      {"time": "05:50", "days": [2,5], "notes": "5:45, הודו"},
+      {"time": "08:00", "days": [1,2,3,4,5,6], "notes": "הודו"}
+    ],
+    "mincha": [{"time": "19:10", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": [
+      {"time": "19:45", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "21:30", "days": [1,2,3,4,5,6], "notes": null}
+    ]
+  },
+  "משכן יהודה": {
+    "shacharit": [
+      {"time": "05:10", "days": [2,5], "notes": "5:00"},
+      {"time": "08:00", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "mincha": [{"time": "18:25", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}],
+    "maariv": [
+      {"time": "18:50", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"},
+      {"time": "20:00", "days": [3], "notes": null},
+      {"time": "20:45", "days": [2], "notes": null}
+    ]
+  },
+  "משכן שושנה": {
+    "shacharit": [{"time": "06:00", "days": [1,2,3,4,5,6], "notes": "הודו"}],
+    "mincha": [{"time": "19:05", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": [{"time": "19:45", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "משכנותיך ישראל": {
+    "shacharit": [],
+    "mincha": [],
+    "maariv": [{"time": "20:00", "days": [2,4], "notes": null}]
+  },
+  "נוסח אחיד": {
+    "shacharit": [
+      {"time": "05:50", "days": [1,2,3,4,5,6], "notes": "הודו"},
+      {"time": "06:30", "days": [1,2,3,4,5], "notes": "הודו"},
+      {"time": "07:00", "days": [6], "notes": null}
+    ],
+    "mincha": [{"time": "19:00", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": [{"time": "20:00", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "נופי סלע": {
+    "shacharit": [
+      {"time": "netz", "days": [1,2,3,4,5,6], "notes": "05:10"},
+      {"time": "netz", "days": [1,2,3,4,5,6], "notes": "05:15"},
+      {"time": "06:45", "days": [2,5], "notes": "6:40"},
+      {"time": "08:00", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "mincha": [
+      {"time": "13:10", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "17:55", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"},
+      {"time": "19:10", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "maariv": [
+      {"time": "18:15", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"},
+      {"time": "19:45", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "22:15", "days": [1], "notes": null}
+    ]
+  },
+  "נזר אהרון": {
+    "shacharit": [{"time": "netz", "days": [1,2,3,4,5,6], "notes": "05:25, הודו"}],
+    "mincha": [],
+    "maariv": [{"time": "20:00", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "נחלת אבות": {
+    "shacharit": [{"time": "05:40", "days": [2,5], "notes": "5:30"}],
+    "mincha": [{"time": "19:10", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}],
+    "maariv": [{"time": "19:30", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}]
+  },
+  "נחלת יצחק": {
+    "shacharit": [{"time": "05:30", "days": [1,2,3,4,5,6], "notes": null}],
+    "mincha": [],
+    "maariv": []
+  },
+  "עלי עשור": {
+    "shacharit": [
+      {"time": "netz", "days": [1,2,3,4,5,6], "notes": "05:10"},
+      {"time": "netz", "days": [1,2,3,4,5,6], "notes": "05:25"},
+      {"time": "08:00", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "mincha": [
+      {"time": "13:05", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "19:00", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "maariv": [{"time": "19:45", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "עמל אדומים": {
+    "shacharit": [{"time": "05:00", "days": [1,2,3,4,5,6], "notes": null}],
+    "mincha": [{"time": "18:15", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}],
+    "maariv": [{"time": "18:35", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}]
+  },
+  "פני שמואל": {
+    "shacharit": [
+      {"time": "06:30", "days": [2,5], "notes": "6:20, הודו"},
+      {"time": "07:15", "days": [1,2,3,4,5,6], "notes": "הודו"},
+      {"time": "08:00", "days": [2,5], "notes": "8:10, הודו"},
+      {"time": "08:45", "days": [1,6], "notes": "הודו"}
+    ],
+    "mincha": [
+      {"time": "13:30", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "18:30", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "19:05", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "maariv": [
+      {"time": "19:55", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "20:15", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "22:00", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "23:00", "days": [1,2,3,4,5,6], "notes": null}
+    ]
+  },
+  "צור ישראל": {
+    "shacharit": [
+      {"time": "netz", "days": [1,2,3,4,5,6], "notes": "05:10"},
+      {"time": "06:00", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "08:00", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "mincha": [
+      {"time": "13:15", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "19:00", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "maariv": [{"time": "19:50", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "קניון מעלה אדומים": {
+    "shacharit": [],
+    "mincha": [{"time": "13:55", "days": [1,2,3,4,5,6], "notes": null}],
+    "maariv": []
+  },
+  "שיח השדה": {
+    "shacharit": [
+      {"time": "07:00", "days": [1,2,3,4,5,6], "notes": "הודו"},
+      {"time": "07:45", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "mincha": [],
+    "maariv": [{"time": "21:00", "days": [1,2,3,4,5,6], "notes": null}]
+  },
+  "שלום לעם": {
+    "shacharit": [
+      {"time": "06:00", "days": [2,5], "notes": "5:50"},
+      {"time": "07:45", "days": [1,2,3,4,5,6], "notes": null}
+    ],
+    "mincha": [
+      {"time": "13:10", "days": [1,2,3,4,5,6], "notes": null},
+      {"time": "18:30", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}
+    ],
+    "maariv": [{"time": "18:45", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}]
+  },
+  "תפארת בנים": {
+    "shacharit": [{"time": "06:15", "days": [2,5], "notes": "6:05, הודו"}],
+    "mincha": [{"time": "18:30", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}],
+    "maariv": [{"time": "18:50", "days": [1,2,3,4,5,6], "notes": "סמוך לערבית/מנחה"}]
+  }
+}

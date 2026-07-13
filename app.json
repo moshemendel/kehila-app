@@ -21,10 +21,70 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+        }
+      },
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ],
+      "package": "com.mmapps.kehilapp",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-web-browser",
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#1B3A6B",
+          "androidMode": "default"
+        }
+      ],
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "האפליקציה משתמשת במיקום כדי למיין בתי כנסת לפי מרחק ממך.",
+          "locationWhenInUsePermission": "האפליקציה משתמשת במיקום כדי למיין בתי כנסת לפי מרחק ממך."
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "האפליקציה משתמשת בזיהוי פנים כדי לאמת את כניסתך לאזור הניהול."
+        }
+      ],
+      "@react-native-community/datetimepicker"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "463531c2-d443-47fd-bf1c-8f01357d33b7"
+      },
+      "googleAuth": {
+        "webClientId": "991729726938-ua7qqi4de5jh063iucg455ai0l2u08s8.apps.googleusercontent.com",
+        "androidClientId": "991729726938-e4df7d2sdbbabkeb89kp4ekgrr371a6k.apps.googleusercontent.com"
+      }
+    },
+    "owner": "moshe_mendel",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/463531c2-d443-47fd-bf1c-8f01357d33b7"
     }
   }
 }

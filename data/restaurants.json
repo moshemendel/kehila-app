@@ -1,0 +1,170 @@
+[
+  {
+    "id": "rest-1",
+    "cityId": "city-1",
+    "name": "שווארמה בר הפסגה",
+    "category": "meat",
+    "neighborhood": "מרכז העיר",
+    "address": "רחוב יהודה הנשיא 12, מעלה אדומים",
+    "phone": "02-535-1234",
+    "openingHours": {
+      "sunday":    "12:00–23:00",
+      "monday":    "12:00–23:00",
+      "tuesday":   "12:00–23:00",
+      "wednesday": "12:00–23:00",
+      "thursday":  "12:00–23:30",
+      "friday":    "10:00–14:30",
+      "saturday":  ""
+    },
+    "kosherCertificates": [
+      {
+        "id": "cert-r1",
+        "issuedBy": "רבנות מעלה אדומים",
+        "kosherLevel": ["mehadrin", "glatt"],
+        "validFrom": "2025-01-01",
+        "validUntil": "2026-12-31",
+        "isActive": true
+      }
+    ]
+  },
+  {
+    "id": "rest-2",
+    "cityId": "city-1",
+    "name": "פיצה פינוקים",
+    "category": "dairy",
+    "neighborhood": "מרכז העיר",
+    "address": "מרכז מסחרי מזרח, מעלה אדומים",
+    "phone": "02-535-5678",
+    "openingHours": {
+      "sunday":    "11:00–22:00",
+      "monday":    "11:00–22:00",
+      "tuesday":   "11:00–22:00",
+      "wednesday": "11:00–22:00",
+      "thursday":  "11:00–23:00",
+      "friday":    "10:00–14:00",
+      "saturday":  ""
+    },
+    "kosherCertificates": [
+      {
+        "id": "cert-r2",
+        "issuedBy": "רבנות מעלה אדומים",
+        "kosherLevel": ["mehadrin", "chalav_israel"],
+        "validFrom": "2025-01-01",
+        "validUntil": "2026-12-31",
+        "isActive": true
+      }
+    ]
+  },
+  {
+    "id": "rest-3",
+    "cityId": "city-1",
+    "name": "קפה ארומה",
+    "category": "cafe",
+    "neighborhood": "מרכז העיר",
+    "address": "קניון מעלה אדומים, קומה א",
+    "phone": "02-535-9000",
+    "openingHours": {
+      "sunday":    "07:00–21:00",
+      "monday":    "07:00–21:00",
+      "tuesday":   "07:00–21:00",
+      "wednesday": "07:00–21:00",
+      "thursday":  "07:00–21:00",
+      "friday":    "07:00–13:30",
+      "saturday":  ""
+    },
+    "kosherCertificates": [
+      {
+        "id": "cert-r3",
+        "issuedBy": "רבנות מעלה אדומים",
+        "kosherLevel": ["mehadrin", "chalav_israel"],
+        "validFrom": "2025-01-01",
+        "validUntil": "2026-12-31",
+        "isActive": true
+      }
+    ]
+  },
+  {
+    "id": "rest-4",
+    "cityId": "city-1",
+    "name": "מאפיית לחם הארץ",
+    "category": "bakery",
+    "neighborhood": "צמח השדה (06)",
+    "address": "רחוב קדם 7, מעלה אדומים",
+    "phone": "02-535-2200",
+    "openingHours": {
+      "sunday":    "06:30–20:00",
+      "monday":    "06:30–20:00",
+      "tuesday":   "06:30–20:00",
+      "wednesday": "06:30–20:00",
+      "thursday":  "06:30–20:00",
+      "friday":    "06:00–13:00",
+      "saturday":  ""
+    },
+    "kosherCertificates": [
+      {
+        "id": "cert-r4",
+        "issuedBy": "בד\"ץ העדה החרדית",
+        "kosherLevel": ["mehadrin"],
+        "validFrom": "2025-01-01",
+        "validUntil": "2026-12-31",
+        "isActive": true
+      }
+    ]
+  },
+  {
+    "id": "rest-5",
+    "cityId": "city-1",
+    "name": "סלט בר טבעי",
+    "category": "pareve",
+    "neighborhood": "מרכז העיר",
+    "address": "רחוב הפסגה 3, מעלה אדומים",
+    "phone": "02-535-4400",
+    "openingHours": {
+      "sunday":    "10:00–21:00",
+      "monday":    "10:00–21:00",
+      "tuesday":   "10:00–21:00",
+      "wednesday": "10:00–21:00",
+      "thursday":  "10:00–21:00",
+      "friday":    "09:00–13:30",
+      "saturday":  ""
+    },
+    "kosherCertificates": [
+      {
+        "id": "cert-r5",
+        "issuedBy": "רבנות מעלה אדומים",
+        "kosherLevel": ["mehadrin"],
+        "validFrom": "2025-01-01",
+        "validUntil": "2026-12-31",
+        "isActive": true
+      }
+    ]
+  },
+  {
+    "id": "rest-6",
+    "cityId": "city-1",
+    "name": "סטייק האוס רמות",
+    "category": "meat",
+    "neighborhood": "נופי סלע (07)",
+    "address": "שכונת רמות, מעלה אדומים",
+    "phone": "02-535-7777",
+    "openingHours": {
+      "sunday":    "13:00–23:00",
+      "monday":    "13:00–23:00",
+      "tuesday":   "13:00–23:00",
+      "wednesday": "13:00–23:00",
+      "thursday":  "13:00–23:30",
+      "friday":    "11:00–14:30",
+      "saturday":  ""
+    },
+    "kosherCertificates": [
+      {
+        "id": "cert-r6",
+        "issuedBy": "בד\"ץ העדה החרדית",
+        "kosherLevel": ["mehadrin", "glatt"],
+        "validFrom": "2025-01-01",
+        "validUntil": "2026-12-31",
+        "isActive": true
+      }
+    ]
+  }
+]

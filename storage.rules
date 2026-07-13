@@ -1,0 +1,41 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isImage() {
+      return request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // ── Public reads ──────────────────────────────────────────────────────────
+    match /{allPaths=**} {
+      allow read: if true;
+    }
+
+    // ── Synagogue gallery ─────────────────────────────────────────────────────
+    match /synagogues/{synId}/gallery/{file} {
+      allow write: if request.auth != null && isImage();
+    }
+
+    // ── Business gallery ──────────────────────────────────────────────────────
+    match /businesses/{bizId}/gallery/{file} {
+      allow write: if request.auth != null && isImage();
+    }
+
+    // ── Kosher certificate images ─────────────────────────────────────────────
+    match /businesses/{bizId}/certificates/{certId}/{file} {
+      allow write: if request.auth != null && isImage();
+    }
+
+    // ── Mikveh gallery ────────────────────────────────────────────────────────
+    match /mikvaot/{mikId}/gallery/{file} {
+      allow write: if request.auth != null && isImage();
+    }
+
+    // ── Eruv report images ────────────────────────────────────────────────────
+    match /eruvReports/{userId}/{file} {
+      allow write: if request.auth != null && request.auth.uid == userId && isImage();
+    }
+
+  }
+}

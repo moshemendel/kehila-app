@@ -1,0 +1,26 @@
+﻿"מזהה *
+id *","שם *
+name *","קטגוריה *
+category *","שכונה
+neighborhood","כתובת *
+address *","טלפון
+phone","אתר
+website","קו רוחב
+latitude","קו אורך
+longitude","קישור תמונה
+imageUrl","התראה פעילה
+activeAlert","ראשון
+hours_sunday","שני
+hours_monday","שלישי
+hours_tuesday","רביעי
+hours_wednesday","חמישי
+hours_thursday","שישי
+hours_friday","שבת
+hours_saturday","גוף מכשיר
+kosher_issuedBy","מספר תעודה
+kosher_certNumber","רמת כשרות
+kosher_level","תוקף מ
+kosher_validFrom","תוקף עד
+kosher_validUntil","הערות כשרות
+kosher_notes"
+rest-001,מסעדת הגריל הכשר,meat,מרכז,שדרות בן גוריון 5,02-1234567,https://grill.co.il,31.9210,35.0100,,,09:00-23:00,09:00-23:00,09:00-23:00,09:00-23:00,09:00-23:00,09:00-14:00,סגור,רבנות מקומית,2025-KSH-0042,"mehadrin,bishul_israel",2025-01-01,2025-12-31,

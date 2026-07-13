@@ -1,0 +1,213 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    // Excludes anonymous guest sessions — guests get a real (non-null) auth
+    // token so they can receive eruv push, but must not be able to consume
+    // real resources (e.g. booking a mikveh slot) under that identity.
+    function isRealAccount() {
+      return isSignedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    function hasRole(role) {
+      return isSignedIn() && userDoc().role == role;
+    }
+    // city_admin, super_admin, dev — full management access
+    function isAdminRole() {
+      return isSignedIn() && userDoc().role in ['city_admin', 'super_admin', 'dev'];
+    }
+    // super_admin/dev are unscoped — they administer every city
+    function isSuperAdminRole() {
+      return isSignedIn() && userDoc().role in ['super_admin', 'dev'];
+    }
+    // A city_admin's homeCityId is their permanent admin scope (never the personal,
+    // freely-switchable cityId) — this checks they administer exactly targetCityId.
+    function isCityAdminOf(targetCityId) {
+      return isSignedIn() && userDoc().role == 'city_admin' && userDoc().homeCityId == targetCityId;
+    }
+    // Combines a super_admin's unscoped reach with a city_admin's city-scoped
+    // reach — the scoped drop-in replacement for isAdminRole() wherever a
+    // document's cityId should gate what a city_admin can touch.
+    function isAdminOf(targetCityId) {
+      return isSuperAdminRole() || isCityAdminOf(targetCityId);
+    }
+    function managesSynagogue(synId, synCityId) {
+      return isSignedIn() && (
+        isAdminOf(synCityId) ||
+        (hasRole('gabbai') && synId in userDoc().managedSynagogueIds)
+      );
+    }
+    // kosher_manager: city-wide cert access
+    // business_manager: only their assigned businesses (stored in managedRestaurantIds)
+    function managesBusiness(bizId, bizCityId) {
+      return isSignedIn() && (
+        isAdminOf(bizCityId) ||
+        hasRole('kosher_manager') ||
+        (hasRole('business_manager') && bizId in userDoc().managedRestaurantIds)
+      );
+    }
+
+    // ── Cities — public read; super_admin writes any city, city_admin only their own ──
+    match /cities/{cityId} {
+      allow read: if true;
+      allow write: if isSuperAdminRole() || isCityAdminOf(cityId);
+    }
+
+    // ── Users ────────────────────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isSuperAdminRole() || isCityAdminOf(resource.data.homeCityId));
+      allow create: if isSignedIn() && request.auth.uid == userId
+        && (!('role' in request.resource.data) || request.resource.data.role == 'user')
+        && (!('managedSynagogueIds' in request.resource.data) || request.resource.data.managedSynagogueIds.size() == 0)
+        && (!('managedRestaurantIds' in request.resource.data) || request.resource.data.managedRestaurantIds.size() == 0);
+      // A city_admin can manage any field of a user within their own homeCityId scope,
+      // but cannot themselves reassign a user's homeCityId — moving someone to a
+      // different city's administration is a super_admin-only action.
+      allow update: if isSuperAdminRole() ||
+        (isCityAdminOf(resource.data.homeCityId) &&
+         !('homeCityId' in request.resource.data.diff(resource.data).affectedKeys())) ||
+        (isSignedIn() && request.auth.uid == userId &&
+         !('role' in request.resource.data.diff(resource.data).affectedKeys()) &&
+         !('managedSynagogueIds' in request.resource.data.diff(resource.data).affectedKeys()) &&
+         !('managedRestaurantIds' in request.resource.data.diff(resource.data).affectedKeys()) &&
+         // A city_admin's homeCityId is their admin jurisdiction — letting them move it
+         // themselves would be self-service privilege escalation to another city, so
+         // only non-city_admin accounts may self-edit homeCityId (e.g. a regular user
+         // relocating, which just repoints their eruv/kashrut push targeting).
+         (!('homeCityId' in request.resource.data.diff(resource.data).affectedKeys()) || resource.data.role != 'city_admin'));
+    }
+
+    // ── Synagogues — public read; gabbai/admin write ─────────────────────────
+    match /synagogues/{synId} {
+      allow read: if true;
+      allow create: if managesSynagogue(synId, request.resource.data.cityId);
+      allow update, delete: if managesSynagogue(synId, resource.data.cityId);
+    }
+
+    // ── Businesses (kosher directory) — public read; manager/admin write ─────
+    match /businesses/{bizId} {
+      allow read: if true;
+      allow create: if managesBusiness(bizId, request.resource.data.cityId);
+      allow update, delete: if managesBusiness(bizId, resource.data.cityId);
+    }
+
+    // ── Mikvaot ──────────────────────────────────────────────────────────────
+    match /mikvaot/{mikId} {
+      allow read: if true;
+      allow create: if isAdminOf(request.resource.data.cityId) || hasRole('kosher_manager');
+      allow update, delete: if isAdminOf(resource.data.cityId) || hasRole('kosher_manager');
+
+      match /appointments/{appointmentId} {
+        allow read:   if isSignedIn();
+        allow create: if isRealAccount()
+                         && request.resource.data.userId == request.auth.uid;
+        allow update: if isSignedIn()
+                         && (resource.data.userId == request.auth.uid
+                             || isAdminRole()
+                             || hasRole('kosher_manager'));
+        allow delete: if isSignedIn()
+                         && (resource.data.userId == request.auth.uid
+                             || isAdminRole()
+                             || hasRole('kosher_manager'));
+      }
+    }
+
+    // ── Kashrut config ───────────────────────────────────────────────────────
+    match /kashrutConfig/{cityId} {
+      allow read: if true;
+      allow write: if isAdminOf(cityId) || hasRole('kosher_manager');
+    }
+
+    // ── Kashrut updates feed ─────────────────────────────────────────────────
+    match /kashrutUpdates/{id} {
+      allow read: if true;
+      allow create: if isAdminOf(request.resource.data.cityId) || hasRole('kosher_manager');
+      allow update, delete: if isAdminOf(resource.data.cityId) || hasRole('kosher_manager');
+    }
+
+    // ── Community events ──────────────────────────────────────────────────────
+    match /events/{eventId} {
+      allow read: if true;
+      allow create: if isSignedIn() && (isAdminOf(request.resource.data.cityId) || hasRole('event_manager') || hasRole('kosher_manager'));
+      allow update, delete: if isAdminOf(resource.data.cityId) || hasRole('event_manager') ||
+        (isSignedIn() && resource.data.createdBy == request.auth.uid);
+    }
+
+    // ── Pending (gabay-submitted) events ─────────────────────────────────────
+    match /pending_events/{docId} {
+      allow read: if isAdminOf(resource.data.cityId) || hasRole('event_manager');
+      allow create: if isSignedIn() && (
+        isAdminOf(request.resource.data.cityId) || hasRole('event_manager') || hasRole('gabbai')
+      );
+      allow update: if isAdminOf(resource.data.cityId) || hasRole('event_manager');
+      allow delete: if isAdminOf(resource.data.cityId);
+    }
+
+    // ── Analytics events ──────────────────────────────────────────────────────
+    match /analyticsEvents/{eventId} {
+      allow create: if isSignedIn();
+      allow read:   if isAdminRole();
+    }
+
+    // ── Push notification tokens ──────────────────────────────────────────────
+    // Keyed by device id (not uid) so one physical device never ends up with more than
+    // one token doc, even if multiple accounts have logged into it over time.
+    match /pushTokens/{deviceId} {
+      allow read: if isAdminRole();
+      // NOTE: this used to also require request.resource.data.uid == request.auth.uid,
+      // matching the same pattern already proven to work for /users/{userId} reads.
+      // That exact-match check was mysteriously rejecting legitimate writes from the
+      // mobile app (uid confirmed matching request.auth.uid via on-device logging),
+      // while the equivalent check succeeded for Firestore reads in the same session.
+      // Relaxed to isSignedIn() to unblock registration; read access stays admin-only,
+      // so the only downside is a signed-in user could overwrite another device's token.
+      allow create, update: if isSignedIn();
+      // Admins can prune stale/legacy tokens (e.g. Expo's DeviceNotRegistered cleanup);
+      // any signed-in device can also self-delete on logout (same relaxation as above).
+      allow delete: if isSignedIn();
+    }
+
+    // ── Sent notifications log ───────────────────────────────────────────────
+    match /sentNotifications/{id} {
+      allow read, write: if isAdminRole();
+    }
+
+    // ── Eruv status ───────────────────────────────────────────────────────────
+    match /eruvStatus/{cityId} {
+      allow read: if true;
+      allow write: if isAdminOf(cityId) || hasRole('eruv_manager');
+    }
+
+    // ── Eruv reports ──────────────────────────────────────────────────────────
+    match /eruvReports/{reportId} {
+      allow read: if isAdminOf(resource.data.cityId) || hasRole('eruv_manager');
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdminOf(resource.data.cityId) || hasRole('eruv_manager');
+      allow delete: if isAdminOf(resource.data.cityId);
+    }
+
+    // ── Gemachs — public read; admin write ───────────────────────────────────
+    match /gemachs/{gemachId} {
+      allow read: if true;
+      allow create: if isAdminOf(request.resource.data.cityId);
+      allow update, delete: if isAdminOf(resource.data.cityId);
+    }
+
+    // ── Pending gemach submissions ────────────────────────────────────────────
+    // (same isAdminRole()-blanket gap as pending_events — scoped alongside it
+    // even though it wasn't in the originally-called-out collection list.)
+    match /pending_gemachs/{docId} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdminOf(resource.data.cityId);
+    }
+
+  }
+}

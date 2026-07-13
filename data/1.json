@@ -1,0 +1,4408 @@
+{
+  "cities": [
+    {
+      "id": "maale-adumim",
+      "name": "Ma'ale Adumim",
+      "country": "Israel",
+      "timezone": "Asia/Jerusalem",
+      "latitude": null,
+      "longitude": null
+    }
+  ],
+  "synagogues": [
+    {
+      "id": "syn-1",
+      "cityId": "maale-adumim",
+      "neighborhood": "נופי סלע (07)",
+      "name": "אביר יעקב",
+      "nusach": "other",
+      "originalNusach": "מרוקאי",
+      "latitude": 31.789606,
+      "longitude": 35.31008,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "אבי גינו",
+      "gabbaiPhone": "054-6091568",
+      "weeklySchedule": {
+        "shacharit": [
+          {"time": "06:00", "days": [1, 2, 3, 4, 5, 6], "notes": null}
+        ],
+        "mincha": [
+          {
+            "time": "19:00",
+            "days": [1, 2, 3, 4, 5],
+            "notes": null
+          }
+        ],
+        "maariv": [
+          {
+            "time": "19:35",
+            "days": [1, 2, 3, 4, 5],
+            "notes": null
+          }
+        ]
+      },
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hge05b",
+      "navigationNote": null,
+      "addressHe": "האלמוג",
+      "addressEn": "HaAlmog"
+    },
+    {
+      "id": "syn-2",
+      "cityId": "maale-adumim",
+      "neighborhood": "נופי סלע (07)",
+      "name": "אהבת חיים",
+      "nusach": "other",
+      "originalNusach": "מרוקאי",
+      "latitude": 31.777675,
+      "longitude": 35.311754,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "מוטי פרץ",
+      "gabbaiPhone": "050-5506063",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg8cnr",
+      "navigationNote": "מתחם הגנים משמאל לביהכנ\"ס צור ישראל",
+      "addressHe": "הרכס 28",
+      "addressEn": "HaReches 28"
+    },
+    {
+      "id": "syn-3",
+      "cityId": "maale-adumim",
+      "neighborhood": "נופי סלע (07)",
+      "name": "אחדות ישראל",
+      "nusach": "other",
+      "originalNusach": "אשכנז/ ספרד",
+      "latitude": 31.791451,
+      "longitude": 35.308535,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "מתי קופמן",
+      "gabbaiPhone": "052-8308040",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg7qys",
+      "navigationNote": "בנין מתי\"א",
+      "addressHe": "האלמוג 37",
+      "addressEn": "HaAlmog 37"
+    },
+    {
+      "id": "syn-4",
+      "cityId": "maale-adumim",
+      "neighborhood": "נופי סלע (07)",
+      "name": "מאיר במעלה",
+      "nusach": "other",
+      "originalNusach": "מעורב/לפי החזן",
+      "latitude": 31.776345,
+      "longitude": 35.305274,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "מתניה רייכמן",
+      "gabbaiPhone": "054-5243865",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg2sw8",
+      "navigationNote": null,
+      "addressHe": "אולפנת צביה",
+      "addressEn": "Tzvia Ulpana"
+    },
+    {
+      "id": "syn-5",
+      "cityId": "maale-adumim",
+      "neighborhood": "נופי סלע (07)",
+      "name": "מעלות לדוד",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.785614,
+      "longitude": 35.30978,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "יעקב בנימין",
+      "gabbaiPhone": "053-3630906",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg6ru9",
+      "navigationNote": null,
+      "addressHe": "הרכס",
+      "addressEn": "HaReches"
+    },
+    {
+      "id": "syn-6",
+      "cityId": "maale-adumim",
+      "neighborhood": "נופי סלע (07)",
+      "name": "משה דיין",
+      "nusach": "other",
+      "originalNusach": "אשכנז/ספרד",
+      "latitude": 31.781838,
+      "longitude": 35.309994,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "ירון קלר",
+      "gabbaiPhone": "050-6775777",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg3xyw",
+      "navigationNote": null,
+      "addressHe": "החלמיש 1",
+      "addressEn": "HaHalamish 1"
+    },
+    {
+      "id": "syn-7",
+      "cityId": "maale-adumim",
+      "neighborhood": "נופי סלע (07)",
+      "name": "נופי סלע",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.780035,
+      "longitude": 35.311582,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "שמעון מזרחי",
+      "gabbaiPhone": "050-8296491",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg93h5",
+      "navigationNote": null,
+      "addressHe": "השחם 2",
+      "addressEn": "HaShoham 2"
+    },
+    {
+      "id": "syn-8",
+      "cityId": "maale-adumim",
+      "neighborhood": "נופי סלע (07)",
+      "name": "עץ חיים",
+      "nusach": "other",
+      "originalNusach": "תימני",
+      "latitude": 31.777675,
+      "longitude": 35.311754,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "עודד שרעבי",
+      "gabbaiPhone": "054-5664488",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg8cnr",
+      "navigationNote": "מתחם הגנים משמאל לביהכנ\"ס צור ישראל",
+      "addressHe": "הרכס 28",
+      "addressEn": "HaReches 28"
+    },
+    {
+      "id": "syn-9",
+      "cityId": "maale-adumim",
+      "neighborhood": "נופי סלע (07)",
+      "name": "צור ישראל",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.777675,
+      "longitude": 35.311754,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "רונן ביטון",
+      "gabbaiPhone": "052-8604351",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg8cnr",
+      "navigationNote": null,
+      "addressHe": "הרכס 28",
+      "addressEn": "HaReches 28"
+    },
+    {
+      "id": "syn-10",
+      "cityId": "maale-adumim",
+      "neighborhood": "נופי סלע (07)",
+      "name": "היכל שמאע",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.791451,
+      "longitude": 35.308535,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "סימון אילוז",
+      "gabbaiPhone": "050-5791024",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg7qys",
+      "navigationNote": null,
+      "addressHe": "האלמוג 37",
+      "addressEn": "HaAlmog 37"
+    },
+    {
+      "id": "syn-11",
+      "cityId": "maale-adumim",
+      "neighborhood": "נופי סלע (07)",
+      "name": "שים שלום",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.780894,
+      "longitude": 35.3142,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "אורן מזרחי",
+      "gabbaiPhone": "050-5063547",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg9e10",
+      "navigationNote": null,
+      "addressHe": "הצור 6",
+      "addressEn": "HaTzur 6"
+    },
+    {
+      "id": "syn-12",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "אבני החושן",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.774156,
+      "longitude": 35.300167,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "יורם רענן",
+      "gabbaiPhone": "052-7737727",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg22cc",
+      "navigationNote": null,
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "syn-13",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "אהל רחל",
+      "nusach": "other",
+      "originalNusach": "אשכנז/ספרד",
+      "latitude": 31.77407,
+      "longitude": 35.296175,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "דורון סגל",
+      "gabbaiPhone": "050-6284176",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg0mck",
+      "navigationNote": null,
+      "addressHe": "מתנ\"ס - מדבר יהודה 5",
+      "addressEn": "Matnas - Midbar Yehuda 5"
+    },
+    {
+      "id": "syn-14",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "אוהל אברהם",
+      "nusach": "other",
+      "originalNusach": "מרוקאי",
+      "latitude": 31.776559,
+      "longitude": 35.302827,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "שי רחמני",
+      "gabbaiPhone": "052-8655561",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg2dxz",
+      "navigationNote": null,
+      "addressHe": "ביה\"ס מעלה התורה, דרך קדם 15",
+      "addressEn": "Maale HaTorah School, Derech Kedem 15"
+    },
+    {
+      "id": "syn-15",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "אוהל אברהם אבינו קהילה אתיופית",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.780422,
+      "longitude": 35.29815,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "ראובן מנגסטו",
+      "gabbaiPhone": "053-4844223",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg1rq6",
+      "navigationNote": null,
+      "addressHe": "העוגב 1",
+      "addressEn": "HaUgav 1"
+    },
+    {
+      "id": "syn-16",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "אוהל ישרים",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.779435,
+      "longitude": 35.298493,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "משה דיין",
+      "gabbaiPhone": "050-4175511",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg1r8d",
+      "navigationNote": null,
+      "addressHe": "דרך מדבר יהודה 37",
+      "addressEn": "Derech Midbar Yehuda 37"
+    },
+    {
+      "id": "syn-17",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "אור התורה",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.777761,
+      "longitude": 35.29815,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "רחמים יצקן",
+      "gabbaiPhone": "050-6209903",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg0zqf",
+      "navigationNote": null,
+      "addressHe": "הנחלים 54",
+      "addressEn": "HaNchalim 54"
+    },
+    {
+      "id": "syn-18",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "בית חב\"ד",
+      "nusach": "other",
+      "originalNusach": "לפי החזן",
+      "latitude": 31.774671,
+      "longitude": 35.299222,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "לוי יצחק ג'ורנו",
+      "gabbaiPhone": "052-6111714",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg22hg",
+      "navigationNote": "בהמשך הפארק מצד ימין",
+      "addressHe": "פארק אדומים",
+      "addressEn": "Park Adumim"
+    },
+    {
+      "id": "syn-19",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "המרכזי",
+      "nusach": "other",
+      "originalNusach": "מרוקאי",
+      "latitude": 31.77613,
+      "longitude": 35.297377,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "משה אסייג",
+      "gabbaiPhone": "050-8511416",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg0wv2",
+      "navigationNote": null,
+      "addressHe": "נחלים 96",
+      "addressEn": "Nchalim 96"
+    },
+    {
+      "id": "syn-20",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "הר הלבונה",
+      "nusach": "other",
+      "originalNusach": "ספרדי ירושלמי",
+      "latitude": null,
+      "longitude": null,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "משה מנדלוביץ",
+      "gabbaiPhone": "054-8408679",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": null,
+      "navigationNote": null,
+      "addressHe": "הר הלבונה 11",
+      "addressEn": "Har HaLevona 11"
+    },
+    {
+      "id": "syn-21",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "חיבת ציון",
+      "nusach": "other",
+      "originalNusach": "לפי החזן",
+      "latitude": 31.780293,
+      "longitude": 35.301797,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "עמנואל טוביאנה",
+      "gabbaiPhone": "050-7426215",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg33vx",
+      "navigationNote": null,
+      "addressHe": "המיצדים 2",
+      "addressEn": "HaMitzadim 2"
+    },
+    {
+      "id": "syn-22",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "יצחקי",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.779778,
+      "longitude": 35.299265,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "שמואל איילון",
+      "gabbaiPhone": "052-8901550",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg324s",
+      "navigationNote": null,
+      "addressHe": "הגיתית 2",
+      "addressEn": "HaGitit 2"
+    },
+    {
+      "id": "syn-23",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "כולל מעלות החיים",
+      "nusach": "other",
+      "originalNusach": "עדות המזרח",
+      "latitude": 31.780121,
+      "longitude": 35.297892,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "גיא נגדאי",
+      "gabbaiPhone": "054-6660542",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg1rhs",
+      "navigationNote": "בתוך בית הספר אורות",
+      "addressHe": "העוגב 1",
+      "addressEn": "HaUgav 1"
+    },
+    {
+      "id": "syn-24",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "מגן אבות",
+      "nusach": "other",
+      "originalNusach": null,
+      "latitude": 31.772654,
+      "longitude": 35.29845,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": null,
+      "gabbaiPhone": null,
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg0p91",
+      "navigationNote": "בכניסה ליהלום 8 למטה במדרגות",
+      "addressHe": "ככר יהלום",
+      "addressEn": "Yahalom Square"
+    },
+    {
+      "id": "syn-25",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "נוסח אחיד",
+      "nusach": "other",
+      "originalNusach": "ספרד",
+      "latitude": 31.779778,
+      "longitude": 35.297077,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "שמואל פרידמן",
+      "gabbaiPhone": "054-8887527",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg1qd9",
+      "navigationNote": "מול תיבות הדואר נכנסים וממשיכים לאמצע הפארק",
+      "addressHe": "ככר הקרן",
+      "addressEn": "HaKeren Square"
+    },
+    {
+      "id": "syn-26",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "נחלת אבות",
+      "nusach": "other",
+      "originalNusach": "תימני",
+      "latitude": 31.779435,
+      "longitude": 35.298493,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "משה סוריט",
+      "gabbaiPhone": "050-8296386",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg1r8d",
+      "navigationNote": null,
+      "addressHe": "דרך מדבר יהודה 37",
+      "addressEn": "Derech Midbar Yehuda 37"
+    },
+    {
+      "id": "syn-27",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "נחלת יצחק",
+      "nusach": "other",
+      "originalNusach": "מרוקאי",
+      "latitude": 31.781538,
+      "longitude": 35.30493,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "אהרן דנה",
+      "gabbaiPhone": "052-8899559",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg3skb",
+      "navigationNote": null,
+      "addressHe": "המצדים 63",
+      "addressEn": "HaMitzadim 63"
+    },
+    {
+      "id": "syn-28",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "עלי עשור ועלי נבל",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.779435,
+      "longitude": 35.298493,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "ירון מחסומי",
+      "gabbaiPhone": "050-3971500",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg1r8d",
+      "navigationNote": null,
+      "addressHe": "דרך מדבר יהודה 37",
+      "addressEn": "Derech Midbar Yehuda 37"
+    },
+    {
+      "id": "syn-29",
+      "cityId": "maale-adumim",
+      "neighborhood": "מרכז העיר",
+      "name": "קניון מעלה אדומים",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.771195,
+      "longitude": 35.299137,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": null,
+      "gabbaiPhone": null,
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9herb09",
+      "navigationNote": "קומה תחתונה ליד שופרסל",
+      "addressHe": "דרך קדם 5",
+      "addressEn": "Derech Kedem 5"
+    },
+    {
+      "id": "syn-30",
+      "cityId": "maale-adumim",
+      "neighborhood": "מישור אדומים/גבעת המייסדים",
+      "name": "אור החיים",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.802952,
+      "longitude": 35.328834,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": null,
+      "gabbaiPhone": null,
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hgvt9t",
+      "navigationNote": null,
+      "addressHe": "גבעת המייסדים",
+      "addressEn": "Givat HaMeyasdim"
+    },
+    {
+      "id": "syn-31",
+      "cityId": "maale-adumim",
+      "neighborhood": "מישור אדומים/גבעת המייסדים",
+      "name": "דלתות המלך",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.790335,
+      "longitude": 35.332267,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "דלתות המלך",
+      "gabbaiPhone": "052-4890083",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hu520j",
+      "navigationNote": null,
+      "addressHe": "תלמי יוסף 8",
+      "addressEn": "Talmei Yosef 8"
+    },
+    {
+      "id": "syn-32",
+      "cityId": "maale-adumim",
+      "neighborhood": "מישור אדומים/גבעת המייסדים",
+      "name": "אולמי גאמוס",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.786773,
+      "longitude": 35.336602,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "מיכאל בליטי",
+      "gabbaiPhone": "053-7254030",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hu4e76",
+      "navigationNote": "צמוד לפלאפל התחנה",
+      "addressHe": "רחוב די זהב 7",
+      "addressEn": "Di Zahav St 7"
+    },
+    {
+      "id": "syn-33",
+      "cityId": "maale-adumim",
+      "neighborhood": "כלי שיר",
+      "name": "היכל אביעד",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.778491,
+      "longitude": 35.294287,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "אברהם סוריט",
+      "gabbaiPhone": "050-8885790",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg1he0",
+      "navigationNote": "למעלה בעלייה מצד שמאל",
+      "addressHe": "התוף 36",
+      "addressEn": "HaTof 36"
+    },
+    {
+      "id": "syn-34",
+      "cityId": "maale-adumim",
+      "neighborhood": "כלי שיר",
+      "name": "מוסר אביך",
+      "nusach": "other",
+      "originalNusach": "אשכנז",
+      "latitude": 31.783769,
+      "longitude": 35.298493,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "מיכאל פומרנץ",
+      "gabbaiPhone": "050-5670113",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg4p9f",
+      "navigationNote": "מסביב לבניין מצד שמאל",
+      "addressHe": "הצילצל 5",
+      "addressEn": "HaTziltzel 5"
+    },
+    {
+      "id": "syn-35",
+      "cityId": "maale-adumim",
+      "neighborhood": "כלי שיר",
+      "name": "מחניים",
+      "nusach": "other",
+      "originalNusach": "אשכנז",
+      "latitude": 31.781194,
+      "longitude": 35.295918,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "נתן קרא-איוונוב",
+      "gabbaiPhone": "054-7718363",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg1tdy",
+      "navigationNote": null,
+      "addressHe": "החליל 17",
+      "addressEn": "HaHalil 17"
+    },
+    {
+      "id": "syn-36",
+      "cityId": "maale-adumim",
+      "neighborhood": "כלי שיר",
+      "name": "קהל חסידים",
+      "nusach": "other",
+      "originalNusach": null,
+      "latitude": 31.778362,
+      "longitude": 35.295875,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "עוז אריאל",
+      "gabbaiPhone": "050-9800446",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg1jdm",
+      "navigationNote": null,
+      "addressHe": "השופר 22",
+      "addressEn": "HaShofar 22"
+    },
+    {
+      "id": "syn-37",
+      "cityId": "maale-adumim",
+      "neighborhood": "מגדים (03)",
+      "name": "בית רבנו",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.770895,
+      "longitude": 35.293815,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "רן גבאי",
+      "gabbaiPhone": "052-5666834",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hepsnv",
+      "navigationNote": "מעל מעיין 2000",
+      "addressHe": "פרי מגדים 19",
+      "addressEn": "Pri Megadim 19"
+    },
+    {
+      "id": "syn-38",
+      "cityId": "maale-adumim",
+      "neighborhood": "מגדים (03)",
+      "name": "גבעת מגדים",
+      "nusach": "other",
+      "originalNusach": "בחול עדות המזרח בשבת וחגים אשכנז/ספרד",
+      "latitude": 31.771882,
+      "longitude": 35.293429,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "דניאל מינץ",
+      "gabbaiPhone": "050-4567844",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hepgus",
+      "navigationNote": null,
+      "addressHe": "פרי מגדים 25",
+      "addressEn": "Pri Megadim 25"
+    },
+    {
+      "id": "syn-39",
+      "cityId": "maale-adumim",
+      "neighborhood": "מגדים (03)",
+      "name": "חסדי חנניה",
+      "nusach": "other",
+      "originalNusach": "מרוקאי",
+      "latitude": 31.770766,
+      "longitude": 35.292056,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "מיטל בוזגלו",
+      "gabbaiPhone": "050-9195054",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hepdyh",
+      "navigationNote": null,
+      "addressHe": "קול התור",
+      "addressEn": "Kol HaTor"
+    },
+    {
+      "id": "syn-40",
+      "cityId": "maale-adumim",
+      "neighborhood": "מגדים (03)",
+      "name": "ישי",
+      "nusach": "other",
+      "originalNusach": "מרוקאי",
+      "latitude": 31.773555,
+      "longitude": 35.290382,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "בן ישעיה",
+      "gabbaiPhone": "050-6775063",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg01wm",
+      "navigationNote": null,
+      "addressHe": "עת הזמיר 3",
+      "addressEn": "Et HaZamir 3"
+    },
+    {
+      "id": "syn-41",
+      "cityId": "maale-adumim",
+      "neighborhood": "מגדים (03)",
+      "name": "מצפה מגדים",
+      "nusach": "other",
+      "originalNusach": "בחול ירושלמי בשבת וחגים אשכנז/ספרד",
+      "latitude": 31.771882,
+      "longitude": 35.293429,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "יחיאל וקנין",
+      "gabbaiPhone": "050-6613697",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hepgus",
+      "navigationNote": "מעל החנייה",
+      "addressHe": "פרי מגדים 25",
+      "addressEn": "Pri Megadim 25"
+    },
+    {
+      "id": "syn-42",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "אהבה וחסד",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.771023,
+      "longitude": 35.313599,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "יורן נאקי",
+      "gabbaiPhone": "050-5078579",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hexdxd",
+      "navigationNote": null,
+      "addressHe": "הצלף 18",
+      "addressEn": "HaTzalaf 18"
+    },
+    {
+      "id": "syn-43",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "אהבת ישראל",
+      "nusach": "other",
+      "originalNusach": "מרוקאי",
+      "latitude": 31.765273,
+      "longitude": 35.298836,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "גרשון לוי",
+      "gabbaiPhone": "050-6775758",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9henxy4",
+      "navigationNote": null,
+      "addressHe": "הדקל 1",
+      "addressEn": "HaDekel 1"
+    },
+    {
+      "id": "syn-44",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "אוהבי ציון",
+      "nusach": "other",
+      "originalNusach": "אלג'יראי",
+      "latitude": 31.770937,
+      "longitude": 35.307548,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "עמנואל רווח",
+      "gabbaiPhone": "054-8318023",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9herwpj",
+      "navigationNote": "ביה\"ס - כניסה ממגרש הספורט - במקלט מאחורה",
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "syn-45",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "אור זרוע",
+      "nusach": "other",
+      "originalNusach": "מרוקאי",
+      "latitude": 31.768663,
+      "longitude": 35.304286,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "מאיר דדון",
+      "gabbaiPhone": "054-5944840",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9her7cc",
+      "navigationNote": null,
+      "addressHe": "הקנה 1",
+      "addressEn": "HaKaneh 1"
+    },
+    {
+      "id": "syn-46",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "בית חב\"ד 06",
+      "nusach": "other",
+      "originalNusach": "ספרדי ירושלמי",
+      "latitude": 31.765616,
+      "longitude": 35.29536,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "רב שמואל",
+      "gabbaiPhone": "052-7707488",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9henv21",
+      "navigationNote": null,
+      "addressHe": "השיזף 16",
+      "addressEn": "HaShizaf 16"
+    },
+    {
+      "id": "syn-47",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "ברכת כהן",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.768663,
+      "longitude": 35.304286,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "שמואל בכר",
+      "gabbaiPhone": "054-2888790",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9her7cc",
+      "navigationNote": null,
+      "addressHe": "הקנה 1",
+      "addressEn": "HaKaneh 1"
+    },
+    {
+      "id": "syn-48",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "ברכת שלום העם",
+      "nusach": "other",
+      "originalNusach": "מרוקו",
+      "latitude": 31.767805,
+      "longitude": 35.301797,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "אשר אבגי",
+      "gabbaiPhone": "050-9009895",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9her1uz",
+      "navigationNote": "בתוך המתנ\"ס",
+      "addressHe": "מבוא הצפצפה 1",
+      "addressEn": "Mevo HaTzaftzafa 1"
+    },
+    {
+      "id": "syn-49",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "היכל עמרם",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.766989,
+      "longitude": 35.297935,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "יעקב אהרון",
+      "gabbaiPhone": "050-6889977",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hepp0j",
+      "navigationNote": "קומה שנייה מעל המכולת",
+      "addressHe": "צמח השדה 22",
+      "addressEn": "Tzemach HaSadeh 22"
+    },
+    {
+      "id": "syn-50",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "היכל רחל ואסתר (אמרי פי)",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.767547,
+      "longitude": 35.294716,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "ירון אסלן",
+      "gabbaiPhone": "052-5040440",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hephg6",
+      "navigationNote": null,
+      "addressHe": "האשל 72",
+      "addressEn": "HaEshel 72"
+    },
+    {
+      "id": "syn-51",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "כולל עמל התורה",
+      "nusach": "other",
+      "originalNusach": "ספרדי ירושלמי",
+      "latitude": 31.76686,
+      "longitude": 35.300767,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "יוסף סויסה",
+      "gabbaiPhone": "050-7701145",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9heqcpr",
+      "navigationNote": "קומה שנייה מעל המסעדה",
+      "addressHe": "צמח השדה 40",
+      "addressEn": "Tzemach HaSadeh 40"
+    },
+    {
+      "id": "syn-52",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "משכן יהודה",
+      "nusach": "other",
+      "originalNusach": "כורדי ירושלמי",
+      "latitude": 31.768062,
+      "longitude": 35.3039,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "אורי שבתאי",
+      "gabbaiPhone": "050-5772323",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9her5w2",
+      "navigationNote": null,
+      "addressHe": "הערבה 1",
+      "addressEn": "HaArava 1"
+    },
+    {
+      "id": "syn-53",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "משכנותיך ישראל",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.767504,
+      "longitude": 35.301969,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "יקיר חליבה",
+      "gabbaiPhone": "050-2287598",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9her455",
+      "navigationNote": "קומה שניה מעל שום פלפל ושמן זית",
+      "addressHe": "צמח השדה 29",
+      "addressEn": "Tzemach HaSadeh 29"
+    },
+    {
+      "id": "syn-54",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "שיח השדה",
+      "nusach": "other",
+      "originalNusach": "אשכנז/ספרד",
+      "latitude": 31.768148,
+      "longitude": 35.301368,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "גלעד ליבר",
+      "gabbaiPhone": "054-7884832",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9her1wv",
+      "navigationNote": null,
+      "addressHe": "הצפצפה 4",
+      "addressEn": "HaTzaftzafa 4"
+    },
+    {
+      "id": "syn-55",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "שלום לעם",
+      "nusach": "other",
+      "originalNusach": "ירושלמי ישיבתי",
+      "latitude": 31.767633,
+      "longitude": 35.302098,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "ינון דוינו",
+      "gabbaiPhone": "052-5262535",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9her45y",
+      "navigationNote": "מעל הקיוסק",
+      "addressHe": "צמח השדה 33",
+      "addressEn": "Tzemach HaSadeh 33"
+    },
+    {
+      "id": "syn-56",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "שערי רחמים (עמל אדומים)",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.768191,
+      "longitude": 35.296175,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "אילן לוי",
+      "gabbaiPhone": "050-6277933",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hepjzh",
+      "navigationNote": "עמל אדומים קומה 3",
+      "addressHe": "האשל",
+      "addressEn": "HaEshel"
+    },
+    {
+      "id": "syn-57",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "תפארת בנים",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.768663,
+      "longitude": 35.304286,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "גיא קרסנטי",
+      "gabbaiPhone": "052-3995792",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9her7cc",
+      "navigationNote": null,
+      "addressHe": "הקנה 1",
+      "addressEn": "HaKaneh 1"
+    },
+    {
+      "id": "syn-58",
+      "cityId": "maale-adumim",
+      "neighborhood": "צמח השדה (06)",
+      "name": "תפארת תימן",
+      "nusach": "other",
+      "originalNusach": "תימני",
+      "latitude": 31.767848,
+      "longitude": 35.301926,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "ארז שעיבי",
+      "gabbaiPhone": "050-6275559",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9her4j4",
+      "navigationNote": "בתוך ביה\"ס",
+      "addressHe": "הצפצפה 10",
+      "addressEn": "HaTzaftzafa 10"
+    },
+    {
+      "id": "syn-59",
+      "cityId": "maale-adumim",
+      "neighborhood": "מצפה נבו",
+      "name": "היכל בר יוחאי",
+      "nusach": "other",
+      "originalNusach": "מרוקאי",
+      "latitude": 31.794412,
+      "longitude": 35.302398,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "שי מורלי",
+      "gabbaiPhone": "054-7887569",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg7frv",
+      "navigationNote": "לרדת במדרגות מימין לבית כנסת פני שמואל עד למטה",
+      "addressHe": "מצפה נבו 100",
+      "addressEn": "Mitzpe Nevo 100"
+    },
+    {
+      "id": "syn-60",
+      "cityId": "maale-adumim",
+      "neighborhood": "מצפה נבו",
+      "name": "הגילגל",
+      "nusach": "other",
+      "originalNusach": "אשכנז/ספרד",
+      "latitude": 31.796687,
+      "longitude": 35.30287,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "בנצי אנדה",
+      "gabbaiPhone": "054-7887390",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hgk6v0",
+      "navigationNote": null,
+      "addressHe": "הגילגל 18",
+      "addressEn": "HaGilgal 18"
+    },
+    {
+      "id": "syn-61",
+      "cityId": "maale-adumim",
+      "neighborhood": "מצפה נבו",
+      "name": "ישיבת ההסדר ברכת משה",
+      "nusach": "other",
+      "originalNusach": "לפי החזן",
+      "latitude": 31.790292,
+      "longitude": 35.301239,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "הראל רווה",
+      "gabbaiPhone": "055-6616808",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg71xf",
+      "navigationNote": null,
+      "addressHe": "מצפה נבו 21",
+      "addressEn": "Mitzpe Nevo 21"
+    },
+    {
+      "id": "syn-62",
+      "cityId": "maale-adumim",
+      "neighborhood": "מצפה נבו",
+      "name": "מעלות דוד",
+      "nusach": "other",
+      "originalNusach": "אשכנזי",
+      "latitude": 31.788318,
+      "longitude": 35.298579,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "אוריאל תאיר",
+      "gabbaiPhone": "054-4547374",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg4zsk",
+      "navigationNote": null,
+      "addressHe": "מצפה נבו 44",
+      "addressEn": "Mitzpe Nevo 44"
+    },
+    {
+      "id": "syn-63",
+      "cityId": "maale-adumim",
+      "neighborhood": "מצפה נבו",
+      "name": "מצפה נבו",
+      "nusach": "other",
+      "originalNusach": "אשכנז/ספרד",
+      "latitude": 31.791365,
+      "longitude": 35.302441,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "אריה כהן",
+      "gabbaiPhone": "052-7099978",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg76qn",
+      "navigationNote": "להמשיך ישר ברגל אחרי היכל הספורט",
+      "addressHe": "פארק מצפה נבו",
+      "addressEn": "Park Mitzpe Nevo"
+    },
+    {
+      "id": "syn-64",
+      "cityId": "maale-adumim",
+      "neighborhood": "מצפה נבו",
+      "name": "משכן בגלגל",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.794412,
+      "longitude": 35.302398,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "אבי משה",
+      "gabbaiPhone": "050-6235234",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg7frv",
+      "navigationNote": "לרדת במדרגות מימין לבית כנסת פני שמואל עד למטה",
+      "addressHe": "הגלגל 1",
+      "addressEn": "HaGalgal 1"
+    },
+    {
+      "id": "syn-65",
+      "cityId": "maale-adumim",
+      "neighborhood": "מצפה נבו",
+      "name": "משכן שושנה",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.788189,
+      "longitude": 35.298493,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "עופר כהן",
+      "gabbaiPhone": "054-5666611",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg4zed",
+      "navigationNote": null,
+      "addressHe": "מצפה נבו 42",
+      "addressEn": "Mitzpe Nevo 42"
+    },
+    {
+      "id": "syn-66",
+      "cityId": "maale-adumim",
+      "neighborhood": "מצפה נבו",
+      "name": "נזר אהרון",
+      "nusach": "other",
+      "originalNusach": "ירושלמי",
+      "latitude": 31.791365,
+      "longitude": 35.302441,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "מיכאל בן הרוש",
+      "gabbaiPhone": "052-2513632",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg76qn",
+      "navigationNote": "להמשיך ישר ברגל אחרי היכל הספורט",
+      "addressHe": "פארק מצפה נבו",
+      "addressEn": "Park Mitzpe Nevo"
+    },
+    {
+      "id": "syn-67",
+      "cityId": "maale-adumim",
+      "neighborhood": "מצפה נבו",
+      "name": "נחלת יהודה",
+      "nusach": "other",
+      "originalNusach": "ספרד/קרליבך",
+      "latitude": 31.791108,
+      "longitude": 35.302227,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "יונתן רוסנר",
+      "gabbaiPhone": "054-3040515",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg76k9",
+      "navigationNote": null,
+      "addressHe": "מצפה נבו 97 (ישיבה תיכונית)",
+      "addressEn": "Mitzpe Nevo 97 (Yeshiva Tichonit)"
+    },
+    {
+      "id": "syn-68",
+      "cityId": "maale-adumim",
+      "neighborhood": "מצפה נבו",
+      "name": "פני שמואל",
+      "nusach": "other",
+      "originalNusach": "אשכנז/ספרד",
+      "latitude": 31.794412,
+      "longitude": 35.302398,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": "שי פרץ",
+      "gabbaiPhone": "052-5665302",
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg7frv",
+      "navigationNote": null,
+      "addressHe": "מצפה נבו 102",
+      "addressEn": "Mitzpe Nevo 102"
+    },
+    {
+      "id": "syn-69",
+      "cityId": "maale-adumim",
+      "neighborhood": "מצפה נבו",
+      "name": "קרליבך בגן",
+      "nusach": "other",
+      "originalNusach": "אשכנז/ספרד",
+      "latitude": 31.790679,
+      "longitude": 35.299609,
+      "rabbiPhone": null,
+      "rabbiName": null,
+      "gabbaiName": null,
+      "gabbaiPhone": null,
+      "weeklySchedule": null,
+      "specialEvents": null,
+      "shiurim": null,
+      "notes": null,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg726h",
+      "navigationNote": "למעלה במדרגות",
+      "addressHe": "מצפה נבו 23",
+      "addressEn": "Mitzpe Nevo 23"
+    }
+  ],
+  "mikvaot": [
+    {
+      "id": "mik-1",
+      "cityId": "maale-adumim",
+      "name": "מקווה נשים מישור אדומים/גבעת המייסדים",
+      "type": "women",
+      "phone": null,
+      "openingHours": null,
+      "requiresAppointment": true,
+      "appointmentPhone": "054-8440007",
+      "balanitDetails": "אסתר וולקאר 054-8440007 בתיאום מראש",
+      "notes": null,
+      "latitude": 31.803424,
+      "longitude": 35.329993,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hgvws2",
+      "navigationNote": "סוף החנייה מצד ימין בסוף השביל האדום",
+      "addressHe": "מישור אדומים",
+      "addressEn": "Mishor Adumim"
+    },
+    {
+      "id": "mik-2",
+      "cityId": "maale-adumim",
+      "name": "מקווה נשים נופי סלע (07)",
+      "type": "women",
+      "phone": "02-5905632",
+      "openingHours": null,
+      "requiresAppointment": false,
+      "appointmentPhone": null,
+      "balanitDetails": "עידית עשור 052-5724881, רות דרעי 054-8541765, איריס שרביט 054-5766329",
+      "notes": null,
+      "latitude": 31.783941,
+      "longitude": 35.311754,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hgd14z",
+      "navigationNote": null,
+      "addressHe": "רח' השיש 20",
+      "addressEn": "HaShayish St 20"
+    },
+    {
+      "id": "mik-3",
+      "cityId": "maale-adumim",
+      "name": "מקווה נשים מרכז העיר",
+      "type": "women",
+      "phone": "02-5352007",
+      "openingHours": null,
+      "requiresAppointment": false,
+      "appointmentPhone": null,
+      "balanitDetails": "יהודית מזרחי 054-5866794",
+      "notes": null,
+      "latitude": 31.776087,
+      "longitude": 35.297377,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg0wv0",
+      "navigationNote": null,
+      "addressHe": "רח' הנחלים 96",
+      "addressEn": "HaNchalim St 96"
+    },
+    {
+      "id": "mik-4",
+      "cityId": "maale-adumim",
+      "name": "מקווה נשים במגדים (03)",
+      "type": "women",
+      "phone": "02-5901022",
+      "openingHours": null,
+      "requiresAppointment": false,
+      "appointmentPhone": null,
+      "balanitDetails": "מרים שווה 054-6966225",
+      "notes": null,
+      "latitude": 31.769521,
+      "longitude": 35.291798,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hep6wy",
+      "navigationNote": null,
+      "addressHe": "רח' פרי מגדים 102",
+      "addressEn": "Pri Megadim St 102"
+    },
+    {
+      "id": "mik-5",
+      "cityId": "maale-adumim",
+      "name": "מקווה נשים בצמח השדה (06)",
+      "type": "women",
+      "phone": "02-5909385",
+      "openingHours": null,
+      "requiresAppointment": false,
+      "appointmentPhone": null,
+      "balanitDetails": "ענת אריאל 054-7254677, טובי פומרנץ 050-7346609",
+      "notes": null,
+      "latitude": 31.76832,
+      "longitude": 35.304029,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9her5xg",
+      "navigationNote": null,
+      "addressHe": "רח' הערבה 3",
+      "addressEn": "HaArava St 3"
+    },
+    {
+      "id": "mik-6",
+      "cityId": "maale-adumim",
+      "name": "מקווה נשים במצפה נבו",
+      "type": "women",
+      "phone": "02-5351732",
+      "openingHours": null,
+      "requiresAppointment": false,
+      "appointmentPhone": null,
+      "balanitDetails": "שרה זקן 050-6622343",
+      "notes": null,
+      "latitude": 31.79424,
+      "longitude": 35.302269,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg7fqf",
+      "navigationNote": null,
+      "addressHe": "רח' מצפה נבו 96",
+      "addressEn": "Mitzpe Nevo St 96"
+    },
+    {
+      "id": "mik-7",
+      "cityId": "maale-adumim",
+      "name": "מקווה גברים מצפה נבו",
+      "type": "men",
+      "phone": "050-2280262",
+      "openingHours": {
+        "sunday": "09:00-10:00",
+        "monday": "09:00-10:00",
+        "tuesday": "09:00-10:00",
+        "wednesday": "09:00-10:00",
+        "thursday": "09:00-10:00",
+        "friday": "13:00-14:00"
+      },
+      "requiresAppointment": false,
+      "appointmentPhone": null,
+      "balanitDetails": "דוד זקן",
+      "notes": null,
+      "latitude": 31.79424,
+      "longitude": 35.302269,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg7fqf",
+      "navigationNote": null,
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "mik-8",
+      "cityId": "maale-adumim",
+      "name": "בית הכנסת יצחקי – מקווה פרטי",
+      "type": "men",
+      "phone": null,
+      "openingHours": {
+        "sunday": "03:30-19:00",
+        "monday": "03:30-19:00",
+        "tuesday": "03:30-19:00",
+        "wednesday": "03:30-19:00",
+        "thursday": "03:30-19:00",
+        "friday": "03:30-19:00",
+        "saturday": "03:30-19:00"
+      },
+      "requiresAppointment": false,
+      "appointmentPhone": null,
+      "balanitDetails": null,
+      "notes": "המחיר 15 ש\"ח במזומן.",
+      "latitude": 31.779778,
+      "longitude": 35.299265,
+      "updatedAt": null,
+      "wazeLink": "https://waze.com/ul/hsv9hg324s",
+      "navigationNote": null,
+      "addressHe": null,
+      "addressEn": null
+    }
+  ],
+  "mikvaotGlobalInfo": {
+    "supervisorName": "מיכל בנימין",
+    "supervisorPhone": "0508296225",
+    "paymentLink": "https://matara.pro/nedarimplus/Forms/1248.html",
+    "scheduleAppAndroid": "https://play.google.com/store/apps/details?id=mikve.online.com&pli=1",
+    "scheduleAppIOS": "https://apps.apple.com/il/app/%D7%9E%D7%A7%D7%95%D7%95%D7%94-%D7%90%D7%95%D7%A0%D7%9C%D7%99%D7%99%D7%9F/id6444957400?l=he"
+  },
+  "restaurants": [
+    {
+      "id": "rest-1",
+      "cityId": "maale-adumim",
+      "name": "אדי פלוס",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-1",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-2",
+      "cityId": "maale-adumim",
+      "name": "אולפנת צביה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-2",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-3",
+      "cityId": "maale-adumim",
+      "name": "אושי אושי",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-3",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-4",
+      "cityId": "maale-adumim",
+      "name": "אותנטי",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-4",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-5",
+      "cityId": "maale-adumim",
+      "name": "אטליז בראשית קצבים",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-5",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-6",
+      "cityId": "maale-adumim",
+      "name": "אטליז בשר אדום",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-6",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-7",
+      "cityId": "maale-adumim",
+      "name": "אטליז הקצבים",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-7",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-8",
+      "cityId": "maale-adumim",
+      "name": "אטליז חמוי",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-8",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-9",
+      "cityId": "maale-adumim",
+      "name": "אלוף החמוצים",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-9",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-10",
+      "cityId": "maale-adumim",
+      "name": "ארומה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-10",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-11",
+      "cityId": "maale-adumim",
+      "name": "באגט בכיכר",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-11",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-12",
+      "cityId": "maale-adumim",
+      "name": "באגט מרציאנו",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-12",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-13",
+      "cityId": "maale-adumim",
+      "name": "באולינג-מישור אדמים",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-13",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-14",
+      "cityId": "maale-adumim",
+      "name": "בהדונס",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-14",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-15",
+      "cityId": "maale-adumim",
+      "name": "בוטיק הממולאים מבית קולינרי",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-15",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-16",
+      "cityId": "maale-adumim",
+      "name": "בוטיק סנטרל",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-16",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-17",
+      "cityId": "maale-adumim",
+      "name": "בון-פת - מאפייה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-17",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-18",
+      "cityId": "maale-adumim",
+      "name": "בורגר מרקט",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-18",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-19",
+      "cityId": "maale-adumim",
+      "name": "בורגראנץ",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-19",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-20",
+      "cityId": "maale-adumim",
+      "name": "בורגרים",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-20",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-21",
+      "cityId": "maale-adumim",
+      "name": "בורגרס-בר",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-21",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-22",
+      "cityId": "maale-adumim",
+      "name": "בטר אנד דיפרנט",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-22",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-23",
+      "cityId": "maale-adumim",
+      "name": "ביי-לארטיזן",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-23",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-24",
+      "cityId": "maale-adumim",
+      "name": "בייקריז - קניון די סי",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-24",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-25",
+      "cityId": "maale-adumim",
+      "name": "בית מאפה - עידית",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-25",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-26",
+      "cityId": "maale-adumim",
+      "name": "בלאדי",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-26",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-27",
+      "cityId": "maale-adumim",
+      "name": "בנ'ס פיצה שופ",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-27",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-28",
+      "cityId": "maale-adumim",
+      "name": "בראשית בפיתה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-28",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-29",
+      "cityId": "maale-adumim",
+      "name": "גאמוס-אולם אירועים",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-29",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-30",
+      "cityId": "maale-adumim",
+      "name": "גליקס פיקלס בע\"מ",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-30",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-31",
+      "cityId": "maale-adumim",
+      "name": "גרינטק - גרינפילד - תוספי תזונה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-31",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-32",
+      "cityId": "maale-adumim",
+      "name": "גרעיני הבית-פיצוחים",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-32",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-33",
+      "cityId": "maale-adumim",
+      "name": "דגי יהלום",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-33",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-34",
+      "cityId": "maale-adumim",
+      "name": "דוידוב-מעדני בוטיק",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-34",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-35",
+      "cityId": "maale-adumim",
+      "name": "די בי ביליארד בע\"מ",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-35",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-36",
+      "cityId": "maale-adumim",
+      "name": "דלישס במיוחד- קייטרינג",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-36",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-37",
+      "cityId": "maale-adumim",
+      "name": "דרך הטבע - יצור סחר ושיווק בע\"מ",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-37",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-38",
+      "cityId": "maale-adumim",
+      "name": "דרך לחיות",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-38",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-39",
+      "cityId": "maale-adumim",
+      "name": "האצה סושי-בר",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-39",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-40",
+      "cityId": "maale-adumim",
+      "name": "המטבח של בבר",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-40",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-41",
+      "cityId": "maale-adumim",
+      "name": "העוגיות של פנינה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-41",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-42",
+      "cityId": "maale-adumim",
+      "name": "הפאלפל התימני",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-42",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-43",
+      "cityId": "maale-adumim",
+      "name": "הקצבים מירושלים",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-43",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-44",
+      "cityId": "maale-adumim",
+      "name": "השיפודיה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-44",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-45",
+      "cityId": "maale-adumim",
+      "name": "וופל בר",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-45",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-46",
+      "cityId": "maale-adumim",
+      "name": "זול ובגדול -פרי וירק",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-46",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-47",
+      "cityId": "maale-adumim",
+      "name": "זול ובגדול-בשר ועוף (2)",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-47",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-48",
+      "cityId": "maale-adumim",
+      "name": "זיסלק",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-48",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-49",
+      "cityId": "maale-adumim",
+      "name": "חומוס אדומים",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-49",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-50",
+      "cityId": "maale-adumim",
+      "name": "חומוס אליהו",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-50",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-51",
+      "cityId": "maale-adumim",
+      "name": "יוחננוף",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-51",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-52",
+      "cityId": "maale-adumim",
+      "name": "יקב 1848 - כשר לפסח לכל ימות השנה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-52",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-53",
+      "cityId": "maale-adumim",
+      "name": "יקב הכורמים",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-53",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-54",
+      "cityId": "maale-adumim",
+      "name": "יקבי ארזה - כשר לפסח לימות השנה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-54",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-55",
+      "cityId": "maale-adumim",
+      "name": "יקבי ציון - כשר לפסח לימות השנה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-55",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-56",
+      "cityId": "maale-adumim",
+      "name": "כזית מהדרין",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-56",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-57",
+      "cityId": "maale-adumim",
+      "name": "לאגו - LAGO",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-57",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-58",
+      "cityId": "maale-adumim",
+      "name": "מאפה נאמן",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-58",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        },
+        {
+          "id": "cert-rest-58-mehadrin",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true,
+          "notes": "Some branches are mehadrin, some regular"
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-59",
+      "cityId": "maale-adumim",
+      "name": "מאפייה/בית קפה-נחמה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-59",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-60",
+      "cityId": "maale-adumim",
+      "name": "מאפיית ביכורים,מאפיית לב הכפר,מאפיית טעמי הכפר",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-60",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-61",
+      "cityId": "maale-adumim",
+      "name": "מאפיית ברכת השבת",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-61",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-62",
+      "cityId": "maale-adumim",
+      "name": "מאפיית שיבולת השרון",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-62",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-63",
+      "cityId": "maale-adumim",
+      "name": "מאקיסו-סושי",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-63",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-64",
+      "cityId": "maale-adumim",
+      "name": "מבשלים בשבילך",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-64",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-65",
+      "cityId": "maale-adumim",
+      "name": "מג'ק פוד - לונה פארק",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-65",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-66",
+      "cityId": "maale-adumim",
+      "name": "מחניודה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-66",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-67",
+      "cityId": "maale-adumim",
+      "name": "מיה תעשיות מזון מ.ת.מ. בע\"מ",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-67",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-68",
+      "cityId": "maale-adumim",
+      "name": "מלון די הוטל",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-68",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-69",
+      "cityId": "maale-adumim",
+      "name": "ממלכת החלבה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-69",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-70",
+      "cityId": "maale-adumim",
+      "name": "מעדני אורי ובניו",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-70",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-71",
+      "cityId": "maale-adumim",
+      "name": "מעדני צו'נה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-71",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-72",
+      "cityId": "maale-adumim",
+      "name": "מעיין 2000 (סניפים שונים)",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-72",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-73",
+      "cityId": "maale-adumim",
+      "name": "מפגש השייח-בית מאפה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-73",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-74",
+      "cityId": "maale-adumim",
+      "name": "משחטת-עוף הבירה 1995",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-74",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-75",
+      "cityId": "maale-adumim",
+      "name": "ניו דלי-סנדוויץ",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-75",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-76",
+      "cityId": "maale-adumim",
+      "name": "סופר ספיר (מחלקות שונות)",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-76",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-77",
+      "cityId": "maale-adumim",
+      "name": "סטי",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-77",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-78",
+      "cityId": "maale-adumim",
+      "name": "סטייג'",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-78",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-79",
+      "cityId": "maale-adumim",
+      "name": "סטקיית המישור",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-79",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-80",
+      "cityId": "maale-adumim",
+      "name": "פאר-לי-קילופי ירקות",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-80",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-81",
+      "cityId": "maale-adumim",
+      "name": "פינאטס ישראלי בע\"מ",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-81",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-82",
+      "cityId": "maale-adumim",
+      "name": "פיצה אנשהו",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-82",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-83",
+      "cityId": "maale-adumim",
+      "name": "פיצה האט",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-83",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-84",
+      "cityId": "maale-adumim",
+      "name": "פיצה נבו",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-84",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-85",
+      "cityId": "maale-adumim",
+      "name": "פיצה סטורי",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-85",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-86",
+      "cityId": "maale-adumim",
+      "name": "פיצה רומי",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-86",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-87",
+      "cityId": "maale-adumim",
+      "name": "פיצה שמש",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-87",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-88",
+      "cityId": "maale-adumim",
+      "name": "פיצוחי זריפה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-88",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-89",
+      "cityId": "maale-adumim",
+      "name": "פיצוחי מורנו",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-89",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular",
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true,
+          "notes": "Some noted regular, some mehadrin"
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-90",
+      "cityId": "maale-adumim",
+      "name": "פירנצ'ה-פיצה אורי",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-90",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-91",
+      "cityId": "maale-adumim",
+      "name": "פיתה בשר",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-91",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-92",
+      "cityId": "maale-adumim",
+      "name": "פלאפל בתחנה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-92",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-93",
+      "cityId": "maale-adumim",
+      "name": "פסטה בסטה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-93",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-94",
+      "cityId": "maale-adumim",
+      "name": "פריאלי",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-94",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-95",
+      "cityId": "maale-adumim",
+      "name": "קובה הבית",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-95",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-96",
+      "cityId": "maale-adumim",
+      "name": "קולינר פקטורי",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-96",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-97",
+      "cityId": "maale-adumim",
+      "name": "קפה ג'קוב",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-97",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-98",
+      "cityId": "maale-adumim",
+      "name": "קפה הפרדס",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-98",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-99",
+      "cityId": "maale-adumim",
+      "name": "קפית-קפה באגם",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-99",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-100",
+      "cityId": "maale-adumim",
+      "name": "קצפת (כלל הסניפים)",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-100",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-101",
+      "cityId": "maale-adumim",
+      "name": "רגע בטבע בע\"מ",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-101",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-102",
+      "cityId": "maale-adumim",
+      "name": "ריבר-REBAR",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-102",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-103",
+      "cityId": "maale-adumim",
+      "name": "ריקו - איטלקית",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-103",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-104",
+      "cityId": "maale-adumim",
+      "name": "רמי לוי (מחלקות שונות)",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-104",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-105",
+      "cityId": "maale-adumim",
+      "name": "שום פלפל שמן זית",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-105",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-106",
+      "cityId": "maale-adumim",
+      "name": "שופרסל דיל (מחלקות שונות)",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-106",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-107",
+      "cityId": "maale-adumim",
+      "name": "שיפודיה",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-107",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular",
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true,
+          "notes": "Multiple entries with different levels"
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-108",
+      "cityId": "maale-adumim",
+      "name": "שישליק",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-108",
+          "issuedBy": null,
+          "kosherLevel": [
+            "mehadrin"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    },
+    {
+      "id": "rest-109",
+      "cityId": "maale-adumim",
+      "name": "תכלית - מזון מוכן",
+      "category": null,
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "kosherCertificates": [
+        {
+          "id": "cert-rest-109",
+          "issuedBy": null,
+          "kosherLevel": [
+            "regular"
+          ],
+          "validFrom": null,
+          "validUntil": null,
+          "isActive": true
+        }
+      ],
+      "addressHe": null,
+      "addressEn": null
+    }
+  ],
+  "kashrutDeptNotes": [
+    "כל הכשרויות הן בתנאי שמוצגת בעסק תעודה מקורית (לא צילום!) מעודכנת.",
+    "במרכולים, הכשרות על ירק עלים - רק על אריזה הנושאת 'מפוקח מחרקים'.",
+    "החנויות הבשריות ברמת כשרות מהדרין - הבישול - בישול ישראל. מוצרי הבשר והעוף - בד\"צים שונים (מחפוד , מוצפי, עטרה, חלק חו\"ל רבנות).",
+    "מוצרים מחו\"ל - הנושאים כיתוב אישור הרבנות הראשית לישראל בלבד.",
+    "כבדים - להכשיר בצלייה. אם עברו שלושה ימים מהשחיטה - אין לבשל אחרי הצלייה.",
+    "לבבות - לפתוח ולהוציא את כלי הדם, והערלה ורק אח\"כ להמליח ולהכשיר כדין."
+  ],
+  "dailyPrayerTimesNotes": {
+    "shacharit": [
+      "04:55 - המרכזי (4:50 ב,ה)",
+      "05:00 - עמל אדומים",
+      "05:05 - (נץ) - מצפה מגדים",
+      "05:10 - משכן יהודה (5:00 ב,ה)",
+      "05:10 - (נץ) - ברכת כהן, צור ישראל, אמרי פי, עלי עשור, נופי סלע, אור התורה, אבני החושן",
+      "05:15 - היכל שמאע (5:10 ב,ה), נופי סלע, (נץ) - אהבת ישראל",
+      "05:25 - (נץ) - נזר אהרון - הודו, עלי עשור",
+      "05:30 - נחלת יצחק",
+      "05:40 - מעלות לדוד 07 (5:30 ב,ה), נחלת אבות (5:30 ב,ה)",
+      "05:45 - יצחקי, אבני החושן",
+      "05:50 - חסדי חנניה, נוסח אחיד - הודו, משה דיין - הודו (5:45 ב,ה)",
+      "06:00 - ישי (5:50 ב,ה), משכן שושנה (הודו), שלום לעם (5:50 ב,ה), אביר יעקב, מצפה נבו - הודו (5:50 ב,ה), צור ישראל",
+      "06:15 - תפארת בנים - הודו (6:05 ב,ה)",
+      "06:20 - הגילגל - הודו (6:15 ב,ה)",
+      "06:30 - מצפה מגדים (6:20 ב,ה), היכל שמאע (ו), מוסר אביך (ו), נוסח אחיד - הודו (א-ה), המרכזי, פני שמואל - הודו (6:20 ב,ה)",
+      "06:45 - נופי סלע (6:40 ב,ה), מעלות דוד מ.נבו - הודו (6:35 ב,ה), יצחקי, אהבת ישראל",
+      "07:00 - ישיבת ההסדר ברכת משה, הגילגל (ו), נוסח אחיד (ו), אור זרוע, מחניים - הודו, שיח השדה - הודו",
+      "07:15 - פני שמואל - הודו",
+      "07:30 - מחניים - הודו (ו), יצחקי, אור התורה, אבני החושן, מעלות דוד מ. נבו - הודו",
+      "07:45 - שיח השדה, ברכת כהן, שלום לעם, חב״ד",
+      "07:55 - אמרי פי",
+      "08:00 - יצחקי, משכן יהודה, היכל שמאע (ו), עלי עשור, משה דיין - הודו, צור ישראל, נופי סלע, פני שמואל - הודו (8:10 ב,ה)",
+      "08:30 - אמרי פי - הודו (למטה א-ה ), חב\"ד",
+      "08:45 - פני שמואל - הודו (א,ו)"
+    ],
+    "mincha": [
+      "13:05 - עלי עשור",
+      "13:10 - שלום לעם, נופי סלע",
+      "13:15 - אור התורה, אהבת ישראל, צור ישראל, ברכת כהן, אולמי גאמוס, אבני החושן, היכל עמרם",
+      "13:20 - מעלות דוד מ. נבו",
+      "13:30 - פני שמואל, דלתות המלך",
+      "13:55 - קניון מעלה אדומים",
+      "15:15 - ישיבת ההסדר ברכת משה",
+      "15:30 - אבני החושן",
+      "17:40 - אמרי פי (למטה) *",
+      "17:45 - יצחקי (למעלה)",
+      "17:55 - נופי סלע *",
+      "18:00 - ברכת כהן *",
+      "18:15 - עמל אדומים *",
+      "18:20 - אבני החושן *",
+      "18:25 - משכן יהודה *",
+      "18:30 - יצחקי, שלום לעם *, פני שמואל, תפארת בנים *, אמרי פי *, אהבת ישראל *, מוסר אביך",
+      "18:45 - המרכזי, היכל אביעד *",
+      "19:00 - עלי עשור, צור ישראל, אביר יעקב, חסדי חנניה *, נוסח אחיד",
+      "19:05 - מצפה מגדים, משכן שושנה, פני שמואל, ישי",
+      "19:10 - נחלת אבות *, נופי סלע, היכל שמאע, אור התורה, משה דיין, מעלות לדוד 07 *",
+      "19:15 - אור זרוע *, ברכת כהן *"
+    ],
+    "maariv": [
+      "18:00 - אמרי פי (למטה) *",
+      "18:15 - נופי סלע *",
+      "18:20 - ברכת כהן *",
+      "18:35 - עמל אדומים *",
+      "18:40 - אבני החושן *",
+      "18:45 - שלום לעם *, אמרי פי *",
+      "18:50 - אהבת ישראל *, משכן יהודה *, תפארת בנים *",
+      "19:00 - יצחקי, כולל מעלות החיים",
+      "19:05 - היכל אביעד *",
+      "19:20 - חסדי חנניה *",
+      "19:30 - נחלת אבות *, מעלות לדוד 07 *",
+      "19:35 - אור זרוע *, ברכת כהן *, אביר יעקב",
+      "19:45 - עלי עשור, נופי סלע, משכן שושנה, ישי, משה דיין, הר הלבונה",
+      "19:50 - מצפה מגדים, צור ישראל, היכל שמאע, המרכזי",
+      "19:55 - פני שמואל",
+      "20:00 - נוסח אחיד, בית רבינו, מעלות דוד מ. נבו, אבני החושן, אור התורה, ברכת כהן (ג), נזר אהרון, אהבת ישראל, משכנותיך ישראל (ב,ד), הגילגל, משכן יהודה (ג)",
+      "20:15 - מוסר אביך, ישיבת ההסדר ברכת משה, יצחקי, פני שמואל, ברכת כהן (א,ב,ד), מצפה נבו",
+      "20:30 - חב\"ד 06",
+      "20:45 - אחדות ישראל, אמרי פי (ג), משכן יהודה (ב), היכל אביעד (א-ד)",
+      "21:00 - שיח השדה, אמרי פי (א), מעלות דוד מ. נבו, כולל מעלות החיים",
+      "21:30 - משה דיין",
+      "22:00 - פני שמואל, מחניים",
+      "22:15 - נופי סלע (א)",
+      "22:20 - המרכזי (א,ב,ד), מצפה מגדים (ג)",
+      "22:30 - המרכזי (ג), יצחקי (למטה)",
+      "23:00 - פני שמואל, אור התורה",
+      "23:15 - המרכזי (ה)",
+      "* כוכבית מסמן ערבית סמוכה"
+    ]
+  }
+}

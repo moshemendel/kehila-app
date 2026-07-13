@@ -30,8 +30,19 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# Firebase config (contains API keys — do not commit)
+google-services.json
+GoogleService-Info.plist
+
+# Firebase Admin SDK service account credentials — grants full admin access
+# bypassing all security rules, must never be committed
+serviceAccount.json
+
 # local env files
 .env*.local
+
+# stray debug output
+pglite-debug.log
 
 # typescript
 *.tsbuildinfo
