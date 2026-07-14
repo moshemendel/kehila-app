@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useAnalyticsTrack } from '../../services/analytics';
 import {
-  View, Text, ScrollView, StyleSheet,
+  View, Text, Image, ScrollView, StyleSheet,
   TouchableOpacity, ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,6 +9,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// Rendered from vector source to PNG at build time — react-native-svg's SVGO
+// pipeline was silently corrupting these auto-vectorized, hundreds-of-path
+// icons (verified: portrait-aspect icons like Prayers/Mikvahs rendered as
+// unrecognizable clipped fragments), so these ship as raster images instead.
+import SynagoguesIcon from '../../assets/icons/Synagogues.png';
+import PrayersIcon from '../../assets/icons/Prayers.png';
+import ZmanimIcon from '../../assets/icons/Zmanim.png';
+import KosherCertificationIcon from '../../assets/icons/KosherCertification.png';
+import MikvahsIcon from '../../assets/icons/Mikvahs.png';
+import EventsIcon from '../../assets/icons/Events.png';
+import EruvIcon from '../../assets/icons/Eruv.png';
+import GemachIcon from '../../assets/icons/Gemach.png';
 
 import { useAuth }           from '../../context/AuthContext';
 import { useCityId }         from '../../hooks/useCityId';
@@ -36,15 +49,15 @@ type Nav = BottomTabNavigationProp<MainTabParamList>;
 
 // Quick-action items — rendered as a horizontal scroll row under the header
 const QUICK_LINKS = [
-  { icon: 'business-outline',      label: 'בתי כנסת',   tab: 'Synagogues'  as const, color: Colors.primary   },
-  { icon: 'time-outline',          label: 'מניינים', tab: 'PrayerTimes' as const, color: Colors.shacharit },
-  { icon: 'sunny-outline',         label: 'זמנים',       tab: 'Zmanim'      as const, color: Colors.gold      },
-  { icon: 'restaurant-outline',    label: 'כשרות',       tab: 'Restaurants' as const, color: Colors.kosher    },
-  { icon: 'water-outline',         label: 'מקווה',        tab: 'Mikveh'      as const, color: Colors.mikveh   },
-  { icon: 'calendar-outline',      label: 'אירועים',      tab: 'Events'      as const, color: Colors.events   },
-  { icon: 'shield-outline',        label: 'עירוב',         tab: 'Eruv'        as const, color: Colors.gold     },
-  { icon: 'gift-outline',          label: 'גמ"ח',          tab: 'Gemach'      as const, color: '#B06B3A'        },
-  { icon: 'person-circle-outline', label: 'פרופיל',      tab: 'Profile'     as const, color: Colors.primary   },
+  { icon: 'business-outline',      customIcon: SynagoguesIcon,          label: 'בתי כנסת',   tab: 'Synagogues'  as const, color: Colors.primary   },
+  { icon: 'time-outline',          customIcon: PrayersIcon,             label: 'מניינים', tab: 'PrayerTimes' as const, color: Colors.shacharit },
+  { icon: 'sunny-outline',         customIcon: ZmanimIcon,              label: 'זמנים',       tab: 'Zmanim'      as const, color: Colors.gold      },
+  { icon: 'restaurant-outline',    customIcon: KosherCertificationIcon, label: 'כשרות',       tab: 'Restaurants' as const, color: Colors.kosher    },
+  { icon: 'water-outline',         customIcon: MikvahsIcon,             label: 'מקווה',        tab: 'Mikveh'      as const, color: Colors.mikveh   },
+  { icon: 'calendar-outline',      customIcon: EventsIcon,              label: 'אירועים',      tab: 'Events'      as const, color: Colors.events   },
+  { icon: 'shield-outline',        customIcon: EruvIcon,                label: 'עירוב',         tab: 'Eruv'        as const, color: Colors.gold     },
+  { icon: 'gift-outline',          customIcon: GemachIcon,              label: 'גמ"ח',          tab: 'Gemach'      as const, color: '#B06B3A'        },
+  { icon: 'person-circle-outline', customIcon: undefined,               label: 'פרופיל',      tab: 'Profile'     as const, color: Colors.primary   },
 ];
 
 function prayerAccent(type: string): string {
@@ -392,7 +405,7 @@ export default function HomeScreen() {
         contentContainerStyle={styles.quickRow}
         style={styles.quickRowWrap}
       >
-        {QUICK_LINKS.map(({ icon, label, tab, color }) => {
+        {QUICK_LINKS.map(({ icon, customIcon, label, tab, color }) => {
           const badgeCount =
             tab === 'Events'      ? unreadCount  :
             tab === 'Restaurants' ? kashrutCount  : 0;
@@ -407,7 +420,11 @@ export default function HomeScreen() {
               activeOpacity={0.75}
             >
               <View style={[styles.quickItemIcon, { backgroundColor: color + '1C' }]}>
-                <Ionicons name={icon as any} size={24} color={color} />
+                {customIcon ? (
+                  <Image source={customIcon} style={{ width: 40, height: 40 }} resizeMode="contain" />
+                ) : (
+                  <Ionicons name={icon as any} size={24} color={color} />
+                )}
                 {badgeCount > 0 && (
                   <View style={[styles.quickBadge, badgeRed && { backgroundColor: Colors.danger }]}>
                     <Text style={styles.quickBadgeTxt}>{badgeCount}</Text>

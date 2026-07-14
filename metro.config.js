@@ -14,4 +14,12 @@ config.resolver.unstable_enablePackageExports = false;
 // Allow .cjs modules (some Firebase entry points are CommonJS).
 config.resolver.sourceExts.push('cjs');
 
+// SVG-as-component support (react-native-svg-transformer) — lets icon SVGs be
+// imported directly as React components, e.g. `import Logo from './logo.svg'`
+// then `<Logo width={24} height={24} fill={Colors.primary} />`, instead of
+// bundling them as static image assets.
+config.transformer.babelTransformerPath = require.resolve('react-native-svg-transformer');
+config.resolver.assetExts = config.resolver.assetExts.filter((ext) => ext !== 'svg');
+config.resolver.sourceExts.push('svg');
+
 module.exports = config;
