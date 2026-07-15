@@ -46,3 +46,25 @@ export function subscribeKashrutUpdates(
     () => cb([]),
   );
 }
+
+// Shared phrasing so the push notification and the in-app feed (KashrutUpdatesScreen)
+// describe the same change the same way.
+type FormattableUpdate = Pick<KashrutUpdate, 'direction' | 'certType' | 'tags'>;
+
+export function formatKashrutUpdateTitle(u: FormattableUpdate): string {
+  const down = u.direction === 'down';
+  if (u.certType === 'local_rabbanut') return down ? 'שינוי כשרות רבנות' : 'שדרוג כשרות רבנות';
+  if (u.certType === 'badatz')         return down ? 'הסרת בד"ץ'         : 'הוספת בד"ץ';
+  return down ? 'ירידת כשרות' : 'שדרוג כשרות';
+}
+
+export function formatKashrutUpdateDetail(u: FormattableUpdate): string {
+  const tag = u.tags.join(' · ');
+  if (u.certType === 'local_rabbanut') {
+    return u.direction === 'up' ? `שודרגה ל${tag}` : `שונתה ל${tag}`;
+  }
+  if (u.certType === 'badatz') {
+    return u.direction === 'up' ? `נוסף: ${tag}` : `הוסר: ${tag}`;
+  }
+  return (u.direction === 'down' ? 'הוסרה כשרות: ' : 'נוספה כשרות: ') + tag;
+}

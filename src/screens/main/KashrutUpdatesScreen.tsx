@@ -4,26 +4,9 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKashrutUpdates } from '../../context/KashrutUpdatesContext';
+import { formatKashrutUpdateTitle as formatTitle, formatKashrutUpdateDetail as formatDetail } from '../../services/kashrutUpdates';
 import { KashrutUpdate } from '../../types';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
-
-function formatTitle(u: KashrutUpdate): string {
-  const down = u.direction === 'down';
-  if (u.certType === 'local_rabbanut') return down ? 'שינוי כשרות רבנות' : 'שדרוג כשרות רבנות';
-  if (u.certType === 'badatz')         return down ? 'הסרת בד"ץ'         : 'הוספת בד"ץ';
-  return down ? 'ירידת כשרות' : 'שדרוג כשרות';
-}
-
-function formatDetail(u: KashrutUpdate): string {
-  const tag = u.tags.join(' · ');
-  if (u.certType === 'local_rabbanut') {
-    return u.direction === 'up' ? `שודרגה ל${tag}` : `שונתה ל${tag}`;
-  }
-  if (u.certType === 'badatz') {
-    return u.direction === 'up' ? `נוסף: ${tag}` : `הוסר: ${tag}`;
-  }
-  return (u.direction === 'down' ? 'הוסרה כשרות: ' : 'נוספה כשרות: ') + tag;
-}
 
 function formatWhen(u: KashrutUpdate): string {
   const c: any = u.createdAt;

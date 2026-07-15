@@ -12,7 +12,8 @@ import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
 import { updateRestaurant, addRestaurant, deleteRestaurant, restaurantCategories, detectCertChanges, CertChange, BADATZ_LIST, isLocalRabbanut } from '../../services/restaurants';
 import { getUsersByCity, setManagedRestaurants, setUserRole } from '../../services/users';
-import { createKashrutUpdate } from '../../services/kashrutUpdates';
+import { createKashrutUpdate, formatKashrutUpdateTitle, formatKashrutUpdateDetail } from '../../services/kashrutUpdates';
+import { sendPushToCity } from '../../services/pushNotifications';
 import { addBadatz, addRabbanut } from '../../services/kashrutConfig';
 import { useCity } from '../../hooks/useCity';
 import { useKashrutConfig } from '../../hooks/useKashrutConfig';
@@ -213,6 +214,14 @@ function CertEditor({ rest, onBack, onDelete }: { rest: Restaurant; onBack: () =
           cityId: rest.cityId, businessId: rest.id, businessName: rest.name,
           direction: ch.direction, certType: ch.certType, tags: ch.tags, note: ch.note,
         });
+        // Awaited (unlike a typical fire-and-forget push call) because handlePublish
+        // navigates away right after this loop — an un-awaited fetch here could get
+        // abandoned mid-flight when the screen unmounts before it resolves.
+        await sendPushToCity(
+          rest.cityId,
+          `${rest.name} — ${formatKashrutUpdateTitle(ch)}`,
+          ch.note || formatKashrutUpdateDetail(ch),
+        );
       }
       setAlertsToConfirm(null);
       onBack();
