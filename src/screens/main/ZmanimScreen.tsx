@@ -98,7 +98,6 @@ export default function ZmanimScreen() {
   const scrollRef   = useRef<ScrollView>(null);
   const rowLayouts  = useRef<Partial<Record<string, number>>>({});
   const svHeight    = useRef(600);
-  const hasScrolled = useRef(false);
 
   useEffect(() => {
     if (gpsLocation) {
@@ -138,16 +137,16 @@ export default function ZmanimScreen() {
     return () => clearInterval(id);
   }, [lat, lon, tzId, mountainAngle, settings, recalc]);
 
-  // Reset scroll guard each time the screen is focused (tab switch or back navigation)
-  useFocusEffect(useCallback(() => {
-    hasScrolled.current = false;
-  }, []));
-
-  // Scroll the next row to the vertical center of the list — once per focus
+  // Scroll the next row to the vertical center of the list every time the
+  // screen is focused (tab switch or back navigation) — previously this was
+  // an effect keyed on [nextKey] with a separate "reset on focus" effect, but
+  // resetting the guard on focus doesn't itself re-run an effect whose
+  // dependency (nextKey) hasn't changed, so re-entering the screen without
+  // the "next" zman changing left the list unscrolled. useFocusEffect's own
+  // callback already re-runs on every focus, so it can just own this outright.
   const nextKey = zmanim ? getNextKey(zmanim) : null;
-  useEffect(() => {
-    if (!nextKey || hasScrolled.current) return;
-    hasScrolled.current = true;
+  useFocusEffect(useCallback(() => {
+    if (!nextKey) return;
     // Wait for onLayout callbacks to fire before reading rowLayouts
     const timer = setTimeout(() => {
       const y = rowLayouts.current[nextKey];
@@ -158,7 +157,7 @@ export default function ZmanimScreen() {
       });
     }, 150);
     return () => clearTimeout(timer);
-  }, [nextKey]);
+  }, [nextKey]));
 
   const curPreset  = activePreset(settings);
   const today      = now;

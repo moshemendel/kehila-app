@@ -44,7 +44,7 @@ Run `npm run test-plan` and open **http://localhost:4850** for an interactive ch
 ## 4. Prayer times & Zmanim
 
 - [x] Prayer times screen shows today's שחרית/מנחה/ערבית times correctly for the city
-- [x] Zmanim screen shows halachic times (netz, shkia, etc.) matching the city's coordinates <!-- note:the%20mark%20time%20need%20to%20be%20centered%20when%20re%20enter%20the%20zmanin%20screen -->
+- [x] Zmanim screen shows halachic times (netz, shkia, etc.) matching the city's coordinates
 - [ ] Zmanim settings — changing calculation method/opinion updates displayed times
 - [ ] Favorite a specific minyan — appears prioritized on Home <!-- note:don't%20have%20this%20feature -->
 - [ ] Notification opt-in for a prayer time — reminder actually fires at the right time (see §12) <!-- note:when%20the%20notification%20pop%20before%20the%20time%3F -->
