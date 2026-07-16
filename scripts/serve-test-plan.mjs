@@ -81,8 +81,10 @@ function parseAndRender() {
       if (tableRowMatch || /^\|---/.test(line)) { inTable = true; return; }
       if (inTable && line.trim() === '') { inTable = false; return; }
       if (inTable) return;
-      if (line.startsWith('# ')) preamble += `<h1>${formatInline(line.slice(2))}</h1>`;
-      else if (line.trim()) preamble += `<p>${formatInline(line)}</p>`;
+      // Skip the "# Title" line — the sticky header already shows it.
+      if (line.startsWith('# ')) return;
+      if (line.trim() === '---') { preamble += '<hr />'; return; }
+      if (line.trim()) preamble += `<p>${formatInline(line)}</p>`;
       return;
     }
 
@@ -129,6 +131,7 @@ function renderPage() {
   main { max-width: 820px; margin: 24px auto; padding: 0 16px; }
   .preamble h1 { font-size: 22px; }
   .preamble p { color: #555; font-size: 14px; }
+  .preamble hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
   .sec { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
   .sec-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
   .sec-head h2 { margin: 0; font-size: 16px; color: var(--navy); }
