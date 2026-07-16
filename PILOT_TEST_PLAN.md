@@ -10,11 +10,11 @@ Run `npm run test-plan` and open **http://localhost:4850** for an interactive ch
 
 ## 1. Auth & onboarding
 
-- [ ] Register with email — new account gets to `CompleteCityScreen` if no city set
-- [ ] Register with Google Sign-In — new account created correctly, `cityId` not left empty
-- [ ] Login with existing email account
-- [ ] Login with Google — existing account signs in, no duplicate user doc created
-- [ ] Continue as guest — guest gets a real (non-null) anonymous auth token, can browse
+- [x] Register with email — new account gets to `CompleteCityScreen` if no city set <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
+- [x] Register with Google Sign-In — new account created correctly, `cityId` not left empty <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
+- [ ] Login with existing email account <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
+- [ ] Login with Google — existing account signs in, no duplicate user doc created <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
+- [ ] Continue as guest — guest gets a real (non-null) anonymous auth token, can browse <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
 - [ ] Guest → switch city — persists locally (not Firestore), survives app restart
 - [ ] Guest → register/upgrade to real account (if this flow exists — verify)
 - [ ] Wrong password shows a clear error, doesn't crash

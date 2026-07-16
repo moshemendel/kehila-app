@@ -89,8 +89,11 @@ function parseAndRender() {
     }
 
     if (checkboxMatch) {
-      const [, , mark, text] = checkboxMatch;
+      const [, , mark, rawText] = checkboxMatch;
       const checked = mark === 'x';
+      const noteMatch = rawText.match(/^(.*?)\s*<!-- note:(.*?) -->\s*$/);
+      const text = noteMatch ? noteMatch[1] : rawText;
+      const note = noteMatch ? decodeURIComponent(noteMatch[2]) : '';
       const isBug = text.trim().startsWith('🐛');
       sectionTotal++;
       if (checked) sectionChecked++;
@@ -99,6 +102,7 @@ function parseAndRender() {
           <input type="checkbox" data-line="${lineNo}" ${checked ? 'checked' : ''} />
           <span>${formatInline(text)}</span>
         </label>
+        <input type="text" class="note" data-line="${lineNo}" data-saved="${escapeHtml(note)}" placeholder="Add a note / issue…" value="${escapeHtml(note)}" />
       </li>`;
     }
   });
@@ -147,6 +151,10 @@ function renderPage() {
   .item.done span { color: #999; text-decoration: line-through; }
   .item.bug span { color: #b3261e; }
   .item.bug.done span { color: #999; }
+  .item .note { display: block; width: 100%; margin: 6px 0 0 26px; padding: 5px 9px; font-size: 13px;
+    border: 1px solid var(--border); border-radius: 6px; background: #fffdf7; color: #6b5d2e; }
+  .item .note:focus { outline: 2px solid var(--gold); border-color: var(--gold); }
+  .item .note:not(:placeholder-shown) { border-color: #d9c98a; background: #fffbea; }
   code { background: #f0ede3; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
   .reload-note { text-align: center; font-size: 12px; color: #999; margin-top: 24px; }
 </style>
@@ -160,7 +168,7 @@ function renderPage() {
 <main>
   <div class="preamble">${preamble}</div>
   <div id="sections">${html}</div>
-  <p class="reload-note">Toggling a box writes straight to PILOT_TEST_PLAN.md. Edit the file directly (e.g. to add a 🐛 bug line) and refresh this page to see it here.</p>
+  <p class="reload-note">Toggling a box or editing a note writes straight to PILOT_TEST_PLAN.md (notes are stored as a hidden comment, invisible when the file renders as plain markdown on GitHub). Edit the file directly and refresh this page to see changes here.</p>
 </main>
 <script>
 document.addEventListener('change', async (e) => {
@@ -195,6 +203,31 @@ document.addEventListener('change', async (e) => {
     alert('Could not save — is the file writable? ' + err.message);
   } finally {
     el.disabled = false;
+  }
+});
+
+document.addEventListener('focusout', async (e) => {
+  const el = e.target;
+  if (!el.classList || !el.classList.contains('note')) return;
+  const line = el.dataset.line;
+  const value = el.value;
+  if (el.dataset.saved === value) return; // unchanged since last save
+  try {
+    const res = await fetch('/api/note', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ line: Number(line), note: value }),
+    });
+    if (!res.ok) throw new Error('save failed');
+    el.dataset.saved = value;
+  } catch (err) {
+    alert('Could not save note: ' + err.message);
+  }
+});
+// Ctrl/Cmd+Enter in a note field saves immediately (blurring is the trigger).
+document.addEventListener('keydown', (e) => {
+  if (e.target.classList && e.target.classList.contains('note') && (e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    e.target.blur();
   }
 });
 </script>
@@ -238,6 +271,22 @@ function toggleLine(lineNo, checked) {
   };
 }
 
+// Notes are stored as a trailing `<!-- note:<uri-encoded text> -->` HTML
+// comment on the checkbox's own line — invisible when the file renders as
+// plain markdown (e.g. on GitHub), but round-trips cleanly through this tool.
+function setNote(lineNo, note) {
+  const raw = fs.readFileSync(FILE_PATH, 'utf8');
+  const lines = raw.split('\n');
+  const idx = lineNo - 1;
+  if (idx < 0 || idx >= lines.length) throw new Error('line out of range');
+  const match = lines[idx].match(/^(\s*- \[[ x]\] )(.*?)(?:\s*<!-- note:.*? -->)?$/);
+  if (!match) throw new Error('line is not a checkbox');
+  const [, prefix, text] = match;
+  const trimmed = note.trim();
+  lines[idx] = trimmed ? `${prefix}${text} <!-- note:${encodeURIComponent(trimmed)} -->` : `${prefix}${text}`;
+  fs.writeFileSync(FILE_PATH, lines.join('\n'));
+}
+
 const server = http.createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -253,6 +302,22 @@ const server = http.createServer((req, res) => {
         const result = toggleLine(line, checked);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(result));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+    return;
+  }
+  if (req.method === 'POST' && req.url === '/api/note') {
+    let body = '';
+    req.on('data', (chunk) => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const { line, note } = JSON.parse(body);
+        setNote(line, note);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true }));
       } catch (e) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: e.message }));
