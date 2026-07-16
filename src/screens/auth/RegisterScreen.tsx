@@ -48,8 +48,13 @@ export default function RegisterScreen({ navigation }: Props) {
         Alert.alert('עיר לא נמצאה', `זוהה: ${p.city ?? detectedName}\n\nהעיר אינה ברשימה. בחר מהרשימה או פנה למנהל המערכת.`);
         setCityPickerOpen(true);
       }
-    } catch (e: any) {
-      Alert.alert('שגיאה', e.message);
+    } catch {
+      // Reverse-geocoding can throw a native/platform error on some devices
+      // (e.g. a known Android Geocoder NullPointerException on devices/emulators
+      // with incomplete locale data) — never surface that raw error to the user,
+      // just fall back to manual city selection like the "not found" case above.
+      Alert.alert('שגיאה בזיהוי המיקום', 'לא ניתן לזהות את המיקום כרגע. בחר עיר מהרשימה.');
+      setCityPickerOpen(true);
     } finally {
       setDetectingCity(false);
     }
@@ -117,6 +122,7 @@ export default function RegisterScreen({ navigation }: Props) {
                   <TextInput scrollEnabled={false}
                     style={styles.input}
                     placeholder={placeholder}
+                    placeholderTextColor={Colors.textMuted}
                     value={value}
                     onChangeText={setter}
                     autoCapitalize="none"
@@ -185,6 +191,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 <TextInput scrollEnabled={false}
                   style={styles.input}
                   placeholder="לפחות 6 תווים"
+                  placeholderTextColor={Colors.textMuted}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPass}
@@ -200,6 +207,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 <TextInput scrollEnabled={false}
                   style={styles.input}
                   placeholder="חזור על הסיסמה"
+                  placeholderTextColor={Colors.textMuted}
                   value={confirmPass}
                   onChangeText={setConfirmPass}
                   secureTextEntry={!showPass}

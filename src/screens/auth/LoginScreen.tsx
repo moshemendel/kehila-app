@@ -115,6 +115,7 @@ export default function LoginScreen({ navigation }: Props) {
                 <TextInput scrollEnabled={false}
                   style={styles.input}
                   placeholder="your@email.com"
+                  placeholderTextColor={Colors.textMuted}
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
@@ -133,6 +134,7 @@ export default function LoginScreen({ navigation }: Props) {
                 <TextInput scrollEnabled={false}
                   style={styles.input}
                   placeholder="••••••••"
+                  placeholderTextColor={Colors.textMuted}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPass}
