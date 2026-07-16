@@ -209,6 +209,12 @@ export default function LoginScreen({ navigation }: Props) {
 
 function translateFirebaseError(code: string): string {
   const map: Record<string, string> = {
+    // Modern Firebase Auth (v9.6+) no longer distinguishes "no such user" from
+    // "wrong password" — both now come back as auth/invalid-credential, as a
+    // deliberate privacy measure against account enumeration. The old specific
+    // codes below are kept in case an older SDK path ever produces them, but
+    // invalid-credential is the one real logins will actually hit.
+    'auth/invalid-credential': 'אימייל או סיסמה שגויים',
     'auth/user-not-found': 'משתמש לא נמצא',
     'auth/wrong-password': 'סיסמה שגויה',
     'auth/invalid-email': 'כתובת אימייל לא תקינה',
