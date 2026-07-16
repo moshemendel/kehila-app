@@ -12,42 +12,42 @@ Run `npm run test-plan` and open **http://localhost:4850** for an interactive ch
 
 - [x] Register with email — new account gets to `CompleteCityScreen` if no city set <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
 - [x] Register with Google Sign-In — new account created correctly, `cityId` not left empty <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
-- [ ] Login with existing email account <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
-- [ ] Login with Google — existing account signs in, no duplicate user doc created <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
-- [ ] Continue as guest — guest gets a real (non-null) anonymous auth token, can browse <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
-- [ ] Guest → switch city — persists locally (not Firestore), survives app restart
-- [ ] Guest → register/upgrade to real account (if this flow exists — verify)
-- [ ] Wrong password shows a clear error, doesn't crash
-- [ ] Logout — push token cleared, returns to login screen
-- [ ] Cold-restart the app while logged in — session persists, no re-login required
-- [ ] `CompleteCityScreen` — can't be dismissed without picking a city (for non-guest, non-demo users)
+- [x] Login with existing email account <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
+- [x] Login with Google — existing account signs in, no duplicate user doc created <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
+- [x] Continue as guest — guest gets a real (non-null) anonymous auth token, can browse <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
+- [x] Guest → switch city — persists locally (not Firestore), survives app restart
+- [x] Guest → register/upgrade to real account (if this flow exists — verify) <!-- note:when%20tap%20on%20%D7%94%D7%AA%D7%97%D7%91%D7%A8%2F%D7%94%D7%A8%D7%A9%D7%9E%D7%94%20it's%20navigate%20to%20sign-in%20screen%20with%20option%20to%20register -->
+- [x] Wrong password shows a clear error, doesn't crash
+- [x] Logout — push token cleared, returns to login screen
+- [x] Cold-restart the app while logged in — session persists, no re-login required
+- [x] `CompleteCityScreen` — can't be dismissed without picking a city (for non-guest, non-demo users)
 
 ## 2. Home screen
 
-- [ ] Header shows correct Hebrew date, day name, city name, and greeting for time of day
-- [ ] Quick-links row shows all 9 icons, scrolls smoothly (remember: swipe **left-to-right** to reveal more items in this RTL list)
-- [ ] Each quick-link navigates to the correct screen
-- [ ] "התפילה הבאה" (next prayer) card shows the correct upcoming prayer and countdown
-- [ ] Kashrut updates banner shows correct unread count badge, tapping opens the feed
-- [ ] Shabbat candle-lighting card shows correct times for the current week
-- [ ] City-mismatch GPS prompt appears when device location differs from account city (test by mocking location or traveling) — dismiss persists, doesn't re-prompt every launch
-- [ ] Pull-to-refresh (if present) updates data
+- [x] Header shows correct Hebrew date, day name, city name, and greeting for time of day
+- [x] Quick-links row shows all 9 icons, scrolls smoothly (remember: swipe **left-to-right** to reveal more items in this RTL list) <!-- note:maybe%20dismiss%20profile%20icon%20and%20allow%20taping%20the%20user%20name%20to%20enter%20profile%20screen -->
+- [x] Each quick-link navigates to the correct screen
+- [x] "התפילה הבאה" (next prayer) card shows the correct upcoming prayer and countdown
+- [x] Kashrut updates banner shows correct unread count badge, tapping opens the feed
+- [x] Shabbat candle-lighting card shows correct times for the current week
+- [x] City-mismatch GPS prompt appears when device location differs from account city (test by mocking location or traveling) — dismiss persists, doesn't re-prompt every launch <!-- note:take%20time%20to%20show -->
+- [x] Pull-to-refresh (if present) updates data
 
 ## 3. Synagogues
 
-- [ ] List loads, shows distance-sorted order when location permission granted
-- [ ] Filter/search within list works
-- [ ] Detail screen shows address, contact, weekly + Shabbat prayer schedule, shiurim
-- [ ] Map/location opens correctly (external maps app or in-app map)
-- [ ] Favorite/save a synagogue (if supported)
+- [x] List loads, shows distance-sorted order when location permission granted
+- [x] Filter/search within list works
+- [x] Detail screen shows address, contact, weekly + Shabbat prayer schedule, shiurim
+- [x] Map/location opens correctly (external maps app or in-app map)
+- [x] Favorite/save a synagogue (if supported)
 
 ## 4. Prayer times & Zmanim
 
-- [ ] Prayer times screen shows today's שחרית/מנחה/ערבית times correctly for the city
-- [ ] Zmanim screen shows halachic times (netz, shkia, etc.) matching the city's coordinates
+- [x] Prayer times screen shows today's שחרית/מנחה/ערבית times correctly for the city
+- [x] Zmanim screen shows halachic times (netz, shkia, etc.) matching the city's coordinates <!-- note:the%20mark%20time%20need%20to%20be%20centered%20when%20re%20enter%20the%20zmanin%20screen -->
 - [ ] Zmanim settings — changing calculation method/opinion updates displayed times
-- [ ] Favorite a specific minyan — appears prioritized on Home
-- [ ] Notification opt-in for a prayer time — reminder actually fires at the right time (see §12)
+- [ ] Favorite a specific minyan — appears prioritized on Home <!-- note:don't%20have%20this%20feature -->
+- [ ] Notification opt-in for a prayer time — reminder actually fires at the right time (see §12) <!-- note:when%20the%20notification%20pop%20before%20the%20time%3F -->
 
 ## 5. Kashrut & restaurants
 

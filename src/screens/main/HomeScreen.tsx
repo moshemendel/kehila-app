@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useAnalyticsTrack } from '../../services/analytics';
 import {
   View, Text, Image, ScrollView, StyleSheet,
-  TouchableOpacity, ActivityIndicator,
+  TouchableOpacity, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -93,12 +93,12 @@ function fmtCountdown(diffMin: number): string {
 // ─────────────────────────────────────────────────────────────────
 export default function HomeScreen() {
   useAnalyticsTrack('home');
-  const { appUser }  = useAuth();
+  const { appUser, refreshUser }  = useAuth();
   const navigation   = useNavigation<Nav>();
   const cityId       = useCityId();
   const { top, bottom } = useSafeAreaInsets();
 
-  const { city }                          = useCity(cityId);
+  const { city, refetch: refetchCity }    = useCity(cityId);
   const { synagogues, loading: synLoad }  = useSynagogues(cityId);
   const { events, unreadCount, isRead }    = useEventsFeed();
   const todayZmanim                        = useTodayZmanim(cityId);
@@ -119,6 +119,21 @@ export default function HomeScreen() {
     const id = setInterval(() => setTick(t => t + 1), 30_000);
     return () => clearInterval(id);
   }, []);
+
+  // ── Pull-to-refresh ──────────────────────────────────────────────
+  // Most of this screen's data (synagogues, events, kashrut updates, eruv
+  // status) is already live via Firestore onSnapshot listeners — refreshing
+  // those wouldn't do anything. `city` and the signed-in user's own doc are
+  // the two pieces that are only fetched once, so those are what an admin
+  // change (e.g. new city coordinates, a role change) would need a manual
+  // refresh to pick up.
+  const [refreshing, setRefreshing] = useState(false);
+  async function onRefresh() {
+    setRefreshing(true);
+    const minDuration = new Promise((resolve) => setTimeout(resolve, 500));
+    await Promise.all([refetchCity(), refreshUser(), minDuration]);
+    setRefreshing(false);
+  }
 
   // ── Next prayer across all synagogues ──────────────────────────
   const { earliestSyn, nextPrayer } = useMemo(() => {
@@ -361,6 +376,14 @@ export default function HomeScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: bottom + 32 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
       >
       {/* ── Gradient header ──────────────────────────────────────── */}
       <LinearGradient
