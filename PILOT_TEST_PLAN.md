@@ -46,8 +46,8 @@ Run `npm run test-plan` and open **http://localhost:4850** for an interactive ch
 - [x] Prayer times screen shows today's שחרית/מנחה/ערבית times correctly for the city
 - [x] Zmanim screen shows halachic times (netz, shkia, etc.) matching the city's coordinates
 - [ ] Zmanim settings — changing calculation method/opinion updates displayed times
-- [ ] Favorite a specific minyan — appears prioritized on Home <!-- note:don't%20have%20this%20feature -->
-- [ ] Notification opt-in for a prayer time — reminder actually fires at the right time (see §12) <!-- note:when%20the%20notification%20pop%20before%20the%20time%3F -->
+- [x] Favorite a specific minyan (star icon on a synagogue's prayer slot, `SynagogueDetailScreen`) — controls which minyanim get notification reminders, does not affect Home's "next prayer" card <!-- note:don't%20need%20it%20for%20now -->
+- [x] Notification opt-in for a prayer time — reminder fires at the configured offset (see §12) — fixed two real bugs: missing required `type` field on the notification trigger (every call was silently throwing, nothing was ever scheduled) and a misplaced `channelId`. Known remaining limitation: doesn't fire if the app was force-stopped/swiped from Recents — see "Known limitations" at the bottom of this file.
 
 ## 5. Kashrut & restaurants
 
@@ -168,3 +168,11 @@ Sign in (or use `UserManagementScreen`/`UsersPage` to grant temporarily) as each
 - [ ] Background → foreground — data refreshes appropriately, no stale UI
 - [ ] Deep link from a push notification opens the app to the right screen even from a cold start
 - [ ] Test on at least one other physical device (not just the primary dev device) to catch device-specific issues
+
+---
+
+## Known limitations (accepted for pilot, revisit post-launch)
+
+- **Prayer/event reminders don't fire if the app was force-stopped or swiped away from Recents.** These are scheduled client-side via Android's `AlarmManager` (`expo-notifications` local scheduling). Since Android 3.1, the OS blocks a force-stopped app's alarms from firing until the user manually reopens it — and several OEMs, including Samsung, map "swipe away from Recents" to a force-stop. This is a platform-level restriction, not something app code can override; confirmed the alarm-permission and battery "sleeping apps" settings were both already correctly configured, so it isn't a config issue either. Reminders work fine as long as the app is merely backgrounded (not force-stopped), which covers most normal usage.
+  - This is why eruv/kashrut alerts don't have this problem — those are genuine server-sent push notifications (Expo Push API → FCM), which run through Google Play Services' own persistent process, independent of this app's process state.
+  - **Fix would require**: a server-side scheduler (Firebase Cloud Function running periodically) that checks every user's favorited minyanim/notification preferences and sends real push notifications at the right time, instead of relying on client-side local scheduling. This project currently has zero Cloud Functions — this would be new infrastructure, not a small patch. Decided to accept the limitation for the pilot and revisit if it becomes a real problem for users.

@@ -210,7 +210,12 @@ export async function schedulePrayerNotifications(
     await Notifications.scheduleNotificationAsync({
       identifier,
       content: { title, body, sound: 'default' },
-      trigger: { seconds: secondsUntil, repeats: false } as any,
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: secondsUntil,
+        repeats: false,
+        ...(Platform.OS === 'android' ? { channelId: 'prayers' } : {}),
+      },
     });
   }
 }

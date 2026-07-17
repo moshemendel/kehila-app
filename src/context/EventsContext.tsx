@@ -135,9 +135,13 @@ async function scheduleEventReminders(event: CommunityEvent, uid: string | null)
           body:  event.title,
           data:  { eventId: event.id },
           sound: 'default',
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: secondsUntil,
+          repeats: false,
           ...(Platform.OS === 'android' ? { channelId: 'events' } : {}),
         },
-        trigger: { seconds: secondsUntil, repeats: false } as any,
       });
       return id;
     } catch {
