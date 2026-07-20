@@ -16,7 +16,7 @@ import {
 import {
   generateSlots, dayKeyFromDate,
   formatDateHeLong, formatDateHeShort,
-  todayString, isSlotInPast,
+  todayString, isSlotInPast, addMinutesToTime,
 } from '../../utils/appointmentSlots';
 import { Mikveh, MikvehAppointment } from '../../types';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
@@ -47,7 +47,8 @@ export default function AppointmentBookingScreen() {
   const [userDateAppt, setUserDateAppt] = useState<MikvehAppointment | null>(null);
   const [upcoming,     setUpcoming]     = useState<MikvehAppointment[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
-  const [confirmSlot,  setConfirmSlot]  = useState<string | null>(null);
+  const [mode,         setMode]         = useState<'single' | 'double'>('single');
+  const [confirmSlot,  setConfirmSlot]  = useState<{ time: string; end: string; slotsCount: number } | null>(null);
   const [booking,      setBooking]      = useState(false);
   const [cancelTarget, setCancelTarget] = useState<MikvehAppointment | null>(null);
   const [cancelling,   setCancelling]   = useState(false);
@@ -69,12 +70,14 @@ export default function AppointmentBookingScreen() {
       .catch((e) => console.warn('[booking] upcoming failed:', e?.message));
   }, [mikvehId]);
 
+  const slotDur = mikveh?.appointmentConfig?.slotDurationMin ?? 20;
+
   // ── Load today's booked slots ─────────────────────────────────────────────
   useEffect(() => {
     if (!mikveh?.appointmentConfig) return;
     setSlotsLoading(true);
     const uid = userId ?? 'anon';
-    getSlotInfo(mikvehId, today, uid).then(({ bookedTimes: bt, userAppt }) => {
+    getSlotInfo(mikvehId, today, uid, slotDur).then(({ bookedTimes: bt, userAppt }) => {
       setBookedTimes(bt);
       setUserDateAppt(userAppt);
       setSlotsLoading(false);
@@ -90,14 +93,45 @@ export default function AppointmentBookingScreen() {
     return generateSlots(dc.start, dc.end, cfg.slotDurationMin);
   }, [mikveh?.appointmentConfig]);
 
+  // Times occupied by the user's own booking today (both halves, if it's a
+  // double/"tailing" booking — a double booking's second half isn't its own
+  // document, so it isn't `userDateAppt.time` and needs to be derived here).
+  const mineTimes = useMemo(() => {
+    if (!userDateAppt) return new Set<string>();
+    const n = userDateAppt.slotsCount ?? 1;
+    const times: string[] = [];
+    for (let i = 0; i < n; i++) times.push(i === 0 ? userDateAppt.time : addMinutesToTime(userDateAppt.time, i * slotDur));
+    return new Set(times);
+  }, [userDateAppt, slotDur]);
+
   type SlotStatus = 'available' | 'booked' | 'mine' | 'past';
   function slotStatus(time: string): SlotStatus {
-    if (userDateAppt?.time === time) return 'mine';
+    if (mineTimes.has(time))         return 'mine';
     if (bookedTimes.includes(time))  return 'booked';
     if (isSlotInPast(today, time))   return 'past';
     if (userDateAppt)                return 'booked'; // already has a slot today → lock rest
     return 'available';
   }
+
+  // Double/"tailing" options: every pair of immediately-adjacent base slots
+  // that are both free, merged into one bookable long slot. Slides one slot
+  // at a time so e.g. both 18:00–18:40 and 18:20–19:00 show up if free.
+  type PairStatus = 'available' | 'mine' | 'blocked';
+  const doublePairs = useMemo(() => {
+    const pairs: { start: string; end: string; status: PairStatus }[] = [];
+    for (let i = 0; i < slots.length - 1; i++) {
+      const start = slots[i];
+      const end   = slots[i + 1];
+      const a = slotStatus(start);
+      const b = slotStatus(end);
+      const status: PairStatus =
+        a === 'mine' && b === 'mine' ? 'mine' :
+        a === 'available' && b === 'available' ? 'available' :
+        'blocked';
+      if (status !== 'blocked') pairs.push({ start, end, status });
+    }
+    return pairs;
+  }, [slots, bookedTimes, mineTimes, today]);
 
   // Firestore writes require a real signed-in account: demo mode has no
   // firebaseUser at all, and a guest has one (anonymous auth, needed so guests
@@ -131,9 +165,9 @@ export default function AppointmentBookingScreen() {
     }
     setBooking(true);
     try {
-      await bookAppointment(mikvehId, userId!, today, confirmSlot);
+      await bookAppointment(mikvehId, userId!, today, confirmSlot.time, confirmSlot.slotsCount);
       const [{ bookedTimes: bt, userAppt }, appts] = await Promise.all([
-        getSlotInfo(mikvehId, today, userId!),
+        getSlotInfo(mikvehId, today, userId!, slotDur),
         getUserUpcomingAppointments(mikvehId, userId!),
       ]);
       setBookedTimes(bt);
@@ -158,7 +192,7 @@ export default function AppointmentBookingScreen() {
     try {
       await cancelAppointment(mikvehId, appt.id);
       const [{ bookedTimes: bt, userAppt }, appts] = await Promise.all([
-        getSlotInfo(mikvehId, today, userId!),
+        getSlotInfo(mikvehId, today, userId!, slotDur),
         getUserUpcomingAppointments(mikvehId, userId!),
       ]);
       setBookedTimes(bt);
@@ -184,7 +218,6 @@ export default function AppointmentBookingScreen() {
   }
 
   const hasConfig = !!mikveh?.appointmentConfig;
-  const slotDur   = mikveh?.appointmentConfig?.slotDurationMin ?? 20;
   const isDayOpen = !!mikveh?.appointmentConfig?.schedule[dayKeyFromDate(today)]?.enabled;
   const nextAppt  = upcoming[0] ?? null;
 
@@ -219,6 +252,7 @@ export default function AppointmentBookingScreen() {
                 <Text style={s.upcomingLabel}>התור הקרוב שלך</Text>
                 <Text style={s.upcomingValue}>
                   {formatDateHeShort(nextAppt.date)} · שעה {nextAppt.time}
+                  {(nextAppt.slotsCount ?? 1) > 1 ? `–${addMinutesToTime(nextAppt.time, (nextAppt.slotsCount ?? 1) * slotDur)}` : ''}
                 </Text>
               </View>
             </View>
@@ -228,6 +262,25 @@ export default function AppointmentBookingScreen() {
             >
               <Text style={s.upcomingCancelTxt}>בטל תור</Text>
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ── Single / double mode toggle ─────────────────────────────── */}
+        {hasConfig && isDayOpen && (
+          <View style={s.modeRow}>
+            {([
+              { key: 'single', label: 'תור בודד' },
+              { key: 'double', label: `תור כפול (${slotDur * 2} דק')` },
+            ] as const).map(({ key, label }) => (
+              <TouchableOpacity
+                key={key}
+                style={[s.modeBtn, mode === key && s.modeBtnActive]}
+                onPress={() => setMode(key)}
+                activeOpacity={0.8}
+              >
+                <Text style={[s.modeBtnTxt, mode === key && s.modeBtnTxtActive]}>{label}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
         )}
 
@@ -250,7 +303,7 @@ export default function AppointmentBookingScreen() {
           <View style={s.emptyBox}>
             <Text style={s.emptyTitle}>אין תורים זמינים להיום</Text>
           </View>
-        ) : (
+        ) : mode === 'single' ? (
           <View style={s.slotsSection}>
 
             <View style={s.slotsGrid}>
@@ -267,7 +320,7 @@ export default function AppointmentBookingScreen() {
                       st === 'past'      && s.slotPast,
                     ]}
                     onPress={() => {
-                      if (st === 'available') setConfirmSlot(time);
+                      if (st === 'available') setConfirmSlot({ time, end: time, slotsCount: 1 });
                       if (st === 'mine')      setCancelTarget(userDateAppt!);
                     }}
                     disabled={st === 'booked' || st === 'past'}
@@ -324,6 +377,44 @@ export default function AppointmentBookingScreen() {
               ))}
             </View>
           </View>
+        ) : doublePairs.length === 0 ? (
+          <View style={s.emptyBox}>
+            <Text style={s.emptyTitle}>אין תורים כפולים פנויים היום</Text>
+            <Text style={s.emptySub}>נסה/י תור בודד, או יום אחר</Text>
+          </View>
+        ) : (
+          <View style={s.slotsSection}>
+            <View style={s.pairList}>
+              {doublePairs.map(({ start, end, status }) => (
+                <TouchableOpacity
+                  key={start}
+                  style={[s.pairRow, status === 'mine' && s.pairRowMine]}
+                  onPress={() => {
+                    if (status === 'available') setConfirmSlot({ time: start, end, slotsCount: 2 });
+                    if (status === 'mine')      setCancelTarget(userDateAppt!);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  {status === 'mine' && <Ionicons name="checkmark-circle" size={18} color={Colors.success} />}
+                  <Text style={[s.pairTime, status === 'mine' && { color: Colors.success }]}>
+                    {start} – {addMinutesToTime(end, slotDur)}
+                  </Text>
+                  <View style={{ flex: 1 }} />
+                  <Text style={[s.pairHint, status === 'mine' && { color: Colors.success }]}>
+                    {status === 'mine' ? 'שלי · לחץ לביטול' : `${slotDur * 2} דק'`}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Footer */}
+            <View style={s.slotFooter}>
+              <Ionicons name="time-outline" size={13} color={Colors.textMuted} />
+              <Text style={s.slotFooterTxt}>
+                תור כפול = שני תורים רצופים · {slotDur * 2} דקות · {doublePairs.length} אפשרויות פנויות
+              </Text>
+            </View>
+          </View>
         )}
       </ScrollView>
 
@@ -341,7 +432,11 @@ export default function AppointmentBookingScreen() {
             </View>
             <View style={s.modalDetail}>
               <Ionicons name="time-outline" size={16} color={Colors.textSecondary} />
-              <Text style={s.modalDetailTxt}>שעה {confirmSlot} · {slotDur} דקות</Text>
+              <Text style={s.modalDetailTxt}>
+                {confirmSlot?.slotsCount === 2
+                  ? `שעה ${confirmSlot.time} – ${addMinutesToTime(confirmSlot.end, slotDur)} · ${slotDur * 2} דקות`
+                  : `שעה ${confirmSlot?.time} · ${slotDur} דקות`}
+              </Text>
             </View>
             <Text style={s.modalNote}>ניתן לבטל את התור בכל עת מתוך מסך זה.</Text>
             <View style={s.modalBtns}>
@@ -374,7 +469,10 @@ export default function AppointmentBookingScreen() {
                 </View>
                 <View style={s.modalDetail}>
                   <Ionicons name="time-outline" size={16} color={Colors.textSecondary} />
-                  <Text style={s.modalDetailTxt}>שעה {cancelTarget.time}</Text>
+                  <Text style={s.modalDetailTxt}>
+                    שעה {cancelTarget.time}
+                    {(cancelTarget.slotsCount ?? 1) > 1 ? ` – ${addMinutesToTime(cancelTarget.time, (cancelTarget.slotsCount ?? 1) * slotDur)}` : ''}
+                  </Text>
                 </View>
               </>
             )}
@@ -447,6 +545,32 @@ const s = StyleSheet.create({
   emptyEmoji: { fontSize: 44 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: Colors.textSecondary, textAlign: 'center' },
   emptySub:   { fontSize: 13, color: Colors.textMuted, textAlign: 'center' },
+
+  // Single/double mode toggle
+  modeRow: {
+    flexDirection: 'row', gap: 8,
+    paddingHorizontal: Spacing.md, paddingTop: Spacing.md,
+  },
+  modeBtn: {
+    flex: 1, alignItems: 'center', paddingVertical: 10,
+    borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.border,
+    backgroundColor: Colors.cardBackground,
+  },
+  modeBtnActive: { backgroundColor: Colors.mikveh, borderColor: Colors.mikveh },
+  modeBtnTxt:    { fontSize: 13, fontWeight: '700', color: Colors.textSecondary },
+  modeBtnTxtActive: { color: '#fff' },
+
+  // Double/"tailing" pair list
+  pairList: { paddingHorizontal: Spacing.md, gap: 8 },
+  pairRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: Colors.mikveh, borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md, paddingVertical: 14,
+    ...Shadow.card,
+  },
+  pairRowMine: { backgroundColor: Colors.success + '15', borderWidth: 2, borderColor: Colors.success },
+  pairTime:    { fontSize: 16, fontWeight: '800', color: '#fff' },
+  pairHint:    { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
 
   // Slots
   slotsSection: { paddingTop: Spacing.md },

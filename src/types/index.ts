@@ -257,7 +257,8 @@ export interface MikvehAppointment {
   mikvehId: string;
   userId: string;
   date: string;    // YYYY-MM-DD
-  time: string;    // HH:MM
+  time: string;    // HH:MM — start time
+  slotsCount?: number; // consecutive base slots occupied (1 = single, 2 = double/"tailing"); absent = 1
   status: 'booked' | 'cancelled';
   createdAt: any;
 }

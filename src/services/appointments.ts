@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { MikvehAppointment } from '../types';
+import { addMinutesToTime } from '../utils/appointmentSlots';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -27,18 +28,30 @@ function apptCol(mikvehId: string) {
 /**
  * Returns booked slot times for a given date AND the current user's own
  * appointment for that date (if any) — in a single Firestore query.
+ *
+ * `bookedTimes` is expanded: a double ("tailing") booking occupies two
+ * consecutive base slots, so both of their times are included here even
+ * though only one appointment document exists.
  */
 export async function getSlotInfo(
   mikvehId: string,
   date: string,
   userId: string,
+  slotDurationMin: number,
 ): Promise<{ bookedTimes: string[]; userAppt: MikvehAppointment | null }> {
   const q    = query(apptCol(mikvehId), where('date', '==', date), where('status', '==', 'booked'));
   const snap = await getDocs(q);
   const appts = snap.docs.map((d) => ({ id: d.id, ...d.data() } as MikvehAppointment));
+  const bookedTimes: string[] = [];
+  appts.forEach((a) => {
+    const n = a.slotsCount ?? 1;
+    for (let i = 0; i < n; i++) {
+      bookedTimes.push(i === 0 ? a.time : addMinutesToTime(a.time, i * slotDurationMin));
+    }
+  });
   return {
-    bookedTimes: appts.map((a) => a.time),
-    userAppt:    appts.find((a) => a.userId === userId) ?? null,
+    bookedTimes,
+    userAppt: appts.find((a) => a.userId === userId) ?? null,
   };
 }
 
@@ -62,20 +75,23 @@ export async function getUserUpcomingAppointments(
 // ─── Mutations ───────────────────────────────────────────────────────────────
 
 /**
- * Book a slot. Throws if the slot is already taken (race condition guard via
- * re-read before insert in a real app; here we trust the UI flow).
+ * Book a slot (or a "double"/tailing pair via slotsCount=2). Throws if the
+ * slot is already taken (race condition guard via re-read before insert in a
+ * real app; here we trust the UI flow).
  */
 export async function bookAppointment(
   mikvehId: string,
   userId: string,
   date: string,
   time: string,
+  slotsCount: number = 1,
 ): Promise<string> {
   const ref = await addDoc(apptCol(mikvehId), {
     mikvehId,
     userId,
     date,
     time,
+    slotsCount,
     status:    'booked',
     createdAt: serverTimestamp(),
   });

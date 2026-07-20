@@ -28,6 +28,15 @@ export function generateSlots(start: string, end: string, durationMin: number): 
   return result;
 }
 
+/** Add whole minutes to an "HH:MM" string, e.g. addMinutesToTime("22:40", 20) → "23:00" */
+export function addMinutesToTime(time: string, minutes: number): string {
+  const [h, m] = time.split(':').map(Number);
+  const total  = h * 60 + m + minutes;
+  const hh = String(Math.floor(total / 60)).padStart(2, '0');
+  const mm = String(total % 60).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
 // ─── Date helpers (always parse as LOCAL time to avoid UTC-shift issues) ─────
 
 export function todayString(): string {

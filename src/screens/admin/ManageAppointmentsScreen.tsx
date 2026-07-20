@@ -13,7 +13,7 @@ import { getAppointmentsForDay, managerCancelAppointment } from '../../services/
 import { useAuth } from '../../context/AuthContext';
 import {
   generateSlots, dayKeyFromDate, formatDateHeLong,
-  todayString, addDays, isSlotInPast,
+  todayString, addDays, isSlotInPast, addMinutesToTime,
 } from '../../utils/appointmentSlots';
 import TimePicker from '../../components/TimePicker';
 
@@ -55,7 +55,8 @@ export default function ManageAppointmentsScreen() {
   // ── Appointments state ────────────────────────────────────────────────────
   const [selectedDate,  setSelectedDate]  = useState(todayString());
   const [bookedTimes,   setBookedTimes]   = useState<string[]>([]);
-  const [apptIds,       setApptIds]       = useState<Record<string, string>>({});  // time → appointmentId
+  const [apptIds,       setApptIds]       = useState<Record<string, string>>({});  // time → appointmentId (both halves of a double booking point to the same id)
+  const [doubleStarts,  setDoubleStarts]  = useState<Set<string>>(new Set());       // start times of double bookings, for the "×2" label
   const [loadingAppts,  setLoadingAppts]  = useState(false);
 
   // ── Load mikveh config ────────────────────────────────────────────────────
@@ -70,13 +71,24 @@ export default function ManageAppointmentsScreen() {
   useEffect(() => {
     setLoadingAppts(true);
     getAppointmentsForDay(mikvehId, selectedDate).then((appts) => {
-      setBookedTimes(appts.map((a) => a.time));
+      const times: string[] = [];
       const ids: Record<string, string> = {};
-      appts.forEach((a) => { ids[a.time] = a.id; });
+      const starts = new Set<string>();
+      appts.forEach((a) => {
+        const n = a.slotsCount ?? 1;
+        for (let i = 0; i < n; i++) {
+          const t = i === 0 ? a.time : addMinutesToTime(a.time, i * config.slotDurationMin);
+          times.push(t);
+          ids[t] = a.id;
+        }
+        if (n > 1) starts.add(a.time);
+      });
+      setBookedTimes(times);
       setApptIds(ids);
+      setDoubleStarts(starts);
       setLoadingAppts(false);
     }).catch(() => setLoadingAppts(false));
-  }, [selectedDate, mikvehId]);
+  }, [selectedDate, mikvehId, config.slotDurationMin]);
 
   // ── Derive slots for selected date ────────────────────────────────────────
   const slots = useMemo(() => {
@@ -162,11 +174,14 @@ export default function ManageAppointmentsScreen() {
           onPress: async () => {
             try {
               await managerCancelAppointment(mikvehId, id);
-              const newTimes = bookedTimes.filter((t) => t !== time);
-              const newIds   = { ...apptIds };
-              delete newIds[time];
-              setBookedTimes(newTimes);
+              // A double booking has two occupied times sharing the same appointment
+              // id — cancelling either half must free both, not just the tapped one.
+              const linkedTimes = Object.entries(apptIds).filter(([, v]) => v === id).map(([t]) => t).sort();
+              const newIds = { ...apptIds };
+              linkedTimes.forEach((t) => delete newIds[t]);
+              setBookedTimes((prev) => prev.filter((t) => !linkedTimes.includes(t)));
               setApptIds(newIds);
+              setDoubleStarts((prev) => { const next = new Set(prev); next.delete(linkedTimes[0]); return next; });
             } catch (e: any) {
               Alert.alert('שגיאה', e.message);
             }
@@ -287,6 +302,9 @@ export default function ManageAppointmentsScreen() {
                     ]} />
 
                     <Text style={[s.apptTime, past && s.apptTimePast]}>{time}</Text>
+                    {doubleStarts.has(time) && (
+                      <View style={s.doubleBadge}><Text style={s.doubleBadgeTxt}>כפול</Text></View>
+                    )}
 
                     <View style={[
                       s.apptBadge,
@@ -513,6 +531,8 @@ const s = StyleSheet.create({
   apptDot:       { width: 10, height: 10, borderRadius: 5 },
   apptTime:      { fontSize: 18, fontWeight: '800', color: Colors.text, flex: 1 },
   apptTimePast:  { color: Colors.textMuted },
+  doubleBadge:    { backgroundColor: Colors.mikveh + '18', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 3, marginLeft: 4 },
+  doubleBadgeTxt: { fontSize: 10, fontWeight: '700', color: Colors.mikveh },
   apptBadge: {
     borderRadius:      Radius.full,
     paddingHorizontal: 10,

@@ -60,8 +60,8 @@ Run `npm run test-plan` and open **http://localhost:4850** for an interactive ch
 
 - [x] Mikveh list loads with correct hours/contact info
 - [ ] Mikveh detail screen shows appointment availability
-- [x] Book an appointment — slot reserved, confirmation shown <!-- note:allow%20double%20appointment%20for%20long%20time.%20have%20to%20be%20tailing -->
-- [ ] Double-booking the same slot is prevented
+- [x] Book an appointment — slot reserved, confirmation shown <!-- note:fixed%20-%20added%20a%20single%2Fdouble%20toggle.%20double%20merges%20back-to-back%20free%20slots%20into%20one%20bookable%20long%20slot -->
+- [x] Double-booking the same slot is prevented <!-- note:only%20truly%20free%20slots%20(and%20free%20back-to-back%20pairs%20for%20double)%20are%20ever%20offered%2C%20so%20overlap%20can't%20happen -->
 - [x] Cancel an appointment (if supported)
 
 ## 7. Eruv
