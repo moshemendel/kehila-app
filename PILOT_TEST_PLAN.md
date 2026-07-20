@@ -73,11 +73,11 @@ Run `npm run test-plan` and open **http://localhost:4850** for an interactive ch
 
 ## 8. Events
 
-- [x] Events list shows upcoming events, correctly sorted by date <!-- note:I%20have%20got%20an%20notification%20on%20event%20even%20if%20I%20didn't%20ask%20for%20but%20only%20for%20event%20created%20on%20app%20not%20from%20console.%20sorted%20by%20day%20but%20not%20time%20in%20day -->
+- [x] Events list shows upcoming events, correctly sorted by date <!-- note:fixed%20-%20push%20now%20only%20sent%20for%20isAlert%20events%2C%20from%20both%20app%20and%20console.%20sorted%20by%20day%20but%20not%20time%20in%20day -->
 - [x] Event detail shows full description, location, time
 - [x] RSVP / favorite an event (if supported) <!-- note:I%20think%20we%20said%20it's%20not%20available%20for%20now%20because%20we%20need%20to%20build%20backend%20to%20push%20nutifications -->
-- [x] New event triggers a push notification (see §12) <!-- note:it's%20only%20work%20from%20app%20creation%20but%20not%20from%20console.%20why%20do%20we%20need%20this%3F -->
-- [x] Pending (gabbai-submitted) events don't show publicly until approved <!-- note:after%20approve%20no%20notification%20sent -->
+- [x] New event triggers a push notification (see §12) <!-- note:fixed%20-%20mobile%20approve%20flow%20and%20console%20(create%20%2B%20approve)%20now%20send%20push%2C%20gated%20to%20isAlert%20events%20only -->
+- [x] Pending (gabbai-submitted) events don't show publicly until approved <!-- note:fixed%20-%20approve%20now%20sends%20push%20(isAlert%20events%20only) -->
 
 ## 9. Gemach
 
@@ -176,3 +176,7 @@ Sign in (or use `UserManagementScreen`/`UsersPage` to grant temporarily) as each
 - **Prayer/event reminders don't fire if the app was force-stopped or swiped away from Recents.** These are scheduled client-side via Android's `AlarmManager` (`expo-notifications` local scheduling). Since Android 3.1, the OS blocks a force-stopped app's alarms from firing until the user manually reopens it — and several OEMs, including Samsung, map "swipe away from Recents" to a force-stop. This is a platform-level restriction, not something app code can override; confirmed the alarm-permission and battery "sleeping apps" settings were both already correctly configured, so it isn't a config issue either. Reminders work fine as long as the app is merely backgrounded (not force-stopped), which covers most normal usage.
   - This is why eruv/kashrut alerts don't have this problem — those are genuine server-sent push notifications (Expo Push API → FCM), which run through Google Play Services' own persistent process, independent of this app's process state.
   - **Fix would require**: a server-side scheduler (Firebase Cloud Function running periodically) that checks every user's favorited minyanim/notification preferences and sends real push notifications at the right time, instead of relying on client-side local scheduling. This project currently has zero Cloud Functions — this would be new infrastructure, not a small patch. Decided to accept the limitation for the pilot and revisit if it becomes a real problem for users.
+
+- **Non-alert events only push a broadcast to the whole city (or nothing) — no per-user targeting yet.** For the pilot, `isAlert` events push to everyone in the city; regular (non-alert) events don't push at all, which fixes the "notified for events I didn't ask for" complaint. The originally-requested richer behavior — also push regular events to users who favorited the event's synagogue, or who've opted in to an events notification preference — isn't implemented.
+  - **Why not now**: favorites (`FavoritesContext.tsx`, kehila-app) are stored only in `AsyncStorage`, per-device, and are never synced to Firestore — there is currently no server/admin-queryable data source for "which users favorited synagogue X." There's also no existing "notify me about events" per-user preference (separate from the prayer `minutesBefore` settings) to check.
+  - **Fix would require**: syncing favorites to Firestore (or building a reverse per-synagogue follower index), plus a new events-notification opt-in preference, plus a targeted-push query joining push tokens with that data. Decided to defer this and ship the simpler isAlert-only gating for the pilot.

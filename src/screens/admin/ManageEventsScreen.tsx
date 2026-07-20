@@ -191,8 +191,11 @@ export default function ManageEventsScreen() {
       resetForm();
       setCreating(false);
       Alert.alert('✓ פורסם', 'האירוע פורסם בהצלחה');
-      const notifTitle = isAlert ? `⚠️ ${title.trim()}` : title.trim();
-      sendPushToCity(cityId, notifTitle, description.trim().slice(0, 120)).catch(() => {});
+      // Only urgent (isAlert) events broadcast a push to the whole city — regular
+      // events used to push everyone regardless, which felt spammy for the pilot.
+      if (isAlert) {
+        sendPushToCity(cityId, `⚠️ ${title.trim()}`, description.trim().slice(0, 120)).catch(() => {});
+      }
     } catch (e: any) {
       Alert.alert('שגיאה', e.message);
     } finally {
@@ -214,7 +217,12 @@ export default function ManageEventsScreen() {
         text: 'אשר ופרסם',
         onPress: () =>
           approvePendingEvent(ev, appUser?.uid ?? '')
-            .then(() => Alert.alert('✓ פורסם', 'האירוע פורסם בהצלחה'))
+            .then(() => {
+              Alert.alert('✓ פורסם', 'האירוע פורסם בהצלחה');
+              if (ev.isAlert) {
+                sendPushToCity(ev.cityId, `⚠️ ${ev.title}`, ev.description.slice(0, 120)).catch(() => {});
+              }
+            })
             .catch((e) => Alert.alert('שגיאה', e.message)),
       },
     ]);
