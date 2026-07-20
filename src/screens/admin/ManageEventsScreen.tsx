@@ -196,7 +196,7 @@ export default function ManageEventsScreen() {
       // Only urgent (isAlert) events broadcast a push to the whole city — regular
       // events used to push everyone regardless, which felt spammy for the pilot.
       if (isAlert) {
-        sendPushToCity(cityId, `⚠️ ${title.trim()}`, description.trim().slice(0, 120)).catch(() => {});
+        sendPushToCity(cityId, `📢 ${title.trim()}`, description.trim().slice(0, 120)).catch(() => {});
       }
     } catch (e: any) {
       Alert.alert('שגיאה', e.message);
@@ -222,7 +222,7 @@ export default function ManageEventsScreen() {
             .then(() => {
               Alert.alert('✓ פורסם', 'האירוע פורסם בהצלחה');
               if (ev.isAlert) {
-                sendPushToCity(ev.cityId, `⚠️ ${ev.title}`, ev.description.slice(0, 120)).catch(() => {});
+                sendPushToCity(ev.cityId, `📢 ${ev.title}`, ev.description.slice(0, 120)).catch(() => {});
               }
             })
             .catch((e) => Alert.alert('שגיאה', e.message)),
