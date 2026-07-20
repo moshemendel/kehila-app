@@ -170,8 +170,8 @@ export default function ManageEventsScreen() {
   }
 
   async function handlePublish() {
-    if (!title.trim() || !description.trim()) {
-      Alert.alert('שדות חסרים', 'יש למלא כותרת ותיאור');
+    if (!title.trim() || !location.trim()) {
+      Alert.alert('שדות חסרים', 'יש למלא כותרת ומיקום');
       return;
     }
     setSaving(true);
@@ -281,7 +281,7 @@ export default function ManageEventsScreen() {
 
             {/* Description */}
             <View style={styles.section}>
-              <Text style={styles.sectionLabel}>תיאור *</Text>
+              <Text style={styles.sectionLabel}>תיאור</Text>
               <TextInput scrollEnabled={false}
                 style={[styles.input, styles.inputMulti]}
                 value={description}
@@ -360,7 +360,7 @@ export default function ManageEventsScreen() {
 
             {/* Location */}
             <View style={styles.section}>
-              <Text style={styles.sectionLabel}>מיקום</Text>
+              <Text style={styles.sectionLabel}>מיקום *</Text>
               <LocationPicker value={location} onChange={setLocation} />
             </View>
 
