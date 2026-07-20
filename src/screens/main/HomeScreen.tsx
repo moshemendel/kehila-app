@@ -157,7 +157,13 @@ export default function HomeScreen() {
       earliestSyn: best?.syn   ?? null,
       nextPrayer:  best?.prayer ?? null,
     };
-  }, [synagogues, todayZmanim]);
+  // `tick` (30-second interval, see above) isn't read in the body — it's a
+  // dependency purely to force recomputation as time passes. Without it,
+  // getNextPrayer's internal `now` only gets re-evaluated when synagogues or
+  // todayZmanim happen to change, so a prayer time that's already passed
+  // would keep showing as "next" indefinitely while the app sits open.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [synagogues, todayZmanim, tick]);
 
   // ── Shabbat times ───────────────────────────────────────────────
   const shabbatInfo = useMemo(() => {

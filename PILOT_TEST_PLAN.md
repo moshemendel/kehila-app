@@ -51,33 +51,33 @@ Run `npm run test-plan` and open **http://localhost:4850** for an interactive ch
 
 ## 5. Kashrut & restaurants
 
-- [ ] Restaurant list loads, category filters work (meat/dairy/pareve/vegan/cafe/bakery)
-- [ ] Restaurant detail shows correct kosher certificate(s), levels, mashgiach info
-- [ ] Kashrut updates feed (KashrutUpdatesScreen) shows historical changes, correct Hebrew phrasing per entry
-- [ ] A hidden/suspended restaurant (rabbanut deactivated) is clearly flagged and not shown as a normal listing
+- [x] Restaurant list loads, category filters work (meat/dairy/pareve/vegan/cafe/bakery) <!-- note:add%20'clean'%20to%20reset%20all%20filters%20instead%20one%20at%20a%20time -->
+- [x] Restaurant detail shows correct kosher certificate(s), levels, mashgiach info <!-- note:the%20cert%20is%20A4%20page%20size%20and%20the%20uploader%20cuts%20the%20image.%20add%20option%20for%20camera%20capturing. -->
+- [x] Kashrut updates feed (KashrutUpdatesScreen) shows historical changes, correct Hebrew phrasing per entry
+- [x] A hidden/suspended restaurant (rabbanut deactivated) is clearly flagged and not shown as a normal listing
 
 ## 6. Mikveh & appointments
 
-- [ ] Mikveh list loads with correct hours/contact info
+- [x] Mikveh list loads with correct hours/contact info
 - [ ] Mikveh detail screen shows appointment availability
-- [ ] Book an appointment — slot reserved, confirmation shown
+- [x] Book an appointment — slot reserved, confirmation shown <!-- note:allow%20double%20appointment%20for%20long%20time.%20have%20to%20be%20tailing -->
 - [ ] Double-booking the same slot is prevented
-- [ ] Cancel an appointment (if supported)
+- [x] Cancel an appointment (if supported)
 
 ## 7. Eruv
 
-- [ ] Eruv status (כשר/פגום) displays correctly and matches what admin last set
-- [ ] Eruv map renders the boundary polygon correctly
-- [ ] Submit an eruv report (if user-facing reporting exists)
-- [ ] Status change triggers a push notification (see §12)
+- [x] Eruv status (כשר/פגום) displays correctly and matches what admin last set
+- [x] Eruv map renders the boundary polygon correctly
+- [x] Submit an eruv report (if user-facing reporting exists)
+- [x] Status change triggers a push notification (see §12)
 
 ## 8. Events
 
-- [ ] Events list shows upcoming events, correctly sorted by date
-- [ ] Event detail shows full description, location, time
-- [ ] RSVP / favorite an event (if supported)
-- [ ] New event triggers a push notification (see §12)
-- [ ] Pending (gabbai-submitted) events don't show publicly until approved
+- [x] Events list shows upcoming events, correctly sorted by date <!-- note:I%20have%20got%20an%20notification%20on%20event%20even%20if%20I%20didn't%20ask%20for%20but%20only%20for%20event%20created%20on%20app%20not%20from%20console.%20sorted%20by%20day%20but%20not%20time%20in%20day -->
+- [x] Event detail shows full description, location, time
+- [x] RSVP / favorite an event (if supported) <!-- note:I%20think%20we%20said%20it's%20not%20available%20for%20now%20because%20we%20need%20to%20build%20backend%20to%20push%20nutifications -->
+- [x] New event triggers a push notification (see §12) <!-- note:it's%20only%20work%20from%20app%20creation%20but%20not%20from%20console.%20why%20do%20we%20need%20this%3F -->
+- [x] Pending (gabbai-submitted) events don't show publicly until approved <!-- note:after%20approve%20no%20notification%20sent -->
 
 ## 9. Gemach
 
