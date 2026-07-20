@@ -95,6 +95,7 @@ export default function ManageEventsScreen() {
   const [organizer,   setOrganizer]   = useState('');
   const [isAlert,     setIsAlert]     = useState(false);
   const [startDt,     setStartDt]     = useState<Date>(defaultStart);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const [hasEndDate,  setHasEndDate]  = useState(false);
   const [endDt,       setEndDt]       = useState<Date | null>(null);
 
@@ -167,11 +168,12 @@ export default function ManageEventsScreen() {
     setTitle(''); setDescription(''); setCategory('announcement');
     setLocation(''); setOrganizer(''); setIsAlert(false);
     setStartDt(defaultStart()); setHasEndDate(false); setEndDt(null);
+    setSubmitAttempted(false);
   }
 
   async function handlePublish() {
     if (!title.trim() || !location.trim()) {
-      Alert.alert('שדות חסרים', 'יש למלא כותרת ומיקום');
+      setSubmitAttempted(true);
       return;
     }
     setSaving(true);
@@ -270,7 +272,7 @@ export default function ManageEventsScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionLabel}>כותרת *</Text>
               <TextInput scrollEnabled={false}
-                style={styles.input}
+                style={[styles.input, submitAttempted && !title.trim() && styles.inputInvalid]}
                 value={title}
                 onChangeText={setTitle}
                 placeholder="שם האירוע או ההודעה"
@@ -361,7 +363,7 @@ export default function ManageEventsScreen() {
             {/* Location */}
             <View style={styles.section}>
               <Text style={styles.sectionLabel}>מיקום *</Text>
-              <LocationPicker value={location} onChange={setLocation} />
+              <LocationPicker value={location} onChange={setLocation} invalid={submitAttempted && !location.trim()} />
             </View>
 
 
@@ -620,6 +622,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   inputMulti: { minHeight: 80, textAlignVertical: 'top', borderWidth: 1.5, borderColor: Colors.border, borderRadius: Radius.sm, padding: 10, borderBottomWidth: 1.5 },
+  inputInvalid: { borderBottomColor: Colors.danger, borderBottomWidth: 2 },
 
   iconInputRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 

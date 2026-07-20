@@ -18,12 +18,14 @@ export interface LocationPickerProps {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
+  invalid?: boolean;
 }
 
 export default function LocationPicker({
   value,
   onChange,
   placeholder = 'כתובת / שם המקום',
+  invalid = false,
 }: LocationPickerProps) {
   const cityId = useCityId();
   const { synagogues } = useSynagogues(cityId);
@@ -95,7 +97,7 @@ export default function LocationPicker({
 
   return (
     <>
-      <TouchableOpacity style={lp.trigger} onPress={open} activeOpacity={0.75}>
+      <TouchableOpacity style={[lp.trigger, invalid && lp.triggerInvalid]} onPress={open} activeOpacity={0.75}>
         <Ionicons
           name={value ? 'location' : 'location-outline'}
           size={17}
@@ -274,6 +276,7 @@ const lp = StyleSheet.create({
   },
   triggerTxt: { flex: 1, fontSize: 15, color: Colors.text },
   triggerPlaceholder: { color: Colors.textMuted },
+  triggerInvalid: { borderBottomColor: Colors.danger, borderBottomWidth: 2 },
 
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
   sheet: {
