@@ -50,7 +50,13 @@ function AuthGate({ navigation }: any) {
     // A guest already has an (anonymous) firebaseUser, so this must also check
     // !isGuest — otherwise the modal would auto-dismiss itself the instant it
     // opens, before the guest ever gets to see the login form.
-    if ((firebaseUser && !isGuest) || isDemo) navigation.goBack();
+    //
+    // Navigate to the Home tab explicitly rather than goBack() — the modal can
+    // be opened from anywhere (e.g. Profile), and goBack() would just return
+    // there instead of landing on the main screen after a successful sign-in.
+    if ((firebaseUser && !isGuest) || isDemo) {
+      navigation.navigate('MainTabs', { screen: 'Home' });
+    }
   }, [firebaseUser, isGuest, isDemo, navigation]);
   return <AuthNavigator />;
 }

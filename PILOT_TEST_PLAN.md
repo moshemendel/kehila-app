@@ -10,11 +10,11 @@ Run `npm run test-plan` and open **http://localhost:4850** for an interactive ch
 
 ## 1. Auth & onboarding
 
-- [x] Register with email — new account gets to `CompleteCityScreen` if no city set <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
-- [x] Register with Google Sign-In — new account created correctly, `cityId` not left empty <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
-- [x] Login with existing email account <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
-- [x] Login with Google — existing account signs in, no duplicate user doc created <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
-- [x] Continue as guest — guest gets a real (non-null) anonymous auth token, can browse <!-- note:after%20sign%20in%20navigate%20to%20main%20screen -->
+- [x] Register with email — new account gets to `CompleteCityScreen` if no city set <!-- note:fixed%20-%20AuthGate%20now%20navigates%20to%20the%20Home%20tab%20explicitly%20instead%20of%20goBack()%2C%20which%20previously%20returned%20to%20wherever%20the%20login%20modal%20was%20opened%20from -->
+- [x] Register with Google Sign-In — new account created correctly, `cityId` not left empty <!-- note:fixed%20-%20AuthGate%20now%20navigates%20to%20the%20Home%20tab%20explicitly%20instead%20of%20goBack()%2C%20which%20previously%20returned%20to%20wherever%20the%20login%20modal%20was%20opened%20from -->
+- [x] Login with existing email account <!-- note:fixed%20-%20AuthGate%20now%20navigates%20to%20the%20Home%20tab%20explicitly%20instead%20of%20goBack()%2C%20which%20previously%20returned%20to%20wherever%20the%20login%20modal%20was%20opened%20from -->
+- [x] Login with Google — existing account signs in, no duplicate user doc created <!-- note:fixed%20-%20AuthGate%20now%20navigates%20to%20the%20Home%20tab%20explicitly%20instead%20of%20goBack()%2C%20which%20previously%20returned%20to%20wherever%20the%20login%20modal%20was%20opened%20from -->
+- [x] Continue as guest — guest gets a real (non-null) anonymous auth token, can browse <!-- note:fixed%20-%20AuthGate%20now%20navigates%20to%20the%20Home%20tab%20explicitly%20instead%20of%20goBack()%2C%20which%20previously%20returned%20to%20wherever%20the%20login%20modal%20was%20opened%20from -->
 - [x] Guest → switch city — persists locally (not Firestore), survives app restart
 - [x] Guest → register/upgrade to real account (if this flow exists — verify) <!-- note:when%20tap%20on%20%D7%94%D7%AA%D7%97%D7%91%D7%A8%2F%D7%94%D7%A8%D7%A9%D7%9E%D7%94%20it's%20navigate%20to%20sign-in%20screen%20with%20option%20to%20register -->
 - [x] Wrong password shows a clear error, doesn't crash
