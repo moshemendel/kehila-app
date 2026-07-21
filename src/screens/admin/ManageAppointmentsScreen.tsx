@@ -1,45 +1,36 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  TextInput, ActivityIndicator, Alert,
+  ActivityIndicator, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
-import { AppointmentConfig, DayKey, DaySlotConfig } from '../../types';
+import { AppointmentConfig, DayKey, HoursBlock, MikvehAppointment } from '../../types';
 import { getMikveh, updateMikveh } from '../../services/mikvaot';
 import { getAppointmentsForDay, managerCancelAppointment } from '../../services/appointments';
 import { useAuth } from '../../context/AuthContext';
 import {
-  generateSlots, dayKeyFromDate, formatDateHeLong,
-  todayString, addDays, isSlotInPast, addMinutesToTime,
+  formatDateHeLong, todayString, addDays, addMinutesToTime, hoursTextForDay,
 } from '../../utils/appointmentSlots';
-import TimePicker from '../../components/TimePicker';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const DAY_KEYS: DayKey[]     = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
-const DAY_HE:   string[]     = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
-
+const DAY_KEYS: DayKey[] = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+const DAY_HE:   string[] = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
 
 const DEFAULT_CONFIG: AppointmentConfig = {
   slotDurationMin: 20,
-  schedule: {
-    sunday:    { enabled: true,  start: '18:00', end: '22:00' },
-    monday:    { enabled: true,  start: '18:00', end: '22:00' },
-    tuesday:   { enabled: true,  start: '18:00', end: '22:00' },
-    wednesday: { enabled: true,  start: '18:00', end: '22:00' },
-    thursday:  { enabled: true,  start: '18:00', end: '22:00' },
-    friday:    { enabled: false, start: '14:00', end: '17:00' },
-    saturday:  { enabled: false, start: '20:00', end: '23:00' },
-  },
+  parallelTracks: 1,
+  prepMultiplier: 2,
 };
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function ManageAppointmentsScreen() {
   const route            = useRoute<any>();
+  const navigation       = useNavigation<any>();
   const { bottom }       = useSafeAreaInsets();
   const { firebaseUser, isDemo } = useAuth();
   const { mikvehId, mikvehName } = route.params as { mikvehId: string; mikvehName: string };
@@ -48,21 +39,25 @@ export default function ManageAppointmentsScreen() {
   const [tab, setTab] = useState<'appointments' | 'settings'>('appointments');
 
   // ── Settings state ────────────────────────────────────────────────────────
-  const [config,       setConfig]      = useState<AppointmentConfig>(DEFAULT_CONFIG);
-  const [configLoaded, setConfigLoaded] = useState(false);
-  const [saving,       setSaving]       = useState(false);
+  const [config,        setConfig]        = useState<AppointmentConfig>(DEFAULT_CONFIG);
+  const [hoursSchedule, setHoursSchedule]  = useState<HoursBlock[]>([]);
+  const [configLoaded,  setConfigLoaded]   = useState(false);
+  const [saving,        setSaving]         = useState(false);
 
   // ── Appointments state ────────────────────────────────────────────────────
-  const [selectedDate,  setSelectedDate]  = useState(todayString());
-  const [bookedTimes,   setBookedTimes]   = useState<string[]>([]);
-  const [apptIds,       setApptIds]       = useState<Record<string, string>>({});  // time → appointmentId (both halves of a double booking point to the same id)
-  const [doubleStarts,  setDoubleStarts]  = useState<Set<string>>(new Set());       // start times of double bookings, for the "×2" label
-  const [loadingAppts,  setLoadingAppts]  = useState(false);
+  const [selectedDate, setSelectedDate] = useState(todayString());
+  const [dayAppts,     setDayAppts]     = useState<MikvehAppointment[]>([]);
+  const [loadingAppts, setLoadingAppts] = useState(false);
 
-  // ── Load mikveh config ────────────────────────────────────────────────────
+  // ── Load mikveh config + hours (hours are edited on the mikveh screen; here
+  //    they're read-only reference for the settings tab) ─────────────────────
   useEffect(() => {
     getMikveh(mikvehId).then((m) => {
-      if (m?.appointmentConfig) setConfig(m.appointmentConfig);
+      // Merge over defaults rather than replacing outright — a doc saved
+      // before parallelTracks/prepMultiplier existed would otherwise load
+      // those as undefined, and the steppers would compute NaN on the first tap.
+      if (m?.appointmentConfig) setConfig({ ...DEFAULT_CONFIG, ...m.appointmentConfig });
+      setHoursSchedule(m?.hoursSchedule ?? []);
       setConfigLoaded(true);
     });
   }, [mikvehId]);
@@ -71,36 +66,12 @@ export default function ManageAppointmentsScreen() {
   useEffect(() => {
     setLoadingAppts(true);
     getAppointmentsForDay(mikvehId, selectedDate).then((appts) => {
-      const times: string[] = [];
-      const ids: Record<string, string> = {};
-      const starts = new Set<string>();
-      appts.forEach((a) => {
-        const n = a.slotsCount ?? 1;
-        for (let i = 0; i < n; i++) {
-          const t = i === 0 ? a.time : addMinutesToTime(a.time, i * config.slotDurationMin);
-          times.push(t);
-          ids[t] = a.id;
-        }
-        if (n > 1) starts.add(a.time);
-      });
-      setBookedTimes(times);
-      setApptIds(ids);
-      setDoubleStarts(starts);
+      setDayAppts(appts);
       setLoadingAppts(false);
     }).catch(() => setLoadingAppts(false));
-  }, [selectedDate, mikvehId, config.slotDurationMin]);
+  }, [selectedDate, mikvehId]);
 
-  // ── Derive slots for selected date ────────────────────────────────────────
-  const slots = useMemo(() => {
-    const dc = config.schedule[dayKeyFromDate(selectedDate)];
-    if (!dc?.enabled) return [];
-    return generateSlots(dc.start, dc.end, config.slotDurationMin);
-  }, [config, selectedDate]);
-
-  // ── Stats ─────────────────────────────────────────────────────────────────
-  const bookedCount = bookedTimes.length;
-  const pastCount   = slots.filter((t) => isSlotInPast(selectedDate, t)).length;
-  const freeCount   = slots.filter((t) => !bookedTimes.includes(t) && !isSlotInPast(selectedDate, t)).length;
+  const prepCount = dayAppts.filter((a) => (a.slotsCount ?? 1) > 1).length;
 
   // ── Save settings ─────────────────────────────────────────────────────────
   async function handleSave() {
@@ -113,16 +84,6 @@ export default function ManageAppointmentsScreen() {
           : 'יש להתחבר לחשבון כדי לשמור.',
       );
       return;
-    }
-
-    // Validate all enabled days have parseable times
-    for (const [key, dc] of Object.entries(config.schedule)) {
-      if (!dc?.enabled) continue;
-      const slots = generateSlots(dc.start, dc.end, config.slotDurationMin);
-      if (slots.length === 0) {
-        Alert.alert('שגיאה בהגדרות', `שעות יום ${DAY_HE[DAY_KEYS.indexOf(key as DayKey)]} אינן תקינות`);
-        return;
-      }
     }
     setSaving(true);
     try {
@@ -144,44 +105,19 @@ export default function ManageAppointmentsScreen() {
     }
   }
 
-  // ── Update a single day's config ──────────────────────────────────────────
-  function setDayField(day: DayKey, field: keyof DaySlotConfig, value: any) {
-    setConfig((c) => ({
-      ...c,
-      schedule: {
-        ...c.schedule,
-        [day]: {
-          enabled: c.schedule[day]?.enabled ?? false,
-          start:   c.schedule[day]?.start   ?? '18:00',
-          end:     c.schedule[day]?.end     ?? '22:00',
-          [field]: value,
-        },
-      },
-    }));
-  }
-
   // ── Cancel from manager ───────────────────────────────────────────────────
-  function handleManagerCancel(time: string) {
-    const id = apptIds[time];
-    if (!id) return;
+  function handleManagerCancel(appt: MikvehAppointment) {
     Alert.alert(
       'ביטול תור',
-      `לבטל את התור בשעה ${time}?`,
+      `לבטל את התור בשעה ${appt.time}?`,
       [
         { text: 'חזור', style: 'cancel' },
         {
           text: 'בטל תור', style: 'destructive',
           onPress: async () => {
             try {
-              await managerCancelAppointment(mikvehId, id);
-              // A double booking has two occupied times sharing the same appointment
-              // id — cancelling either half must free both, not just the tapped one.
-              const linkedTimes = Object.entries(apptIds).filter(([, v]) => v === id).map(([t]) => t).sort();
-              const newIds = { ...apptIds };
-              linkedTimes.forEach((t) => delete newIds[t]);
-              setBookedTimes((prev) => prev.filter((t) => !linkedTimes.includes(t)));
-              setApptIds(newIds);
-              setDoubleStarts((prev) => { const next = new Set(prev); next.delete(linkedTimes[0]); return next; });
+              await managerCancelAppointment(mikvehId, appt.id);
+              setDayAppts((prev) => prev.filter((a) => a.id !== appt.id));
             } catch (e: any) {
               Alert.alert('שגיאה', e.message);
             }
@@ -250,80 +186,52 @@ export default function ManageAppointmentsScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Stats bar */}
-          {slots.length > 0 && (
+          {/* Stats bar — just counts, no "capacity" numbers (that's an admin-only concept) */}
+          {dayAppts.length > 0 && (
             <View style={s.statsBar}>
               <View style={s.statItem}>
                 <View style={[s.statDot, { backgroundColor: Colors.mikveh }]} />
-                <Text style={s.statTxt}>{bookedCount} קבועים</Text>
+                <Text style={s.statTxt}>{dayAppts.length} תורים</Text>
               </View>
-              <View style={s.statDivider} />
-              <View style={s.statItem}>
-                <View style={[s.statDot, { backgroundColor: Colors.success }]} />
-                <Text style={s.statTxt}>{freeCount} פנויים</Text>
-              </View>
-              <View style={s.statDivider} />
-              <View style={s.statItem}>
-                <View style={[s.statDot, { backgroundColor: Colors.border }]} />
-                <Text style={s.statTxt}>{slots.length} סה"כ</Text>
-              </View>
+              {prepCount > 0 && (
+                <>
+                  <View style={s.statDivider} />
+                  <View style={s.statItem}>
+                    <View style={[s.statDot, { backgroundColor: Colors.success }]} />
+                    <Text style={s.statTxt}>{prepCount} הכנה</Text>
+                  </View>
+                </>
+              )}
             </View>
           )}
 
           {loadingAppts ? (
             <ActivityIndicator color={Colors.mikveh} style={{ marginTop: 50 }} size="large" />
-          ) : slots.length === 0 ? (
+          ) : dayAppts.length === 0 ? (
             <View style={s.emptyState}>
               <Ionicons name="calendar-outline" size={40} color={Colors.textMuted} />
               <Text style={s.emptyTitle}>אין תורים ביום זה</Text>
-              <TouchableOpacity onPress={() => setTab('settings')}>
-                <Text style={s.emptyLink}>הגדר לוח זמנים →</Text>
-              </TouchableOpacity>
             </View>
           ) : (
             <ScrollView contentContainerStyle={{ padding: Spacing.md, paddingBottom: bottom + 32 }}>
-              {slots.map((time) => {
-                const booked = bookedTimes.includes(time);
-                const past   = isSlotInPast(selectedDate, time);
+              {dayAppts.map((appt) => {
+                const isPrep  = (appt.slotsCount ?? 1) > 1;
+                const endTime = isPrep ? addMinutesToTime(appt.time, (appt.slotsCount ?? 1) * config.slotDurationMin) : null;
                 return (
                   <TouchableOpacity
-                    key={time}
-                    style={[
-                      s.apptRow,
-                      booked && s.apptRowBooked,
-                      past   && s.apptRowPast,
-                    ]}
-                    onPress={() => booked && handleManagerCancel(time)}
-                    activeOpacity={booked ? 0.75 : 1}
+                    key={appt.id}
+                    style={s.apptRow}
+                    onPress={() => handleManagerCancel(appt)}
+                    activeOpacity={0.75}
                   >
-                    <View style={[
-                      s.apptDot,
-                      { backgroundColor: booked ? Colors.mikveh : past ? Colors.border : Colors.success },
-                    ]} />
-
-                    <Text style={[s.apptTime, past && s.apptTimePast]}>{time}</Text>
-                    {doubleStarts.has(time) && (
-                      <View style={s.doubleBadge}><Text style={s.doubleBadgeTxt}>כפול</Text></View>
-                    )}
-
-                    <View style={[
-                      s.apptBadge,
-                      booked && s.apptBadgeBooked,
-                      (!booked && !past) && s.apptBadgeFree,
-                      past && s.apptBadgePast,
-                    ]}>
-                      <Text style={[
-                        s.apptBadgeTxt,
-                        booked && s.apptBadgeTxtBooked,
-                        (!booked && !past) && s.apptBadgeTxtFree,
-                      ]}>
-                        {booked ? 'נקבע' : past ? 'עבר' : 'פנוי'}
+                    <View style={[s.apptDot, { backgroundColor: Colors.mikveh }]} />
+                    <Text style={s.apptTime}>{appt.time}{endTime ? ` – ${endTime}` : ''}</Text>
+                    <View style={[s.apptBadge, isPrep ? s.apptBadgePrep : s.apptBadgeQuick]}>
+                      <Text style={[s.apptBadgeTxt, isPrep ? s.apptBadgeTxtPrep : s.apptBadgeTxtQuick]}>
+                        {isPrep ? 'הכנה' : 'טבילה בלבד'}
                       </Text>
                     </View>
-
-                    {booked && (
-                      <Ionicons name="trash-outline" size={16} color={Colors.danger} style={{ marginLeft: 8 }} />
-                    )}
+                    <Ionicons name="trash-outline" size={16} color={Colors.danger} style={{ marginLeft: 8 }} />
                   </TouchableOpacity>
                 );
               })}
@@ -339,6 +247,24 @@ export default function ManageAppointmentsScreen() {
             <ActivityIndicator color={Colors.mikveh} style={{ marginTop: 40 }} size="large" />
           ) : (
             <>
+              {/* ── Opening hours (read-only — edited on the mikveh screen) ── */}
+              <View style={s.settSection}>
+                <View style={s.settSectionHeader}>
+                  <Text style={s.settSectionTitle}>שעות פתיחה</Text>
+                  <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Text style={s.settSectionLink}>לעריכה — חזרה למסך המקווה</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={s.settCard}>
+                  {DAY_KEYS.map((day, i) => (
+                    <View key={day} style={[s.hoursSummaryRow, i < DAY_KEYS.length - 1 && s.dayRowBorder]}>
+                      <Text style={s.hoursSummaryDay}>{DAY_HE[i]}</Text>
+                      <Text style={s.hoursSummaryTxt}>{hoursTextForDay(hoursSchedule, day)}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+
               {/* ── Slot duration (stepper) ── */}
               <View style={s.settSection}>
                 <Text style={s.settSectionTitle}>משך כל תור</Text>
@@ -370,71 +296,61 @@ export default function ManageAppointmentsScreen() {
                 </View>
               </View>
 
-              {/* ── Weekly schedule ── */}
+              {/* ── Parallel tracks / prep rooms (stepper) ── */}
               <View style={s.settSection}>
-                <Text style={s.settSectionTitle}>לוח זמנים שבועי</Text>
+                <Text style={s.settSectionTitle}>מספר חדרי הכנה</Text>
                 <View style={s.settCard}>
-                  {DAY_KEYS.map((day, i) => {
-                    const dc    = config.schedule[day] ?? { enabled: false, start: '18:00', end: '22:00' };
-                    const count = dc.enabled
-                      ? generateSlots(dc.start, dc.end, config.slotDurationMin).length
-                      : 0;
-                    const isLast = i === DAY_KEYS.length - 1;
-                    return (
-                      <View key={day} style={[s.dayRow, !isLast && s.dayRowBorder]}>
-                        {/* Line 1: toggle + day name + count/closed */}
-                        <TouchableOpacity
-                          style={s.dayHeader}
-                          onPress={() => setDayField(day, 'enabled', !dc.enabled)}
-                          activeOpacity={0.7}
-                        >
-                          <View style={[s.toggle, dc.enabled && s.toggleOn]}>
-                            <View style={[s.toggleThumb, dc.enabled && s.toggleThumbOn]} />
-                          </View>
-                          <Text style={[s.dayName, !dc.enabled && s.dayNameOff]}>
-                            {DAY_HE[i]}
-                          </Text>
-                          <View style={{ flex: 1 }} />
-                          {dc.enabled ? (
-                            count > 0 && (
-                              <View style={s.countPill}>
-                                <Text style={s.countPillTxt}>{count} תורים</Text>
-                              </View>
-                            )
-                          ) : (
-                            <Text style={s.dayOffTxt}>סגור</Text>
-                          )}
-                        </TouchableOpacity>
+                  <View style={s.stepperRow}>
+                    <TouchableOpacity
+                      style={[s.stepperBtn, config.parallelTracks <= 1 && s.stepperBtnOff]}
+                      onPress={() => setConfig((c) => ({ ...c, parallelTracks: Math.max(1, c.parallelTracks - 1) }))}
+                      disabled={config.parallelTracks <= 1}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="remove" size={28} color={config.parallelTracks <= 1 ? Colors.textMuted : Colors.mikveh} />
+                    </TouchableOpacity>
 
-                        {/* Line 2: full-width time range */}
-                        {dc.enabled && (
-                          <View style={s.timeRange}>
-                            <View style={s.timeField}>
-                              <Text style={s.timeFieldLabel}>פתיחה</Text>
-                              <TimePicker
-                                compact
-                                value={dc.start}
-                                onChange={(v) => setDayField(day, 'start', v)}
-                              />
-                            </View>
-                            <Text style={s.timeDash}>—</Text>
-                            <View style={s.timeField}>
-                              <Text style={s.timeFieldLabel}>סגירה</Text>
-                              <TimePicker
-                                compact
-                                value={dc.end}
-                                onChange={(v) => setDayField(day, 'end', v)}
-                              />
-                            </View>
-                          </View>
-                        )}
-                      </View>
-                    );
-                  })}
+                    <View style={s.stepperValue}>
+                      <Text style={s.stepperNum}>{config.parallelTracks}</Text>
+                      <Text style={s.stepperUnit}>{config.parallelTracks === 1 ? 'חדר הכנה' : 'חדרי הכנה'}</Text>
+                    </View>
+
+                    <TouchableOpacity
+                      style={[s.stepperBtn, config.parallelTracks >= 6 && s.stepperBtnOff]}
+                      onPress={() => setConfig((c) => ({ ...c, parallelTracks: Math.min(6, c.parallelTracks + 1) }))}
+                      disabled={config.parallelTracks >= 6}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="add" size={28} color={config.parallelTracks >= 6 ? Colors.textMuted : Colors.mikveh} />
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={s.settHint}>כמה נשים יכולות להתכונן במקביל (הבלנית מפקחת ברצף על הטבילות עצמן)</Text>
                 </View>
-                <Text style={s.scheduleHint}>
-                  * שינויים בלוח הזמנים ישפיעו על תורים עתידיים בלבד.
-                </Text>
+              </View>
+
+              {/* ── Prep multiplier (segmented) ── */}
+              <View style={s.settSection}>
+                <Text style={s.settSectionTitle}>מכפיל זמן הכנה</Text>
+                <View style={s.settCard}>
+                  <View style={s.multiplierRow}>
+                    {[2, 3].map((n) => {
+                      const active = config.prepMultiplier === n;
+                      return (
+                        <TouchableOpacity
+                          key={n}
+                          style={[s.multiplierBtn, active && s.multiplierBtnActive]}
+                          onPress={() => setConfig((c) => ({ ...c, prepMultiplier: n }))}
+                          activeOpacity={0.75}
+                        >
+                          <Text style={[s.multiplierBtnTxt, active && s.multiplierBtnTxtActive]}>
+                            {n}× ({n * config.slotDurationMin} דק')
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  <Text style={s.settHint}>משך תור "הכנה במקווה" ביחס לתור "טבילה בלבד"</Text>
+                </View>
               </View>
 
               {/* ── Save button ── */}
@@ -497,7 +413,8 @@ const s = StyleSheet.create({
   statsBar: {
     flexDirection:     'row',
     alignItems:        'center',
-    justifyContent:    'space-around',
+    justifyContent:    'center',
+    gap:               Spacing.lg,
     backgroundColor:   Colors.cardBackground,
     paddingVertical:   10,
     borderBottomWidth: 1,
@@ -512,7 +429,6 @@ const s = StyleSheet.create({
   // Empty state
   emptyState: { alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 60, paddingHorizontal: Spacing.xl },
   emptyTitle: { fontSize: 16, fontWeight: '700', color: Colors.textSecondary },
-  emptyLink:  { fontSize: 14, color: Colors.mikveh, fontWeight: '700', marginTop: 4 },
 
   // Appointment rows
   apptRow: {
@@ -523,16 +439,12 @@ const s = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical:   13,
     marginBottom:      Spacing.sm,
+    borderLeftWidth:   3, borderLeftColor: Colors.mikveh,
     ...Shadow.card,
     gap: 10,
   },
-  apptRowBooked: { borderLeftWidth: 3, borderLeftColor: Colors.mikveh },
-  apptRowPast:   { opacity: 0.55 },
-  apptDot:       { width: 10, height: 10, borderRadius: 5 },
-  apptTime:      { fontSize: 18, fontWeight: '800', color: Colors.text, flex: 1 },
-  apptTimePast:  { color: Colors.textMuted },
-  doubleBadge:    { backgroundColor: Colors.mikveh + '18', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 3, marginLeft: 4 },
-  doubleBadgeTxt: { fontSize: 10, fontWeight: '700', color: Colors.mikveh },
+  apptDot:  { width: 10, height: 10, borderRadius: 5 },
+  apptTime: { fontSize: 18, fontWeight: '800', color: Colors.text, flex: 1 },
   apptBadge: {
     borderRadius:      Radius.full,
     paddingHorizontal: 10,
@@ -541,19 +453,27 @@ const s = StyleSheet.create({
     borderColor:       Colors.border,
     backgroundColor:   Colors.background,
   },
-  apptBadgeBooked:    { backgroundColor: Colors.mikveh + '15', borderColor: Colors.mikveh + '50' },
-  apptBadgeFree:      { backgroundColor: Colors.success + '12', borderColor: Colors.success + '40' },
-  apptBadgePast:      { backgroundColor: Colors.background },
-  apptBadgeTxt:       { fontSize: 12, fontWeight: '700', color: Colors.textMuted },
-  apptBadgeTxtBooked: { color: Colors.mikveh },
-  apptBadgeTxtFree:   { color: Colors.success },
+  apptBadgeQuick:    { backgroundColor: Colors.mikveh + '15', borderColor: Colors.mikveh + '50' },
+  apptBadgePrep:     { backgroundColor: Colors.success + '12', borderColor: Colors.success + '40' },
+  apptBadgeTxt:      { fontSize: 12, fontWeight: '700', color: Colors.textMuted },
+  apptBadgeTxtQuick: { color: Colors.mikveh },
+  apptBadgeTxtPrep:  { color: Colors.success },
 
   // Settings
-  settSection:      { marginBottom: Spacing.lg },
-  settSectionTitle: { fontSize: 13, fontWeight: '700', color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 },
-  settCard:         { backgroundColor: Colors.cardBackground, borderRadius: Radius.md, padding: Spacing.md, ...Shadow.card },
+  settSection:       { marginBottom: Spacing.lg },
+  settSectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
+  settSectionTitle:  { fontSize: 13, fontWeight: '700', color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8 },
+  settSectionLink:   { fontSize: 12, color: Colors.mikveh, fontWeight: '600' },
+  settCard:          { backgroundColor: Colors.cardBackground, borderRadius: Radius.md, padding: Spacing.md, ...Shadow.card },
+  settHint:          { fontSize: 11, color: Colors.textMuted, marginTop: 8, textAlign: 'center' },
 
-  // Duration stepper:  [−]  20 / דקות לתור  [+]
+  // Read-only opening-hours summary
+  hoursSummaryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 9 },
+  dayRowBorder:    { borderBottomWidth: 1, borderBottomColor: Colors.border },
+  hoursSummaryDay: { fontSize: 14, fontWeight: '700', color: Colors.text },
+  hoursSummaryTxt: { fontSize: 13, color: Colors.textSecondary },
+
+  // Duration/capacity steppers:  [−]  20 / דקות לתור  [+]
   stepperRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6, paddingHorizontal: Spacing.sm },
   stepperBtn:    { width: 52, height: 52, borderRadius: 26, borderWidth: 2, borderColor: Colors.mikveh, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.mikveh + '0D' },
   stepperBtnOff: { borderColor: Colors.border, backgroundColor: Colors.background },
@@ -561,35 +481,16 @@ const s = StyleSheet.create({
   stepperNum:    { fontSize: 40, fontWeight: '800', color: Colors.mikveh, lineHeight: 46 },
   stepperUnit:   { fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
 
-  // Day rows — two-line layout (header row + full-width time range row)
-  dayRow:       { paddingVertical: 12 },
-  dayRowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
-  dayHeader:    { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  toggle:       { width: 44, height: 24, borderRadius: 12, backgroundColor: Colors.border, justifyContent: 'center', paddingHorizontal: 2 },
-  toggleOn:     { backgroundColor: Colors.mikveh },
-  toggleThumb:  { width: 20, height: 20, borderRadius: 10, backgroundColor: Colors.white },
-  toggleThumbOn:{ alignSelf: 'flex-end' },
-  dayName:      { fontSize: 16, fontWeight: '700', color: Colors.text },
-  dayNameOff:   { color: Colors.textMuted, fontWeight: '600' },
-  dayOffTxt:    { fontSize: 13, color: Colors.textMuted, fontWeight: '600' },
-  countPill:    { backgroundColor: Colors.mikveh + '18', borderRadius: Radius.full, paddingHorizontal: 10, paddingVertical: 4 },
-  countPillTxt: { fontSize: 12, fontWeight: '700', color: Colors.mikveh },
-
-  // Time range lives on its own full-width line → inputs are large and never clip
-  timeRange:      { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 14, marginTop: 12 },
-  timeField:      { flex: 1, maxWidth: 150, alignItems: 'center', gap: 4 },
-  timeFieldLabel: { fontSize: 11, color: Colors.textMuted, fontWeight: '600' },
-  timeInput: {
-    alignSelf: 'stretch', height: 44,
-    borderWidth: 1.5, borderColor: Colors.border,
-    borderRadius: Radius.md,
-    fontSize: 18, fontWeight: '700', color: Colors.text,
+  // Prep multiplier segmented control
+  multiplierRow: { flexDirection: 'row', gap: 8 },
+  multiplierBtn: {
+    flex: 1, alignItems: 'center', paddingVertical: 12,
+    borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.border,
     backgroundColor: Colors.background,
-    textAlign: 'center', writingDirection: 'ltr',
   },
-  timeDash:  { fontSize: 18, color: Colors.textMuted, flexShrink: 0, marginBottom: 11 },
-
-  scheduleHint: { fontSize: 11, color: Colors.textMuted, marginTop: 6 },
+  multiplierBtnActive:  { backgroundColor: Colors.mikveh, borderColor: Colors.mikveh },
+  multiplierBtnTxt:     { fontSize: 14, fontWeight: '700', color: Colors.textSecondary },
+  multiplierBtnTxtActive: { color: Colors.white },
 
   saveBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,

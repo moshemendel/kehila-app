@@ -1,4 +1,4 @@
-import { DayKey } from '../types';
+import { DayKey, HoursBlock } from '../types';
 
 // ─── Slot generation ──────────────────────────────────────────────────────────
 
@@ -37,6 +37,32 @@ export function addMinutesToTime(time: string, minutes: number): string {
   return `${hh}:${mm}`;
 }
 
+/** All bookable base-slot times for a date, derived from whichever hour blocks
+ *  apply to that day of the week (a day can be covered by more than one block). */
+export function slotsForDate(hoursSchedule: HoursBlock[] | undefined, dateStr: string, durationMin: number): string[] {
+  const day    = dayKeyFromDate(dateStr);
+  const blocks = (hoursSchedule ?? []).filter((b) => b.days.includes(day));
+  const all    = blocks.flatMap((b) => generateSlots(b.start, b.end, durationMin));
+  return Array.from(new Set(all)).sort();
+}
+
+/** Per-base-slot occupancy count: expands each appointment's span by its
+ *  slotsCount and tallies how many appointments currently claim each slot. */
+export function computeOccupancy(
+  appts: { time: string; slotsCount?: number }[],
+  durationMin: number,
+): Map<string, number> {
+  const m = new Map<string, number>();
+  appts.forEach((a) => {
+    const n = a.slotsCount ?? 1;
+    for (let i = 0; i < n; i++) {
+      const t = i === 0 ? a.time : addMinutesToTime(a.time, i * durationMin);
+      m.set(t, (m.get(t) ?? 0) + 1);
+    }
+  });
+  return m;
+}
+
 // ─── Date helpers (always parse as LOCAL time to avoid UTC-shift issues) ─────
 
 export function todayString(): string {
@@ -68,6 +94,13 @@ export function addDays(dateStr: string, days: number): string {
 const DAY_KEYS: DayKey[] = [
   'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday',
 ];
+
+/** Human display text for a day's hours, e.g. "18:00–22:00", "18:00–20:00, 21:00–23:00", or "סגור". */
+export function hoursTextForDay(hoursSchedule: HoursBlock[] | undefined, day: DayKey): string {
+  const blocks = (hoursSchedule ?? []).filter((b) => b.days.includes(day));
+  if (!blocks.length) return 'סגור';
+  return blocks.map((b) => `${b.start}–${b.end}`).join(', ');
+}
 
 export function dayKeyFromDate(dateStr: string): DayKey {
   return DAY_KEYS[parseLocalDate(dateStr).getDay()];

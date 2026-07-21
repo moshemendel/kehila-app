@@ -239,16 +239,21 @@ export type DayKey =
   | 'sunday' | 'monday' | 'tuesday' | 'wednesday'
   | 'thursday' | 'friday' | 'saturday';
 
-export interface DaySlotConfig {
-  enabled: boolean;
+/** One opening-hours block: a time range that applies to a chosen set of days.
+ *  A day can appear in more than one block (e.g. split morning/evening hours). */
+export interface HoursBlock {
+  id: string;
+  days: DayKey[];
   start: string;   // "HH:MM"
   end: string;     // "HH:MM"
 }
 
-/** Stored inline in the Mikveh document */
+/** Stored inline in the Mikveh document — appointment-specific settings only.
+ *  The actual schedule lives on Mikveh.hoursSchedule (shared with general display). */
 export interface AppointmentConfig {
   slotDurationMin: number;
-  schedule: Partial<Record<DayKey, DaySlotConfig>>;
+  parallelTracks: number;  // concurrent prep rooms/tracks allowed to overlap; default 1
+  prepMultiplier: number;  // how many base slots a "prep at mikveh" appointment spans (2 or 3); default 2
 }
 
 /** One appointment document — subcollection: mikvaot/{id}/appointments/{apptId} */
@@ -258,7 +263,7 @@ export interface MikvehAppointment {
   userId: string;
   date: string;    // YYYY-MM-DD
   time: string;    // HH:MM — start time
-  slotsCount?: number; // consecutive base slots occupied (1 = single, 2 = double/"tailing"); absent = 1
+  slotsCount?: number; // consecutive base slots occupied (1 = quick, prepMultiplier = prep); absent = 1
   status: 'booked' | 'cancelled';
   createdAt: any;
 }
@@ -273,10 +278,10 @@ export interface Mikveh {
   neighborhood?: string;
   address: string;
   phone?: string;
-  openingHours: OpeningHours;
+  hoursSchedule?: HoursBlock[];  // opening hours — also used to generate appointment slots
   requiresAppointment: boolean;
   appointmentPhone?: string;
-  appointmentConfig?: AppointmentConfig;  // online booking schedule
+  appointmentConfig?: AppointmentConfig;  // online booking settings (duration/capacity/prep multiplier)
   contacts?: { name: string; phone?: string }[];
   notes?: string;
   description?: string;

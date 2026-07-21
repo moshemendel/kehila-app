@@ -8,8 +8,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
-import { Mikveh } from '../../types';
+import { Mikveh, DayKey } from '../../types';
 import { getMikveh } from '../../services/mikvaot';
+import { hoursTextForDay } from '../../utils/appointmentSlots';
 
 // ─── Layout constants (identical to RestaurantDetailScreen) ───────────────────
 
@@ -28,7 +29,7 @@ const TYPE_LABELS: Record<string, string> = {
   women: 'נשים', men: 'גברים', both: 'גברים ונשים',
 };
 
-const DAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const DAY_KEYS: DayKey[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const DAY_HE   = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -77,9 +78,9 @@ export default function MikvehDetailScreen() {
 
   // ── Derived ─────────────────────────────────────────────────────────────────
   const todayIdx      = new Date().getDay();
-  const todayKey      = DAY_KEYS[todayIdx] as keyof typeof mikveh.openingHours;
-  const todayHours    = mikveh.openingHours[todayKey] ?? '—';
-  const isClosedToday = todayHours.toLowerCase() === 'closed' || todayHours === 'סגור';
+  const todayKey      = DAY_KEYS[todayIdx];
+  const todayHours    = hoursTextForDay(mikveh.hoursSchedule, todayKey);
+  const isClosedToday = todayHours === 'סגור';
 
   const allImages: string[] = [
     ...(mikveh.imageUrl ? [mikveh.imageUrl] : []),
@@ -279,8 +280,8 @@ export default function MikvehDetailScreen() {
           <View style={styles.hoursCard}>
             {DAY_KEYS.map((key, i) => {
               const isToday = i === todayIdx;
-              const hours   = mikveh.openingHours[key as keyof typeof mikveh.openingHours] ?? '—';
-              const closed  = hours.toLowerCase() === 'closed' || hours === 'סגור';
+              const hours   = hoursTextForDay(mikveh.hoursSchedule, key);
+              const closed  = hours === 'סגור';
               return (
                 <View key={key} style={[styles.hoursRow, isToday && styles.hoursRowToday]}>
                   <View style={styles.hoursLeft}>

@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow } from '../utils/theme';
-import { Mikveh } from '../types';
+import { Mikveh, DayKey } from '../types';
 import { updateMikveh } from '../services/mikvaot';
+import { hoursTextForDay } from '../utils/appointmentSlots';
 import LocationEditModal from './LocationEditModal';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -18,10 +19,11 @@ interface Props {
   cardStyle?: any;
 }
 
+const DAYS: DayKey[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
 function getTodayHours(mikveh: Mikveh): string {
-  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const today = days[new Date().getDay()] as keyof typeof mikveh.openingHours;
-  return mikveh.openingHours[today] ?? '—';
+  const today = DAYS[new Date().getDay()];
+  return hoursTextForDay(mikveh.hoursSchedule, today);
 }
 
 function openMaps(address: string, lat?: number, lon?: number) {

@@ -15,17 +15,12 @@ import { useNavigation } from '@react-navigation/native';
 import LocationEditModal from '../../components/LocationEditModal';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
 import AddItemModal from '../../components/AddItemModal';
-import TimeRangePicker from '../../components/TimeRangePicker';
+import HoursScheduleEditor from '../../components/HoursScheduleEditor';
 
 const TYPE_OPTIONS: { key: Mikveh['type']; label: string }[] = [
   { key: 'women', label: '👩 נשים' },
   { key: 'men',   label: '👨 גברים' },
   { key: 'both',  label: '♾ שניהם' },
-];
-
-const DAYS: [string, string][] = [
-  ['sunday','ראשון'],['monday','שני'],['tuesday','שלישי'],
-  ['wednesday','רביעי'],['thursday','חמישי'],['friday','שישי'],['saturday','שבת'],
 ];
 
 // ─── Edit form ─────────────────────────────────────────────────────────────────
@@ -127,15 +122,10 @@ function EditForm({ mikveh, onBack }: { mikveh: Mikveh; onBack: () => void }) {
           <View style={s.section}>
             <Text style={s.sectionTitle}>שעות פתיחה</Text>
             <View style={s.card}>
-              {DAYS.map(([key, label]) => (
-                <View key={key} style={s.hoursRow}>
-                  <Text style={s.dayLabel}>{label}</Text>
-                  <TimeRangePicker
-                    value={(form.openingHours as any)[key] ?? ''}
-                    onChange={(v) => set('openingHours', { ...form.openingHours, [key]: v })}
-                  />
-                </View>
-              ))}
+              <HoursScheduleEditor
+                value={form.hoursSchedule ?? []}
+                onChange={(v) => set('hoursSchedule', v)}
+              />
             </View>
           </View>
 
@@ -243,7 +233,7 @@ export default function ManageMikvehScreen() {
         name: values.name.trim(),
         address: values.address.trim(),
         type: (values.type as Mikveh['type']) || 'women',
-        openingHours: {},
+        hoursSchedule: [],
         requiresAppointment: false,
       };
       const id = await addMikveh(base);
@@ -392,9 +382,6 @@ const s = StyleSheet.create({
   typeChipOn:   { backgroundColor: Colors.mikveh, borderColor: Colors.mikveh },
   typeChipTxt:  { fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
   typeChipTxtOn:{ color: Colors.white },
-  hoursRow:     { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.sm, borderBottomWidth: 1, borderBottomColor: Colors.border, gap: Spacing.md },
-  dayLabel:     { fontSize: 14, fontWeight: '600', color: Colors.text, width: 50 },
-  hoursInput:   { flex: 1, fontSize: 14, color: Colors.textSecondary, borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.sm, paddingHorizontal: Spacing.sm, paddingVertical: 4 },
   toggleRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.border },
   toggleLabel:  { fontSize: 14, fontWeight: '600', color: Colors.text },
   toggle:       { width: 44, height: 24, borderRadius: 12, backgroundColor: Colors.border, justifyContent: 'center', paddingHorizontal: 2 },

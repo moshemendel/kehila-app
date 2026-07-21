@@ -60,8 +60,9 @@ Run `npm run test-plan` and open **http://localhost:4850** for an interactive ch
 
 - [x] Mikveh list loads with correct hours/contact info
 - [ ] Mikveh detail screen shows appointment availability
-- [x] Book an appointment — slot reserved, confirmation shown <!-- note:fixed%20-%20added%20a%20single%2Fdouble%20toggle.%20double%20merges%20back-to-back%20free%20slots%20into%20one%20bookable%20long%20slot -->
-- [x] Double-booking the same slot is prevented <!-- note:only%20truly%20free%20slots%20(and%20free%20back-to-back%20pairs%20for%20double)%20are%20ever%20offered%2C%20so%20overlap%20can't%20happen -->
+- [x] Book an appointment — slot reserved, confirmation shown <!-- note:reworked%20-%20toggle%20is%20now%20%22%D7%98%D7%91%D7%99%D7%9C%D7%94%20%D7%91%D7%9C%D7%91%D7%93%22%20vs%20%22%D7%94%D7%9B%D7%A0%D7%94%20%D7%91%D7%9E%D7%A7%D7%95%D7%95%D7%94%22%2C%20both%20manager-configurable%20(parallel%20tracks%20%2B%20prep%20multiplier%20instead%20of%20hardcoded%201%2F2%D7%97) -->
+- [x] Double-booking the same slot is prevented <!-- note:availability%20is%20now%20capacity-based%20(overlap%20count%20vs%20parallelTracks)%2C%20not%20a%20simple%20boolean%20-->
+- [x] Opening hours unified — defined once on the mikveh screen (flexible day-grouped blocks), appointment settings just read from it <!-- note:new%20-%20replaces%20the%20old%20separate%20free-text%20openingHours%20%2B%20duplicate%20appointment%20schedule%20editor -->
 - [x] Cancel an appointment (if supported)
 
 ## 7. Eruv
@@ -180,3 +181,5 @@ Sign in (or use `UserManagementScreen`/`UsersPage` to grant temporarily) as each
 - **Non-alert events only push a broadcast to the whole city (or nothing) — no per-user targeting yet.** For the pilot, `isAlert` events push to everyone in the city; regular (non-alert) events don't push at all, which fixes the "notified for events I didn't ask for" complaint. The originally-requested richer behavior — also push regular events to users who favorited the event's synagogue, or who've opted in to an events notification preference — isn't implemented.
   - **Why not now**: favorites (`FavoritesContext.tsx`, kehila-app) are stored only in `AsyncStorage`, per-device, and are never synced to Firestore — there is currently no server/admin-queryable data source for "which users favorited synagogue X." There's also no existing "notify me about events" per-user preference (separate from the prayer `minutesBefore` settings) to check.
   - **Fix would require**: syncing favorites to Firestore (or building a reverse per-synagogue follower index), plus a new events-notification opt-in preference, plus a targeted-push query joining push tokens with that data. Decided to defer this and ship the simpler isAlert-only gating for the pilot.
+
+- **Mikveh opening hours need to be re-entered once after the appointment-system rework.** `Mikveh.openingHours` (free text) and `appointmentConfig.schedule` were replaced by a single `hoursSchedule` (flexible day-grouped blocks, edited only on the mikveh screen now). No migration script was written — this is a pre-launch pilot, so any mikveh hours entered before this change are gone and need re-entering once in the new editor. Not a bug, just a one-time manual step.

@@ -5,8 +5,9 @@
  *
  * Privacy note: each appointment stores userId. Firestore security rules
  * should restrict read access so users can only read their own appointments.
- * The getSlotInfo() helper reads all appointments for a date but only returns
- * booked *times* (not user IDs) to callers other than the owning user.
+ * getSlotInfo() reads all appointments for a date, but callers other than
+ * the owning user should only use the returned *times*, not read userId off
+ * entries that aren't their own.
  */
 
 import {
@@ -15,7 +16,6 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { MikvehAppointment } from '../types';
-import { addMinutesToTime } from '../utils/appointmentSlots';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -26,31 +26,21 @@ function apptCol(mikvehId: string) {
 // ─── User-facing reads ───────────────────────────────────────────────────────
 
 /**
- * Returns booked slot times for a given date AND the current user's own
- * appointment for that date (if any) — in a single Firestore query.
- *
- * `bookedTimes` is expanded: a double ("tailing") booking occupies two
- * consecutive base slots, so both of their times are included here even
- * though only one appointment document exists.
+ * Returns all booked appointments for a given date AND the current user's own
+ * appointment for that date (if any) — in a single Firestore query. Callers
+ * derive per-slot occupancy from the raw list via computeOccupancy()
+ * (utils/appointmentSlots) since that depends on the mikveh's slot duration.
  */
 export async function getSlotInfo(
   mikvehId: string,
   date: string,
   userId: string,
-  slotDurationMin: number,
-): Promise<{ bookedTimes: string[]; userAppt: MikvehAppointment | null }> {
+): Promise<{ appts: MikvehAppointment[]; userAppt: MikvehAppointment | null }> {
   const q    = query(apptCol(mikvehId), where('date', '==', date), where('status', '==', 'booked'));
   const snap = await getDocs(q);
   const appts = snap.docs.map((d) => ({ id: d.id, ...d.data() } as MikvehAppointment));
-  const bookedTimes: string[] = [];
-  appts.forEach((a) => {
-    const n = a.slotsCount ?? 1;
-    for (let i = 0; i < n; i++) {
-      bookedTimes.push(i === 0 ? a.time : addMinutesToTime(a.time, i * slotDurationMin));
-    }
-  });
   return {
-    bookedTimes,
+    appts,
     userAppt: appts.find((a) => a.userId === userId) ?? null,
   };
 }
@@ -75,9 +65,10 @@ export async function getUserUpcomingAppointments(
 // ─── Mutations ───────────────────────────────────────────────────────────────
 
 /**
- * Book a slot (or a "double"/tailing pair via slotsCount=2). Throws if the
- * slot is already taken (race condition guard via re-read before insert in a
- * real app; here we trust the UI flow).
+ * Book a slot — a "prep at mikveh" appointment spans slotsCount consecutive
+ * base slots (per the mikveh's prepMultiplier) instead of just one. Throws if
+ * the slot is already taken (race condition guard via re-read before insert
+ * in a real app; here we trust the UI flow).
  */
 export async function bookAppointment(
   mikvehId: string,

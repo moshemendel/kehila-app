@@ -14,7 +14,7 @@ import {
   bookAppointment, cancelAppointment,
 } from '../../services/appointments';
 import {
-  generateSlots, dayKeyFromDate,
+  slotsForDate, computeOccupancy,
   formatDateHeLong, formatDateHeShort,
   todayString, isSlotInPast, addMinutesToTime,
 } from '../../utils/appointmentSlots';
@@ -43,11 +43,11 @@ export default function AppointmentBookingScreen() {
   // ── State ──────────────────────────────────────────────────────────────────
   const [mikveh,       setMikveh]       = useState<Mikveh | null>(null);
   const [loading,      setLoading]      = useState(true);
-  const [bookedTimes,  setBookedTimes]  = useState<string[]>([]);
+  const [dayAppts,     setDayAppts]     = useState<MikvehAppointment[]>([]);
   const [userDateAppt, setUserDateAppt] = useState<MikvehAppointment | null>(null);
   const [upcoming,     setUpcoming]     = useState<MikvehAppointment[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
-  const [mode,         setMode]         = useState<'single' | 'double'>('single');
+  const [mode,         setMode]         = useState<'quick' | 'prep'>('quick');
   const [confirmSlot,  setConfirmSlot]  = useState<{ time: string; end: string; slotsCount: number } | null>(null);
   const [booking,      setBooking]      = useState(false);
   const [cancelTarget, setCancelTarget] = useState<MikvehAppointment | null>(null);
@@ -70,32 +70,36 @@ export default function AppointmentBookingScreen() {
       .catch((e) => console.warn('[booking] upcoming failed:', e?.message));
   }, [mikvehId]);
 
-  const slotDur = mikveh?.appointmentConfig?.slotDurationMin ?? 20;
+  const slotDur        = mikveh?.appointmentConfig?.slotDurationMin ?? 20;
+  const capacity        = mikveh?.appointmentConfig?.parallelTracks ?? 1;
+  const prepMultiplier  = mikveh?.appointmentConfig?.prepMultiplier ?? 2;
 
-  // ── Load today's booked slots ─────────────────────────────────────────────
+  // ── Load today's booked appointments ──────────────────────────────────────
   useEffect(() => {
     if (!mikveh?.appointmentConfig) return;
     setSlotsLoading(true);
     const uid = userId ?? 'anon';
-    getSlotInfo(mikvehId, today, uid, slotDur).then(({ bookedTimes: bt, userAppt }) => {
-      setBookedTimes(bt);
+    getSlotInfo(mikvehId, today, uid).then(({ appts, userAppt }) => {
+      setDayAppts(appts);
       setUserDateAppt(userAppt);
       setSlotsLoading(false);
     }).catch(() => setSlotsLoading(false));
   }, [mikveh?.appointmentConfig]);
 
-  // ── Derive slots for today ────────────────────────────────────────────────
-  const slots = useMemo(() => {
-    if (!mikveh?.appointmentConfig) return [];
-    const cfg = mikveh.appointmentConfig;
-    const dc  = cfg.schedule[dayKeyFromDate(today)];
-    if (!dc?.enabled) return [];
-    return generateSlots(dc.start, dc.end, cfg.slotDurationMin);
-  }, [mikveh?.appointmentConfig]);
+  // ── Derive slots for today from the mikveh's hour blocks ─────────────────
+  const slots = useMemo(
+    () => slotsForDate(mikveh?.hoursSchedule, today, slotDur),
+    [mikveh?.hoursSchedule, slotDur],
+  );
 
-  // Times occupied by the user's own booking today (both halves, if it's a
-  // double/"tailing" booking — a double booking's second half isn't its own
-  // document, so it isn't `userDateAppt.time` and needs to be derived here).
+  // Per-base-slot occupancy count, compared against parallelTracks to decide
+  // availability — no longer a simple boolean, since more than one booking
+  // can legitimately share a slot.
+  const occupancy = useMemo(() => computeOccupancy(dayAppts, slotDur), [dayAppts, slotDur]);
+
+  // Times occupied by the user's own booking today (all of them, if it's a
+  // "prep at mikveh" booking spanning multiple slots — only the first slot
+  // is `userDateAppt.time`, the rest need to be derived here).
   const mineTimes = useMemo(() => {
     if (!userDateAppt) return new Set<string>();
     const n = userDateAppt.slotsCount ?? 1;
@@ -106,32 +110,31 @@ export default function AppointmentBookingScreen() {
 
   type SlotStatus = 'available' | 'booked' | 'mine' | 'past';
   function slotStatus(time: string): SlotStatus {
-    if (mineTimes.has(time))         return 'mine';
-    if (bookedTimes.includes(time))  return 'booked';
-    if (isSlotInPast(today, time))   return 'past';
-    if (userDateAppt)                return 'booked'; // already has a slot today → lock rest
+    if (mineTimes.has(time))                        return 'mine';
+    if ((occupancy.get(time) ?? 0) >= capacity)      return 'booked';
+    if (isSlotInPast(today, time))                   return 'past';
+    if (userDateAppt)                                return 'booked'; // already has a slot today → lock rest
     return 'available';
   }
 
-  // Double/"tailing" options: every pair of immediately-adjacent base slots
-  // that are both free, merged into one bookable long slot. Slides one slot
-  // at a time so e.g. both 18:00–18:40 and 18:20–19:00 show up if free.
-  type PairStatus = 'available' | 'mine' | 'blocked';
-  const doublePairs = useMemo(() => {
-    const pairs: { start: string; end: string; status: PairStatus }[] = [];
-    for (let i = 0; i < slots.length - 1; i++) {
-      const start = slots[i];
-      const end   = slots[i + 1];
-      const a = slotStatus(start);
-      const b = slotStatus(end);
-      const status: PairStatus =
-        a === 'mine' && b === 'mine' ? 'mine' :
-        a === 'available' && b === 'available' ? 'available' :
+  // "Prep at mikveh" options: every run of `prepMultiplier` immediately-
+  // adjacent base slots that are all free, merged into one bookable long
+  // slot. Slides one slot at a time so e.g. both 18:00–18:40 and 18:20–19:00
+  // show up if free (for prepMultiplier=2).
+  type GroupStatus = 'available' | 'mine' | 'blocked';
+  const prepGroups = useMemo(() => {
+    const groups: { start: string; end: string; status: GroupStatus }[] = [];
+    for (let i = 0; i + prepMultiplier <= slots.length; i++) {
+      const window = slots.slice(i, i + prepMultiplier);
+      const statuses = window.map(slotStatus);
+      const status: GroupStatus =
+        statuses.every((st) => st === 'mine')      ? 'mine' :
+        statuses.every((st) => st === 'available') ? 'available' :
         'blocked';
-      if (status !== 'blocked') pairs.push({ start, end, status });
+      if (status !== 'blocked') groups.push({ start: window[0], end: window[window.length - 1], status });
     }
-    return pairs;
-  }, [slots, bookedTimes, mineTimes, today]);
+    return groups;
+  }, [slots, occupancy, mineTimes, userDateAppt, today, capacity, prepMultiplier]);
 
   // Firestore writes require a real signed-in account: demo mode has no
   // firebaseUser at all, and a guest has one (anonymous auth, needed so guests
@@ -166,13 +169,13 @@ export default function AppointmentBookingScreen() {
     setBooking(true);
     try {
       await bookAppointment(mikvehId, userId!, today, confirmSlot.time, confirmSlot.slotsCount);
-      const [{ bookedTimes: bt, userAppt }, appts] = await Promise.all([
-        getSlotInfo(mikvehId, today, userId!, slotDur),
+      const [{ appts, userAppt }, upcomingAppts] = await Promise.all([
+        getSlotInfo(mikvehId, today, userId!),
         getUserUpcomingAppointments(mikvehId, userId!),
       ]);
-      setBookedTimes(bt);
+      setDayAppts(appts);
       setUserDateAppt(userAppt);
-      setUpcoming(appts);
+      setUpcoming(upcomingAppts);
       setConfirmSlot(null);
     } catch (e: any) {
       Alert.alert('שגיאה', describeError(e, 'לא ניתן לקבוע תור'));
@@ -191,13 +194,13 @@ export default function AppointmentBookingScreen() {
     setCancelling(true);
     try {
       await cancelAppointment(mikvehId, appt.id);
-      const [{ bookedTimes: bt, userAppt }, appts] = await Promise.all([
-        getSlotInfo(mikvehId, today, userId!, slotDur),
+      const [{ appts, userAppt }, upcomingAppts] = await Promise.all([
+        getSlotInfo(mikvehId, today, userId!),
         getUserUpcomingAppointments(mikvehId, userId!),
       ]);
-      setBookedTimes(bt);
+      setDayAppts(appts);
       setUserDateAppt(userAppt);
-      setUpcoming(appts);
+      setUpcoming(upcomingAppts);
       setCancelTarget(null);
     } catch (e: any) {
       Alert.alert('שגיאה', describeError(e, 'לא ניתן לבטל'));
@@ -217,8 +220,7 @@ export default function AppointmentBookingScreen() {
     );
   }
 
-  const hasConfig = !!mikveh?.appointmentConfig;
-  const isDayOpen = !!mikveh?.appointmentConfig?.schedule[dayKeyFromDate(today)]?.enabled;
+  const hasConfig = !!mikveh?.appointmentConfig && !!mikveh?.hoursSchedule?.length;
   const nextAppt  = upcoming[0] ?? null;
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -265,12 +267,12 @@ export default function AppointmentBookingScreen() {
           </View>
         )}
 
-        {/* ── Single / double mode toggle ─────────────────────────────── */}
-        {hasConfig && isDayOpen && (
+        {/* ── Quick / prep mode toggle ────────────────────────────────── */}
+        {hasConfig && slots.length > 0 && (
           <View style={s.modeRow}>
             {([
-              { key: 'single', label: 'תור בודד' },
-              { key: 'double', label: `תור כפול (${slotDur * 2} דק')` },
+              { key: 'quick', label: 'טבילה בלבד' },
+              { key: 'prep',  label: `הכנה במקווה (${slotDur * prepMultiplier} דק')` },
             ] as const).map(({ key, label }) => (
               <TouchableOpacity
                 key={key}
@@ -291,19 +293,15 @@ export default function AppointmentBookingScreen() {
             <Text style={s.emptyTitle}>קביעת תורים טרם הוגדרה</Text>
             <Text style={s.emptySub}>פנה/י למנהל המקווה לפרטים</Text>
           </View>
-        ) : !isDayOpen ? (
+        ) : slotsLoading ? (
+          <ActivityIndicator color={Colors.mikveh} style={{ marginTop: 50 }} size="large" />
+        ) : slots.length === 0 ? (
           <View style={s.emptyBox}>
             <Text style={s.emptyEmoji}>🚫</Text>
             <Text style={s.emptyTitle}>אין תורים להיום</Text>
             <Text style={s.emptySub}>המקווה סגור היום לתורים</Text>
           </View>
-        ) : slotsLoading ? (
-          <ActivityIndicator color={Colors.mikveh} style={{ marginTop: 50 }} size="large" />
-        ) : slots.length === 0 ? (
-          <View style={s.emptyBox}>
-            <Text style={s.emptyTitle}>אין תורים זמינים להיום</Text>
-          </View>
-        ) : mode === 'single' ? (
+        ) : mode === 'quick' ? (
           <View style={s.slotsSection}>
 
             <View style={s.slotsGrid}>
@@ -377,31 +375,31 @@ export default function AppointmentBookingScreen() {
               ))}
             </View>
           </View>
-        ) : doublePairs.length === 0 ? (
+        ) : prepGroups.length === 0 ? (
           <View style={s.emptyBox}>
-            <Text style={s.emptyTitle}>אין תורים כפולים פנויים היום</Text>
-            <Text style={s.emptySub}>נסה/י תור בודד, או יום אחר</Text>
+            <Text style={s.emptyTitle}>אין תורי הכנה פנויים היום</Text>
+            <Text style={s.emptySub}>נסה/י טבילה בלבד, או יום אחר</Text>
           </View>
         ) : (
           <View style={s.slotsSection}>
-            <View style={s.pairList}>
-              {doublePairs.map(({ start, end, status }) => (
+            <View style={s.prepList}>
+              {prepGroups.map(({ start, end, status }) => (
                 <TouchableOpacity
                   key={start}
-                  style={[s.pairRow, status === 'mine' && s.pairRowMine]}
+                  style={[s.prepRow, status === 'mine' && s.prepRowMine]}
                   onPress={() => {
-                    if (status === 'available') setConfirmSlot({ time: start, end, slotsCount: 2 });
+                    if (status === 'available') setConfirmSlot({ time: start, end, slotsCount: prepMultiplier });
                     if (status === 'mine')      setCancelTarget(userDateAppt!);
                   }}
                   activeOpacity={0.8}
                 >
                   {status === 'mine' && <Ionicons name="checkmark-circle" size={18} color={Colors.success} />}
-                  <Text style={[s.pairTime, status === 'mine' && { color: Colors.success }]}>
+                  <Text style={[s.prepTime, status === 'mine' && { color: Colors.success }]}>
                     {start} – {addMinutesToTime(end, slotDur)}
                   </Text>
                   <View style={{ flex: 1 }} />
-                  <Text style={[s.pairHint, status === 'mine' && { color: Colors.success }]}>
-                    {status === 'mine' ? 'שלי · לחץ לביטול' : `${slotDur * 2} דק'`}
+                  <Text style={[s.prepHint, status === 'mine' && { color: Colors.success }]}>
+                    {status === 'mine' ? 'שלי · לחץ לביטול' : `${slotDur * prepMultiplier} דק'`}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -411,7 +409,7 @@ export default function AppointmentBookingScreen() {
             <View style={s.slotFooter}>
               <Ionicons name="time-outline" size={13} color={Colors.textMuted} />
               <Text style={s.slotFooterTxt}>
-                תור כפול = שני תורים רצופים · {slotDur * 2} דקות · {doublePairs.length} אפשרויות פנויות
+                תור הכנה = {prepMultiplier} תורים רצופים · {slotDur * prepMultiplier} דקות · {prepGroups.length} אפשרויות פנויות
               </Text>
             </View>
           </View>
@@ -433,8 +431,8 @@ export default function AppointmentBookingScreen() {
             <View style={s.modalDetail}>
               <Ionicons name="time-outline" size={16} color={Colors.textSecondary} />
               <Text style={s.modalDetailTxt}>
-                {confirmSlot?.slotsCount === 2
-                  ? `שעה ${confirmSlot.time} – ${addMinutesToTime(confirmSlot.end, slotDur)} · ${slotDur * 2} דקות`
+                {confirmSlot && confirmSlot.slotsCount > 1
+                  ? `שעה ${confirmSlot.time} – ${addMinutesToTime(confirmSlot.end, slotDur)} · ${slotDur * confirmSlot.slotsCount} דקות`
                   : `שעה ${confirmSlot?.time} · ${slotDur} דקות`}
               </Text>
             </View>
@@ -546,7 +544,7 @@ const s = StyleSheet.create({
   emptyTitle: { fontSize: 17, fontWeight: '700', color: Colors.textSecondary, textAlign: 'center' },
   emptySub:   { fontSize: 13, color: Colors.textMuted, textAlign: 'center' },
 
-  // Single/double mode toggle
+  // Quick/prep mode toggle
   modeRow: {
     flexDirection: 'row', gap: 8,
     paddingHorizontal: Spacing.md, paddingTop: Spacing.md,
@@ -560,17 +558,17 @@ const s = StyleSheet.create({
   modeBtnTxt:    { fontSize: 13, fontWeight: '700', color: Colors.textSecondary },
   modeBtnTxtActive: { color: '#fff' },
 
-  // Double/"tailing" pair list
-  pairList: { paddingHorizontal: Spacing.md, gap: 8 },
-  pairRow: {
+  // "Prep at mikveh" group list
+  prepList: { paddingHorizontal: Spacing.md, gap: 8 },
+  prepRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     backgroundColor: Colors.mikveh, borderRadius: Radius.md,
     paddingHorizontal: Spacing.md, paddingVertical: 14,
     ...Shadow.card,
   },
-  pairRowMine: { backgroundColor: Colors.success + '15', borderWidth: 2, borderColor: Colors.success },
-  pairTime:    { fontSize: 16, fontWeight: '800', color: '#fff' },
-  pairHint:    { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
+  prepRowMine: { backgroundColor: Colors.success + '15', borderWidth: 2, borderColor: Colors.success },
+  prepTime:    { fontSize: 16, fontWeight: '800', color: '#fff' },
+  prepHint:    { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
 
   // Slots
   slotsSection: { paddingTop: Spacing.md },
