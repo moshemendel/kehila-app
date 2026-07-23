@@ -3,15 +3,17 @@
  *
  * Firestore path:  mikvaot/{mikvehId}/appointments/{appointmentId}
  *
- * Privacy note: each appointment stores userId. Firestore security rules
- * should restrict read access so users can only read their own appointments.
- * getSlotInfo() reads all appointments for a date, but callers other than
- * the owning user should only use the returned *times*, not read userId off
- * entries that aren't their own.
+ * Privacy: appointment docs store userId, and Firestore rules restrict reads
+ * to the owning user or a mikveh manager/admin — nobody else can query them.
+ * Since regular users still need to know which slots are taken (to know
+ * what's bookable), each booking also writes a non-identifying mirror doc to
+ * mikvaot/{mikvehId}/appointmentSlots/{appointmentId} (same id, no userId) —
+ * readable by any signed-in user. getSlotInfo() reads occupancy from that
+ * mirror, never from the real appointments collection.
  */
 
 import {
-  collection, doc, getDocs, addDoc, updateDoc,
+  collection, doc, getDocs, addDoc, updateDoc, deleteDoc, writeBatch,
   query, where, serverTimestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -23,26 +25,34 @@ function apptCol(mikvehId: string) {
   return collection(db, 'mikvaot', mikvehId, 'appointments');
 }
 
+function slotCol(mikvehId: string) {
+  return collection(db, 'mikvaot', mikvehId, 'appointmentSlots');
+}
+
 // ─── User-facing reads ───────────────────────────────────────────────────────
 
 /**
- * Returns all booked appointments for a given date AND the current user's own
- * appointment for that date (if any) — in a single Firestore query. Callers
- * derive per-slot occupancy from the raw list via computeOccupancy()
- * (utils/appointmentSlots) since that depends on the mikveh's slot duration.
+ * Returns occupied slot times for a date (from the non-identifying mirror
+ * collection — safe for any signed-in user to read) AND the current user's
+ * own appointment for that date (if any, read from the real collection,
+ * which Firestore rules only allow because it's their own uid).
  */
 export async function getSlotInfo(
   mikvehId: string,
   date: string,
   userId: string,
-): Promise<{ appts: MikvehAppointment[]; userAppt: MikvehAppointment | null }> {
-  const q    = query(apptCol(mikvehId), where('date', '==', date), where('status', '==', 'booked'));
-  const snap = await getDocs(q);
-  const appts = snap.docs.map((d) => ({ id: d.id, ...d.data() } as MikvehAppointment));
-  return {
-    appts,
-    userAppt: appts.find((a) => a.userId === userId) ?? null,
-  };
+): Promise<{ slots: { time: string; slotsCount?: number }[]; userAppt: MikvehAppointment | null }> {
+  const [slotSnap, ownSnap] = await Promise.all([
+    getDocs(query(slotCol(mikvehId), where('date', '==', date))),
+    getDocs(query(apptCol(mikvehId), where('date', '==', date), where('status', '==', 'booked'), where('userId', '==', userId))),
+  ]);
+  const slots = slotSnap.docs.map((d) => {
+    const data = d.data() as { time: string; slotsCount?: number };
+    return { time: data.time, slotsCount: data.slotsCount };
+  });
+  const ownDoc = ownSnap.docs[0];
+  const userAppt = ownDoc ? ({ id: ownDoc.id, ...ownDoc.data() } as MikvehAppointment) : null;
+  return { slots, userAppt };
 }
 
 /**
@@ -69,6 +79,9 @@ export async function getUserUpcomingAppointments(
  * base slots (per the mikveh's prepMultiplier) instead of just one. Throws if
  * the slot is already taken (race condition guard via re-read before insert
  * in a real app; here we trust the UI flow).
+ *
+ * Writes the real (private) appointment doc and its non-identifying public
+ * mirror atomically, sharing the same document id.
  */
 export async function bookAppointment(
   mikvehId: string,
@@ -77,7 +90,10 @@ export async function bookAppointment(
   time: string,
   slotsCount: number = 1,
 ): Promise<string> {
-  const ref = await addDoc(apptCol(mikvehId), {
+  const apptRef = doc(apptCol(mikvehId));
+  const slotRef = doc(slotCol(mikvehId), apptRef.id);
+  const batch = writeBatch(db);
+  batch.set(apptRef, {
     mikvehId,
     userId,
     date,
@@ -86,22 +102,25 @@ export async function bookAppointment(
     status:    'booked',
     createdAt: serverTimestamp(),
   });
-  return ref.id;
+  batch.set(slotRef, { date, time, slotsCount });
+  await batch.commit();
+  return apptRef.id;
 }
 
-/** Cancel a booking (soft-delete: status → 'cancelled') */
+/** Cancel a booking (soft-delete on the real doc; the public mirror is removed entirely). */
 export async function cancelAppointment(
   mikvehId: string,
   appointmentId: string,
 ): Promise<void> {
-  await updateDoc(doc(db, 'mikvaot', mikvehId, 'appointments', appointmentId), {
-    status: 'cancelled',
-  });
+  const batch = writeBatch(db);
+  batch.update(doc(db, 'mikvaot', mikvehId, 'appointments', appointmentId), { status: 'cancelled' });
+  batch.delete(doc(db, 'mikvaot', mikvehId, 'appointmentSlots', appointmentId));
+  await batch.commit();
 }
 
 // ─── Manager reads ────────────────────────────────────────────────────────────
 
-/** All booked appointments for a specific date (manager view). */
+/** All booked appointments for a specific date (manager view — Firestore rules allow managers/admins to read the real collection in full). */
 export async function getAppointmentsForDay(
   mikvehId: string,
   date: string,

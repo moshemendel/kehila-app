@@ -43,7 +43,7 @@ export default function AppointmentBookingScreen() {
   // ── State ──────────────────────────────────────────────────────────────────
   const [mikveh,       setMikveh]       = useState<Mikveh | null>(null);
   const [loading,      setLoading]      = useState(true);
-  const [dayAppts,     setDayAppts]     = useState<MikvehAppointment[]>([]);
+  const [daySlots,     setDaySlots]     = useState<{ time: string; slotsCount?: number }[]>([]);
   const [userDateAppt, setUserDateAppt] = useState<MikvehAppointment | null>(null);
   const [upcoming,     setUpcoming]     = useState<MikvehAppointment[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -79,8 +79,8 @@ export default function AppointmentBookingScreen() {
     if (!mikveh?.appointmentConfig) return;
     setSlotsLoading(true);
     const uid = userId ?? 'anon';
-    getSlotInfo(mikvehId, today, uid).then(({ appts, userAppt }) => {
-      setDayAppts(appts);
+    getSlotInfo(mikvehId, today, uid).then(({ slots, userAppt }) => {
+      setDaySlots(slots);
       setUserDateAppt(userAppt);
       setSlotsLoading(false);
     }).catch(() => setSlotsLoading(false));
@@ -95,7 +95,7 @@ export default function AppointmentBookingScreen() {
   // Per-base-slot occupancy count, compared against parallelTracks to decide
   // availability — no longer a simple boolean, since more than one booking
   // can legitimately share a slot.
-  const occupancy = useMemo(() => computeOccupancy(dayAppts, slotDur), [dayAppts, slotDur]);
+  const occupancy = useMemo(() => computeOccupancy(daySlots, slotDur), [daySlots, slotDur]);
 
   // Times occupied by the user's own booking today (all of them, if it's a
   // "prep at mikveh" booking spanning multiple slots — only the first slot
@@ -169,11 +169,11 @@ export default function AppointmentBookingScreen() {
     setBooking(true);
     try {
       await bookAppointment(mikvehId, userId!, today, confirmSlot.time, confirmSlot.slotsCount);
-      const [{ appts, userAppt }, upcomingAppts] = await Promise.all([
+      const [{ slots, userAppt }, upcomingAppts] = await Promise.all([
         getSlotInfo(mikvehId, today, userId!),
         getUserUpcomingAppointments(mikvehId, userId!),
       ]);
-      setDayAppts(appts);
+      setDaySlots(slots);
       setUserDateAppt(userAppt);
       setUpcoming(upcomingAppts);
       setConfirmSlot(null);
@@ -194,11 +194,11 @@ export default function AppointmentBookingScreen() {
     setCancelling(true);
     try {
       await cancelAppointment(mikvehId, appt.id);
-      const [{ appts, userAppt }, upcomingAppts] = await Promise.all([
+      const [{ slots, userAppt }, upcomingAppts] = await Promise.all([
         getSlotInfo(mikvehId, today, userId!),
         getUserUpcomingAppointments(mikvehId, userId!),
       ]);
-      setDayAppts(appts);
+      setDaySlots(slots);
       setUserDateAppt(userAppt);
       setUpcoming(upcomingAppts);
       setCancelTarget(null);

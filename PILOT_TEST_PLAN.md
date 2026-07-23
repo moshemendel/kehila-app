@@ -45,7 +45,7 @@ Run `npm run test-plan` and open **http://localhost:4850** for an interactive ch
 
 - [x] Prayer times screen shows today's שחרית/מנחה/ערבית times correctly for the city
 - [x] Zmanim screen shows halachic times (netz, shkia, etc.) matching the city's coordinates
-- [ ] Zmanim settings — changing calculation method/opinion updates displayed times
+- [ ] Zmanim settings — changing calculation method/opinion updates displayed times <!-- note:code-reviewed%2C%20looks%20correctly%20wired%20(both%20ZmanimScreen%20and%20Home's%20useTodayZmanim%20recompute%20on%20settings%20change%2C%20calcZmanim%20genuinely%20uses%20alot%2Ftzet%20method%2Fvalue)%20-%20still%20needs%20an%20on-device%20check%20to%20confirm -->
 - [x] Favorite a specific minyan (star icon on a synagogue's prayer slot, `SynagogueDetailScreen`) — controls which minyanim get notification reminders, does not affect Home's "next prayer" card <!-- note:don't%20need%20it%20for%20now -->
 - [x] Notification opt-in for a prayer time — reminder fires at the configured offset (see §12) — fixed two real bugs: missing required `type` field on the notification trigger (every call was silently throwing, nothing was ever scheduled) and a misplaced `channelId`. Known remaining limitation: doesn't fire if the app was force-stopped/swiped from Recents — see "Known limitations" at the bottom of this file.
 
@@ -82,30 +82,30 @@ Run `npm run test-plan` and open **http://localhost:4850** for an interactive ch
 
 ## 9. Gemach
 
-- [ ] Gemach list loads
-- [ ] Submit a new gemach listing — appears in admin's pending queue, not live immediately
-- [ ] Approved gemach listing appears publicly
+- [x] Gemach list loads
+- [x] Submit a new gemach listing — appears in admin's pending queue, not live immediately
+- [x] Approved gemach listing appears publicly
 
 ## 10. Search
 
-- [ ] Global search returns relevant results across synagogues/restaurants/events/etc.
+- [ ] Global search returns relevant results across synagogues/restaurants/events/etc. <!-- note:not%20relevent%20at%20the%20moment -->
 - [ ] Empty query / no-results state handled gracefully
 
 ## 11. Profile & settings
 
-- [ ] Profile shows correct name, email, role badge (e.g. "מנהל על")
-- [ ] "מנהל על" / admin button only shows for admin-role accounts, correctly routes to the management menu
-- [ ] Language button shows the "coming soon" message (not a silent no-op)
-- [ ] Switch city (for a real account, not guest) works and persists
-- [ ] Logout works from this screen
+- [x] Profile shows correct name, email, role badge (e.g. "מנהל על")
+- [x] "מנהל על" / admin button only shows for admin-role accounts, correctly routes to the management menu
+- [x] Language button shows the "coming soon" message (not a silent no-op) <!-- note:pressing%20it%20open%20popup -->
+- [x] Switch city (for a real account, not guest) works and persists
+- [x] Logout works from this screen
 
 ## 12. Push notifications
 
 For each, confirm the notification **actually arrives on a physical device with the app backgrounded or closed** — not just that Firestore gets written to:
 
-- [ ] Eruv status change → push received
-- [ ] Kashrut cancellation/upgrade → push received (recently fixed — retest to confirm the fix holds on a fresh `preview` build, not just the dev-client)
-- [ ] New event published → push received
+- [x] Eruv status change → push received
+- [x] Kashrut cancellation/upgrade → push received (recently fixed — retest to confirm the fix holds on a fresh `preview` build, not just the dev-client) <!-- note:the%20notification%20recived%20but%20the%20update%20not%20in%20the%20%D7%A2%D7%93%D7%9B%D7%95%D7%A0%D7%99%20%D7%9B%D7%A9%D7%A8%D7%95%D7%AA%20in%20the%20app. -->
+- [ ] New event published → push received <!-- note:we%20dicussed%20it%20before.%20push%20only%20urgent -->
 - [ ] Prayer-time reminder (local notification, not push) fires at the configured offset
 - [ ] Tapping a notification deep-links to the right screen
 - [ ] Notification permission denial handled gracefully (app doesn't crash, just no pushes)
@@ -113,7 +113,7 @@ For each, confirm the notification **actually arrives on a physical device with 
 
 ## 13. Shabbat lock
 
-- [ ] Identify exactly which screens/actions lock during Shabbat (read the `useShabbatLock`/`getShabbatLock` logic if unsure) and verify each one
+- [x] Identify exactly which screens/actions lock during Shabbat (read the `useShabbatLock`/`getShabbatLock` logic if unsure) and verify each one <!-- note:fixed%20-%20mobile%20already%20locked%20everything%20correctly%20(RootNavigator%20swaps%20the%20whole%20app%20for%20ShabbatClosedScreen%2C%20useCityId()%20always%20defaults%20so%20it%20applies%20even%20without%20a%20city).%20The%20real%20gap%20was%20kehila-admin%2C%20which%20had%20no%20Shabbat%20lock%20at%20all%20-%20added%20one%20(ShabbatLockGate%2FShabbatLockScreen%2C%20wraps%20the%20whole%20app%20incl.%20%2Flogin%2C%20based%20on%20the%20admin's%20own%20computer%20clock%2Ftimezone%2C%20not%20any%20city) -->
 - [ ] Lock engages at the correct candle-lighting time and releases at the correct הבדלה time
 - [ ] Locked state is clearly communicated to the user (not just a silent failure)
 

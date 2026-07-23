@@ -104,8 +104,14 @@ service cloud.firestore {
       allow create: if isAdminOf(request.resource.data.cityId) || hasRole('kosher_manager');
       allow update, delete: if isAdminOf(resource.data.cityId) || hasRole('kosher_manager');
 
+      // Appointment docs store userId — reads restricted to the owner or a
+      // mikveh manager/admin. Regular users get slot occupancy from the
+      // non-identifying appointmentSlots mirror below instead.
       match /appointments/{appointmentId} {
-        allow read:   if isSignedIn();
+        allow read:   if isSignedIn()
+                         && (resource.data.userId == request.auth.uid
+                             || isAdminRole()
+                             || hasRole('kosher_manager'));
         allow create: if isRealAccount()
                          && request.resource.data.userId == request.auth.uid;
         allow update: if isSignedIn()
@@ -114,6 +120,19 @@ service cloud.firestore {
                              || hasRole('kosher_manager'));
         allow delete: if isSignedIn()
                          && (resource.data.userId == request.auth.uid
+                             || isAdminRole()
+                             || hasRole('kosher_manager'));
+      }
+
+      // Non-identifying mirror of active bookings (date/time/slotsCount only,
+      // no userId) — lets any signed-in user compute slot availability
+      // without being able to read who booked what. Shares the same document
+      // id as its corresponding /appointments doc.
+      match /appointmentSlots/{slotId} {
+        allow read:   if isSignedIn();
+        allow create: if isRealAccount();
+        allow delete: if isSignedIn()
+                         && (get(/databases/$(database)/documents/mikvaot/$(mikId)/appointments/$(slotId)).data.userId == request.auth.uid
                              || isAdminRole()
                              || hasRole('kosher_manager'));
       }
