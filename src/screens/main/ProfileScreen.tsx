@@ -24,6 +24,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
   gabbai: 'גבאי',
   business_manager: 'מנהל עסק',
   kosher_manager: 'מנהל כשרות במועצה',
+  mikveh_manager: 'מנהל מקוואות',
   event_manager: 'מנהל אירועים',
   eruv_manager: 'ממונה על העירוב',
   city_admin: 'מנהל מערכת',
@@ -36,6 +37,7 @@ const ROLE_COLORS: Record<UserRole, string> = {
   gabbai:             Colors.primaryLight,
   business_manager: Colors.kosher,
   kosher_manager:     Colors.success,
+  mikveh_manager:     Colors.mikveh,
   event_manager:      Colors.events,
   eruv_manager:       Colors.gold,
   city_admin:              Colors.danger,
@@ -229,7 +231,7 @@ export default function ProfileScreen() {
                 <MenuRow icon="megaphone-outline" label="ניהול אירועים והודעות" color={Colors.events}
                   onPress={() => openManage('ManageEvents')} />
               )}
-              {isAdminRole && (
+              {(roles.includes('mikveh_manager') || isAdminRole) && (
                 <MenuRow icon="water-outline" label="ניהול מקוואות" color={Colors.mikveh}
                   onPress={() => openManage('ManageMikveh')} />
               )}

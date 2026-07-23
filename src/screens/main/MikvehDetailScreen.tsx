@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Image, Linking, Dimensions, ActivityIndicator,
+  Image, Linking, Dimensions, ActivityIndicator, Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { Mikveh, DayKey } from '../../types';
 import { getMikveh } from '../../services/mikvaot';
 import { hoursTextForDay } from '../../utils/appointmentSlots';
+import { useAuth } from '../../context/AuthContext';
 
 // ─── Layout constants (identical to RestaurantDetailScreen) ───────────────────
 
@@ -48,9 +49,25 @@ export default function MikvehDetailScreen() {
   const navigation      = useNavigation<any>();
   const { top, bottom } = useSafeAreaInsets();
   const { mikvehId }    = route.params as { mikvehId: string };
+  const { isGuest }     = useAuth();
 
   const [mikveh,  setMikveh]  = useState<Mikveh | null>(null);
   const [loading, setLoading] = useState(true);
+
+  function handleBookPress() {
+    if (isGuest) {
+      Alert.alert(
+        'נדרשת התחברות',
+        'כדי לקבוע תור יש להתחבר עם חשבון.',
+        [
+          { text: 'ביטול', style: 'cancel' },
+          { text: 'התחבר', onPress: () => navigation.navigate('Auth') },
+        ],
+      );
+      return;
+    }
+    navigation.navigate('AppointmentBooking', { mikvehId: mikveh!.id });
+  }
 
   useEffect(() => {
     getMikveh(mikvehId)
@@ -261,7 +278,7 @@ export default function MikvehDetailScreen() {
             {/* Online appointment booking button — always visible */}
             <TouchableOpacity
               style={styles.bookingBtn}
-              onPress={() => navigation.navigate('AppointmentBooking', { mikvehId: mikveh.id })}
+              onPress={handleBookPress}
               activeOpacity={0.85}
             >
               <Ionicons name="calendar" size={20} color="#fff" />

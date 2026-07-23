@@ -223,7 +223,12 @@ export default function ManageMikvehScreen() {
   const [adding, setAdding] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  const isAdmin = ['city_admin', 'super_admin', 'dev'].includes(appUser?.role ?? '');
+  // A user can hold several roles at once — check the full array (falling back
+  // to the single primary role for accounts saved before roles[] existed),
+  // not just appUser.role, so a mikveh_manager without any higher role still
+  // sees the add button.
+  const roles = appUser?.roles ?? (appUser?.role ? [appUser.role] : []);
+  const isAdmin = roles.some((r) => ['city_admin', 'super_admin', 'dev', 'mikveh_manager'].includes(r));
 
   async function handleCreate(values: Record<string, string>) {
     setCreating(true);

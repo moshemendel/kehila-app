@@ -14,7 +14,7 @@ import { AppUser, UserRole } from '../../types';
 // Priority only used for DB write (single role field kept for auth checks)
 const ROLE_PRIORITY: UserRole[] = [
   'super_admin', 'dev', 'city_admin', 'event_manager',
-  'kosher_manager', 'eruv_manager', 'business_manager', 'gabbai', 'user',
+  'kosher_manager', 'mikveh_manager', 'eruv_manager', 'business_manager', 'gabbai', 'user',
 ];
 
 const ROLES: { key: UserRole; label: string; color: string; icon: string }[] = [
@@ -22,6 +22,7 @@ const ROLES: { key: UserRole; label: string; color: string; icon: string }[] = [
   { key: 'gabbai',           label: 'גבאי',           color: Colors.primaryLight,  icon: 'business-outline' },
   { key: 'business_manager', label: 'מנהל עסק',       color: Colors.kosher,        icon: 'restaurant-outline' },
   { key: 'kosher_manager',   label: 'מנהל כשרות',     color: Colors.success,       icon: 'shield-checkmark-outline' },
+  { key: 'mikveh_manager',   label: 'מנהל מקוואות',   color: Colors.mikveh,        icon: 'water-outline' },
   { key: 'event_manager',    label: 'מנהל אירועים',   color: Colors.events,        icon: 'megaphone-outline' },
   { key: 'eruv_manager',     label: 'ממונה על עירוב', color: Colors.gold,          icon: 'shield-outline' },
   { key: 'city_admin',       label: 'מנהל מערכת',     color: Colors.danger,        icon: 'key-outline' },

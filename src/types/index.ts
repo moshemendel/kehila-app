@@ -14,6 +14,7 @@ export interface Gemach {
   hours?: string;
   isActive: boolean;
   createdAt: any;
+  createdBy?: string; // the original submitter — can edit/delete their own gemach
 }
 
 export interface PendingGemach {
@@ -37,6 +38,7 @@ export type UserRole =
   | "gabbai"
   | "business_manager"
   | "kosher_manager"
+  | "mikveh_manager"
   | "event_manager"
   | "eruv_manager"
   | "city_admin"

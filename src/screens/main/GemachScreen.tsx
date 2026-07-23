@@ -1,18 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAnalyticsTrack } from '../../services/analytics';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Linking, FlatList,
+  ActivityIndicator, Linking, FlatList, Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../../services/firebase';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useGemachs } from '../../hooks/useGemachs';
 import { useCityId } from '../../hooks/useCityId';
 import { useCity } from '../../hooks/useCity';
+import { useAuth } from '../../context/AuthContext';
 import { Gemach, GemachCategory } from '../../types';
+import GemachEditModal from '../../components/GemachEditModal';
 
 const GEMACH_COLOR = '#B06B3A';
 
@@ -40,19 +44,30 @@ const CATEGORY_ICONS: Record<GemachCategory, string> = {
   other:     'ellipsis-horizontal-outline',
 };
 
-function GemachCard({ item }: { item: Gemach }) {
+function GemachCard({ item, isOwn, onEdit }: { item: Gemach; isOwn: boolean; onEdit: () => void }) {
   const call = () => { if (item.phone) Linking.openURL(`tel:${item.phone}`); };
   return (
-    <View style={s.card}>
+    <View style={[s.card, isOwn && !item.isActive && s.cardInactive]}>
       <View style={s.cardHeader}>
         <View style={s.categoryBadge}>
           <Ionicons name={CATEGORY_ICONS[item.category] as any} size={12} color={GEMACH_COLOR} />
           <Text style={s.categoryText}>{CATEGORY_LABELS[item.category]}</Text>
         </View>
-        {!!item.neighborhood && (
-          <Text style={s.neighborhood}>📍 {item.neighborhood}</Text>
-        )}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          {!!item.neighborhood && (
+            <Text style={s.neighborhood}>📍 {item.neighborhood}</Text>
+          )}
+          {isOwn && (
+            <TouchableOpacity onPress={onEdit} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="pencil-outline" size={16} color={Colors.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
+
+      {isOwn && !item.isActive && (
+        <Text style={s.ownInactiveTag}>לא פעיל — מוסתר מהרשימה הציבורית</Text>
+      )}
 
       <Text style={s.cardName}>{item.name}</Text>
 
@@ -87,18 +102,54 @@ export default function GemachScreen() {
   const { top, bottom } = useSafeAreaInsets();
   const cityId = useCityId();
   const { city } = useCity(cityId);
+  const { firebaseUser, isGuest } = useAuth();
+  const uid = firebaseUser?.uid;
   const { gemachs, loading } = useGemachs(cityId);
   const [activeCategory, setActiveCategory] = useState<GemachCategory | 'all'>('all');
+  const [editing, setEditing] = useState<Gemach | null>(null);
+
+  // useGemachs only returns active listings (the public list) — a user who
+  // deactivated their own gemach via the edit modal would otherwise lose all
+  // access to it. Fetch their own gemachs separately, regardless of isActive,
+  // and merge them in so they can always find and re-toggle their own item.
+  const [myGemachs, setMyGemachs] = useState<Gemach[]>([]);
+  useEffect(() => {
+    if (!uid || !cityId) { setMyGemachs([]); return; }
+    const q = query(collection(db, 'gemachs'), where('cityId', '==', cityId), where('createdBy', '==', uid));
+    return onSnapshot(q, (snap) => setMyGemachs(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Gemach)));
+  }, [uid, cityId]);
+
+  const merged = useMemo(() => {
+    const map = new Map<string, Gemach>();
+    gemachs.forEach((g) => map.set(g.id, g));
+    myGemachs.forEach((g) => map.set(g.id, g));
+    return Array.from(map.values());
+  }, [gemachs, myGemachs]);
 
   const filtered = useMemo(() =>
-    activeCategory === 'all' ? gemachs : gemachs.filter(g => g.category === activeCategory),
-    [gemachs, activeCategory],
+    activeCategory === 'all' ? merged : merged.filter(g => g.category === activeCategory),
+    [merged, activeCategory],
   );
 
   const usedCategories = useMemo(() =>
-    [...new Set(gemachs.map(g => g.category))],
-    [gemachs],
+    [...new Set(merged.map(g => g.category))],
+    [merged],
   );
+
+  function handleAddPress() {
+    if (isGuest) {
+      Alert.alert(
+        'נדרשת התחברות',
+        'כדי להוסיף גמ"ח יש להתחבר עם חשבון.',
+        [
+          { text: 'ביטול', style: 'cancel' },
+          { text: 'התחבר', onPress: () => navigation.navigate('Auth' as never) },
+        ],
+      );
+      return;
+    }
+    navigation.navigate('GemachSubmit' as never);
+  }
 
   return (
     <View style={s.root}>
@@ -114,7 +165,7 @@ export default function GemachScreen() {
           </View>
           <TouchableOpacity
             style={s.addBtn}
-            onPress={() => navigation.navigate('GemachSubmit' as never)}
+            onPress={handleAddPress}
             activeOpacity={0.8}
           >
             <Ionicons name="add" size={20} color={Colors.white} />
@@ -157,7 +208,7 @@ export default function GemachScreen() {
           <Text style={s.emptySub}>היה הראשון להוסיף גמ"ח לקהילה</Text>
           <TouchableOpacity
             style={s.emptyBtn}
-            onPress={() => navigation.navigate('GemachSubmit' as never)}
+            onPress={handleAddPress}
             activeOpacity={0.8}
           >
             <Text style={s.emptyBtnTxt}>הוסף גמ"ח</Text>
@@ -167,9 +218,21 @@ export default function GemachScreen() {
         <FlatList
           data={filtered}
           keyExtractor={item => item.id}
-          renderItem={({ item }) => <GemachCard item={item} />}
+          renderItem={({ item }) => (
+            <GemachCard item={item} isOwn={!!uid && item.createdBy === uid} onEdit={() => setEditing(item)} />
+          )}
           contentContainerStyle={[s.list, { paddingBottom: bottom + 24 }]}
           showsVerticalScrollIndicator={false}
+        />
+      )}
+
+      {editing && (
+        <GemachEditModal
+          gemach={editing}
+          visible={!!editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => {}}
+          onDeleted={() => {}}
         />
       )}
     </View>
@@ -216,6 +279,8 @@ const s = StyleSheet.create({
     borderColor: Colors.border,
     ...Shadow.card,
   },
+  cardInactive: { opacity: 0.6, borderStyle: 'dashed' },
+  ownInactiveTag: { fontSize: 11, fontWeight: '700', color: Colors.danger, marginBottom: 6 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   categoryBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 4,

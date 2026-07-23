@@ -196,7 +196,9 @@ export default function ManageGemachScreen() {
               description: p.description ?? null,
               hours: p.hours ?? null,
               isActive: true, createdAt: serverTimestamp(),
-              createdBy: appUser?.uid ?? '',
+              // The original submitter owns the gemach once approved — not
+              // whoever happened to click approve.
+              createdBy: p.submittedBy ?? '',
             });
             await updateDoc(doc(db, 'pending_gemachs', p.id), { status: 'approved' });
             await load();
