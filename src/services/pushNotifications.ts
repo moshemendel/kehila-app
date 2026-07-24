@@ -89,7 +89,15 @@ export async function sendPushToRoles(
       query(collection(db, 'pushTokens'), where('cityId', '==', cityId)),
     );
     const entries = snap.docs
-      .filter((d) => roles.includes(d.data().role as string))
+      .filter((d) => {
+        const docData = d.data();
+        // registerPushToken stores both the singular primary role AND the full
+        // roles array — filtering on the singular field only misses anyone
+        // whose targeted role isn't their highest-priority one (e.g. a gabbai
+        // who's also eruv_manager, whose primary role field is "gabbai").
+        const tokenRoles = (docData.roles as string[] | undefined) ?? [docData.role as string];
+        return tokenRoles.some((r) => roles.includes(r));
+      })
       .map((d) => ({ docId: d.id, token: d.data().token as string }))
       .filter((e) => Boolean(e.token));
     await _sendBatch(entries, title, body, data);
