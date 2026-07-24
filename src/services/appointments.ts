@@ -18,6 +18,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { MikvehAppointment } from '../types';
+import { todayString } from '../utils/appointmentSlots';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -65,7 +66,11 @@ export async function getUserUpcomingAppointments(
 ): Promise<MikvehAppointment[]> {
   const q    = query(apptCol(mikvehId), where('userId', '==', userId), where('status', '==', 'booked'));
   const snap = await getDocs(q);
-  const today = new Date().toISOString().split('T')[0];
+  // toISOString() is UTC — Israel is ahead of UTC, so between local midnight
+  // and ~3am this would still report yesterday's date, silently keeping an
+  // already-past appointment "upcoming". todayString() is local-time, like
+  // every other date comparison in this feature (see appointmentSlots.ts).
+  const today = todayString();
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() } as MikvehAppointment))
     .filter((a) => a.date >= today)
