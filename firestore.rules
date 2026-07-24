@@ -180,17 +180,29 @@ service cloud.firestore {
     // one token doc, even if multiple accounts have logged into it over time.
     match /pushTokens/{deviceId} {
       allow read: if isAdminRole();
-      // NOTE: this used to also require request.resource.data.uid == request.auth.uid,
-      // matching the same pattern already proven to work for /users/{userId} reads.
-      // That exact-match check was mysteriously rejecting legitimate writes from the
-      // mobile app (uid confirmed matching request.auth.uid via on-device logging),
-      // while the equivalent check succeeded for Firestore reads in the same session.
-      // Relaxed to isSignedIn() to unblock registration; read access stays admin-only,
-      // so the only downside is a signed-in user could overwrite another device's token.
-      allow create, update: if isSignedIn();
-      // Admins can prune stale/legacy tokens (e.g. Expo's DeviceNotRegistered cleanup);
-      // any signed-in device can also self-delete on logout (same relaxation as above).
-      allow delete: if isSignedIn();
+      // uid must be the caller's own — and role must match their real Firestore
+      // role (or literally 'guest' for anonymous sessions), not whatever the
+      // client claims. Without the role check, any signed-in user could write
+      // role: 'city_admin' onto their own token doc and receive admin-targeted
+      // pushes via sendPushToRoles(), which filters purely on this field.
+      //
+      // The previous exact-uid-match attempt here was dropped as "mysteriously"
+      // failing — root cause: the mobile caller (PrayerNotificationScheduler)
+      // registered using appUser.uid (a field self-reported on the Firestore
+      // profile doc) instead of firebaseUser.uid (the actual live Auth uid
+      // request.auth.uid is evaluated against) for real accounts. Those two
+      // aren't guaranteed to be identical, so the strict rule wasn't actually
+      // wrong — the client just wasn't reliably sending its own real uid. Fixed
+      // there too; this rule is safe to re-enable now.
+      allow create, update: if isSignedIn()
+                                && request.resource.data.uid == request.auth.uid
+                                && (isRealAccount()
+                                     ? request.resource.data.role == userDoc().role
+                                     : request.resource.data.role == 'guest');
+      // Admins can prune stale/legacy tokens (e.g. Expo's DeviceNotRegistered
+      // cleanup); a device can also self-delete its own token doc on logout.
+      allow delete: if isAdminRole() ||
+        (isSignedIn() && resource.data.uid == request.auth.uid);
     }
 
     // ── Sent notifications log ───────────────────────────────────────────────

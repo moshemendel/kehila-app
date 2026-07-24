@@ -45,7 +45,10 @@ export default function PrayerNotificationScheduler() {
   // Runs as soon as we have a uid + cityId — does NOT require synagogue favorites.
   useEffect(() => {
     if (IS_EXPO_GO) return;
-    const uid   = appUser?.uid ?? (isGuest ? firebaseUser?.uid : null);
+    // Always the live Auth uid, never appUser.uid (a field self-reported on the
+    // Firestore profile doc) — Firestore rules check pushTokens.uid against
+    // request.auth.uid, so anything else risks a mismatch the rule will reject.
+    const uid   = firebaseUser?.uid ?? null;
     const role  = appUser?.role  ?? (isGuest ? 'guest' : null);
     const roles = appUser?.roles ?? (role ? [role] : null);
     if (!uid || !role || !cityId) return;
