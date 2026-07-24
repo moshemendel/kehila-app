@@ -19,6 +19,21 @@ service cloud.firestore {
     function hasRole(role) {
       return isSignedIn() && userDoc().role == role;
     }
+    // City-wide manager roles (kosher_manager, event_manager, eruv_manager,
+    // mikveh_manager) previously granted access in every city — fine for a
+    // single-city pilot, but a real privilege gap once there's more than one.
+    // homeCityId is already populated on every user at creation (see
+    // createUser.ts / UsersPage.tsx's handleRoleSave), so this needs no
+    // backfill — mirrors isCityAdminOf's exact pattern for city_admin.
+    function hasCityRole(role, targetCityId) {
+      return isSignedIn() && userDoc().role == role && userDoc().homeCityId == targetCityId;
+    }
+    // A mikveh's own doc is the source of truth for its cityId — used to
+    // city-scope mikveh_manager's access to the appointments/appointmentSlots
+    // subcollections, which don't carry cityId themselves.
+    function mikvehCityId(mikId) {
+      return get(/databases/$(database)/documents/mikvaot/$(mikId)).data.cityId;
+    }
     // city_admin, super_admin, dev — full management access
     function isAdminRole() {
       return isSignedIn() && userDoc().role in ['city_admin', 'super_admin', 'dev'];
@@ -49,7 +64,7 @@ service cloud.firestore {
     function managesBusiness(bizId, bizCityId) {
       return isSignedIn() && (
         isAdminOf(bizCityId) ||
-        hasRole('kosher_manager') ||
+        hasCityRole('kosher_manager', bizCityId) ||
         (hasRole('business_manager') && bizId in userDoc().managedRestaurantIds)
       );
     }
@@ -101,8 +116,8 @@ service cloud.firestore {
     // ── Mikvaot ──────────────────────────────────────────────────────────────
     match /mikvaot/{mikId} {
       allow read: if true;
-      allow create: if isAdminOf(request.resource.data.cityId) || hasRole('mikveh_manager');
-      allow update, delete: if isAdminOf(resource.data.cityId) || hasRole('mikveh_manager');
+      allow create: if isAdminOf(request.resource.data.cityId) || hasCityRole('mikveh_manager', request.resource.data.cityId);
+      allow update, delete: if isAdminOf(resource.data.cityId) || hasCityRole('mikveh_manager', resource.data.cityId);
 
       // Appointment docs store userId — reads restricted to the owner or a
       // mikveh manager/admin. Regular users get slot occupancy from the
@@ -111,17 +126,17 @@ service cloud.firestore {
         allow read:   if isSignedIn()
                          && (resource.data.userId == request.auth.uid
                              || isAdminRole()
-                             || hasRole('mikveh_manager'));
+                             || hasCityRole('mikveh_manager', mikvehCityId(mikId)));
         allow create: if isRealAccount()
                          && request.resource.data.userId == request.auth.uid;
         allow update: if isSignedIn()
                          && (resource.data.userId == request.auth.uid
                              || isAdminRole()
-                             || hasRole('mikveh_manager'));
+                             || hasCityRole('mikveh_manager', mikvehCityId(mikId)));
         allow delete: if isSignedIn()
                          && (resource.data.userId == request.auth.uid
                              || isAdminRole()
-                             || hasRole('mikveh_manager'));
+                             || hasCityRole('mikveh_manager', mikvehCityId(mikId)));
       }
 
       // Non-identifying mirror of active bookings (date/time/slotsCount only,
@@ -134,38 +149,38 @@ service cloud.firestore {
         allow delete: if isSignedIn()
                          && (get(/databases/$(database)/documents/mikvaot/$(mikId)/appointments/$(slotId)).data.userId == request.auth.uid
                              || isAdminRole()
-                             || hasRole('mikveh_manager'));
+                             || hasCityRole('mikveh_manager', mikvehCityId(mikId)));
       }
     }
 
     // ── Kashrut config ───────────────────────────────────────────────────────
     match /kashrutConfig/{cityId} {
       allow read: if true;
-      allow write: if isAdminOf(cityId) || hasRole('kosher_manager');
+      allow write: if isAdminOf(cityId) || hasCityRole('kosher_manager', cityId);
     }
 
     // ── Kashrut updates feed ─────────────────────────────────────────────────
     match /kashrutUpdates/{id} {
       allow read: if true;
-      allow create: if isAdminOf(request.resource.data.cityId) || hasRole('kosher_manager');
-      allow update, delete: if isAdminOf(resource.data.cityId) || hasRole('kosher_manager');
+      allow create: if isAdminOf(request.resource.data.cityId) || hasCityRole('kosher_manager', request.resource.data.cityId);
+      allow update, delete: if isAdminOf(resource.data.cityId) || hasCityRole('kosher_manager', resource.data.cityId);
     }
 
     // ── Community events ──────────────────────────────────────────────────────
     match /events/{eventId} {
       allow read: if true;
-      allow create: if isSignedIn() && (isAdminOf(request.resource.data.cityId) || hasRole('event_manager'));
-      allow update, delete: if isAdminOf(resource.data.cityId) || hasRole('event_manager') ||
+      allow create: if isSignedIn() && (isAdminOf(request.resource.data.cityId) || hasCityRole('event_manager', request.resource.data.cityId));
+      allow update, delete: if isAdminOf(resource.data.cityId) || hasCityRole('event_manager', resource.data.cityId) ||
         (isSignedIn() && resource.data.createdBy == request.auth.uid);
     }
 
     // ── Pending (gabay-submitted) events ─────────────────────────────────────
     match /pending_events/{docId} {
-      allow read: if isAdminOf(resource.data.cityId) || hasRole('event_manager');
+      allow read: if isAdminOf(resource.data.cityId) || hasCityRole('event_manager', resource.data.cityId);
       allow create: if isSignedIn() && (
-        isAdminOf(request.resource.data.cityId) || hasRole('event_manager') || hasRole('gabbai')
+        isAdminOf(request.resource.data.cityId) || hasCityRole('event_manager', request.resource.data.cityId) || hasRole('gabbai')
       );
-      allow update: if isAdminOf(resource.data.cityId) || hasRole('event_manager');
+      allow update: if isAdminOf(resource.data.cityId) || hasCityRole('event_manager', resource.data.cityId);
       allow delete: if isAdminOf(resource.data.cityId);
     }
 
@@ -213,15 +228,15 @@ service cloud.firestore {
     // ── Eruv status ───────────────────────────────────────────────────────────
     match /eruvStatus/{cityId} {
       allow read: if true;
-      allow write: if isAdminOf(cityId) || hasRole('eruv_manager');
+      allow write: if isAdminOf(cityId) || hasCityRole('eruv_manager', cityId);
     }
 
     // ── Eruv reports ──────────────────────────────────────────────────────────
     match /eruvReports/{reportId} {
-      allow read: if isAdminOf(resource.data.cityId) || hasRole('eruv_manager');
+      allow read: if isAdminOf(resource.data.cityId) || hasCityRole('eruv_manager', resource.data.cityId);
       allow create: if isSignedIn()
         && request.resource.data.userId == request.auth.uid;
-      allow update: if isAdminOf(resource.data.cityId) || hasRole('eruv_manager');
+      allow update: if isAdminOf(resource.data.cityId) || hasCityRole('eruv_manager', resource.data.cityId);
       allow delete: if isAdminOf(resource.data.cityId);
     }
 
