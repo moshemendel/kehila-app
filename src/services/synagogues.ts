@@ -31,7 +31,7 @@ export async function updateSynagogue(id: string, data: Partial<Synagogue>): Pro
 }
 
 export async function addSynagogue(data: Omit<Synagogue, 'id'>): Promise<string> {
-  const ref = await addDoc(collection(db, COL), { ...data, updatedAt: serverTimestamp() });
+  const ref = await addDoc(collection(db, COL), { ...sanitize(data), updatedAt: serverTimestamp() });
   return ref.id;
 }
 

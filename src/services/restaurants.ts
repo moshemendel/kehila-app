@@ -6,6 +6,14 @@ import { Restaurant, KosherCertificate } from '../types';
 
 const COL = 'businesses';
 
+// Firestore rejects undefined at any depth — recursively replace with null
+function sanitize(value: any): any {
+  if (value === undefined) return null;
+  if (value === null || typeof value !== 'object') return value;
+  if (Array.isArray(value)) return value.map(sanitize);
+  return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitize(v)]));
+}
+
 // ── Kashrut category metadata (shared across screens) ───────────────────────
 export const CATEGORY_META: { key: string; label: string; icon: string }[] = [
   { key: 'meat',   label: 'בשרי',   icon: '🥩' },
@@ -180,11 +188,11 @@ export async function getRestaurant(id: string): Promise<Restaurant | null> {
 }
 
 export async function updateRestaurant(id: string, data: Partial<Restaurant>): Promise<void> {
-  await updateDoc(doc(db, COL, id), { ...data, updatedAt: serverTimestamp() });
+  await updateDoc(doc(db, COL, id), { ...sanitize(data), updatedAt: serverTimestamp() });
 }
 
 export async function addRestaurant(data: Omit<Restaurant, 'id'>): Promise<string> {
-  const ref = await addDoc(collection(db, COL), { ...data, updatedAt: serverTimestamp() });
+  const ref = await addDoc(collection(db, COL), { ...sanitize(data), updatedAt: serverTimestamp() });
   return ref.id;
 }
 
@@ -197,7 +205,7 @@ export async function updateKosherCertificates(
   certificates: KosherCertificate[]
 ): Promise<void> {
   await updateDoc(doc(db, COL, restaurantId), {
-    kosherCertificates: certificates,
+    kosherCertificates: sanitize(certificates),
     updatedAt: serverTimestamp(),
   });
 }

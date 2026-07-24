@@ -968,13 +968,17 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
                 <TouchableOpacity
                   style={{ backgroundColor: Colors.primary, paddingHorizontal: 14, paddingVertical: 10, borderRadius: Radius.md }}
                   onPress={async () => {
-                    const ok = await addNusach(newNusachText);
-                    if (ok) {
-                      const cur = form.nusach ?? [];
-                      set('nusach', [...cur, newNusachText.trim()]);
-                      setShowAddNusach(false);
+                    try {
+                      const ok = await addNusach(newNusachText);
+                      if (ok) {
+                        const cur = form.nusach ?? [];
+                        set('nusach', [...cur, newNusachText.trim()]);
+                        setShowAddNusach(false);
+                      }
+                      else Alert.alert('שגיאה', 'נוסח זה כבר קיים ברשימה');
+                    } catch (e: any) {
+                      Alert.alert('שגיאה', e?.message ?? 'שגיאה בהוספת נוסח');
                     }
-                    else Alert.alert('שגיאה', 'נוסח זה כבר קיים ברשימה');
                   }}>
                   <Text style={{ color: Colors.white, fontWeight: '600', fontSize: 13 }}>שמור</Text>
                 </TouchableOpacity>

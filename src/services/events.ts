@@ -64,7 +64,12 @@ export async function updateEvent(id: string, data: Partial<CommunityEvent>): Pr
     const base = data as Omit<CommunityEvent, 'id' | 'createdAt' | 'expiresAt'>;
     if (base.startDate) extra.expiresAt = computeExpiry(base);
   }
-  await updateDoc(doc(db, COL, id), { ...data, ...extra });
+  // Firestore rejects undefined values — strip optional fields that weren't set
+  const payload: Record<string, any> = {};
+  for (const [k, v] of Object.entries({ ...data, ...extra })) {
+    if (v !== undefined) payload[k] = v;
+  }
+  await updateDoc(doc(db, COL, id), payload);
 }
 
 export async function deleteEvent(id: string): Promise<void> {
