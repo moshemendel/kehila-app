@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
 import { auth } from '../services/firebase';
 import { getUserDoc } from '../services/auth';
@@ -53,6 +53,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isDemo, setIsDemo] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [guestCityId, setGuestCityIdState] = useState<string | null>(null);
+
+  // The onAuthStateChanged effect below registers its listener once ([] deps)
+  // and never re-runs, so its callback closes over isDemo as it was at mount
+  // (always false) — entering demo mode later is invisible to it. A ref stays
+  // current across renders without needing the effect to re-subscribe, so the
+  // listener always sees the live value instead of that stale snapshot.
+  const isDemoRef = useRef(isDemo);
+  useEffect(() => { isDemoRef.current = isDemo; }, [isDemo]);
 
   // Load the device's persisted guest-city override once we know we're a guest.
   useEffect(() => {
@@ -132,13 +140,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       unsub = onAuthStateChanged(auth, async (user) => {
         setFirebaseUser(user);
         if (!user) {
-          if (!isDemo) { setAppUser(null); setIsGuest(false); }
+          if (!isDemoRef.current) { setAppUser(null); setIsGuest(false); }
           // Sign in anonymously so guests can receive eruv push notifications
           signInAnonymously(auth).catch(() => {});
           setLoading(false);
         } else if (user.isAnonymous) {
           // Guest: Firebase user exists but no Firestore account
-          if (!isDemo) { setAppUser(null); setIsGuest(true); }
+          if (!isDemoRef.current) { setAppUser(null); setIsGuest(true); }
           setLoading(false);
         } else {
           setIsGuest(false);
