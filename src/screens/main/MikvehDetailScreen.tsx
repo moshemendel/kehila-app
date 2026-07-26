@@ -61,7 +61,13 @@ export default function MikvehDetailScreen() {
         'כדי לקבוע תור יש להתחבר עם חשבון.',
         [
           { text: 'ביטול', style: 'cancel' },
-          { text: 'התחבר', onPress: () => navigation.navigate('Auth') },
+          {
+            text: 'התחבר',
+            onPress: () => navigation.navigate('Auth', {
+              returnTo: 'AppointmentBooking',
+              returnParams: { mikvehId: mikveh!.id },
+            }),
+          },
         ],
       );
       return;

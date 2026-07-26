@@ -44,20 +44,28 @@ const HEADER = {
 // Login/Register presented as an on-demand modal. Auto-dismisses itself the
 // moment the user becomes authenticated (or enters demo), so the caller never
 // has to manage closing it.
-function AuthGate({ navigation }: any) {
+function AuthGate({ navigation, route }: any) {
   const { firebaseUser, isGuest, isDemo } = useAuth();
   useEffect(() => {
     // A guest already has an (anonymous) firebaseUser, so this must also check
     // !isGuest — otherwise the modal would auto-dismiss itself the instant it
     // opens, before the guest ever gets to see the login form.
-    //
-    // Navigate to the Home tab explicitly rather than goBack() — the modal can
-    // be opened from anywhere (e.g. Profile), and goBack() would just return
-    // there instead of landing on the main screen after a successful sign-in.
     if ((firebaseUser && !isGuest) || isDemo) {
-      navigation.navigate('MainTabs', { screen: 'Home' });
+      // A guest who was blocked mid-flow (e.g. booking a mikveh appointment,
+      // adding a gemach) expects to land back where they were, not on Home —
+      // the caller passes returnTo/returnParams for that. Falling back to the
+      // Home tab explicitly (rather than goBack()) only when there's nothing
+      // to return to, since the modal can also be opened from plain entry
+      // points (e.g. Profile's "התחבר/הרשמה"), where goBack() would just
+      // return there instead of landing on the main screen.
+      const { returnTo, returnParams } = route.params ?? {};
+      if (returnTo) {
+        navigation.navigate(returnTo, returnParams);
+      } else {
+        navigation.navigate('MainTabs', { screen: 'Home' });
+      }
     }
-  }, [firebaseUser, isGuest, isDemo, navigation]);
+  }, [firebaseUser, isGuest, isDemo, navigation, route.params]);
   return <AuthNavigator />;
 }
 

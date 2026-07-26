@@ -143,7 +143,10 @@ export default function GemachScreen() {
         'כדי להוסיף גמ"ח יש להתחבר עם חשבון.',
         [
           { text: 'ביטול', style: 'cancel' },
-          { text: 'התחבר', onPress: () => navigation.navigate('Auth' as never) },
+          {
+            text: 'התחבר',
+            onPress: () => (navigation.navigate as any)('Auth', { returnTo: 'GemachSubmit' }),
+          },
         ],
       );
       return;

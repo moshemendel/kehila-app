@@ -43,7 +43,7 @@ export default function AppointmentBookingScreen() {
   // ── State ──────────────────────────────────────────────────────────────────
   const [mikveh,       setMikveh]       = useState<Mikveh | null>(null);
   const [loading,      setLoading]      = useState(true);
-  const [daySlots,     setDaySlots]     = useState<{ time: string; slotsCount?: number }[]>([]);
+  const [daySlots,     setDaySlots]     = useState<{ id: string; time: string; slotsCount?: number }[]>([]);
   const [userDateAppt, setUserDateAppt] = useState<MikvehAppointment | null>(null);
   const [upcoming,     setUpcoming]     = useState<MikvehAppointment[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -161,14 +161,23 @@ export default function AppointmentBookingScreen() {
         'כדי לקבוע תור יש להתחבר עם חשבון.',
         [
           { text: 'ביטול', style: 'cancel' },
-          { text: 'התחבר', onPress: () => navigation.navigate('Auth') },
+          {
+            text: 'התחבר',
+            onPress: () => navigation.navigate('Auth', {
+              returnTo: 'AppointmentBooking',
+              returnParams: { mikvehId },
+            }),
+          },
         ],
       );
       return;
     }
     setBooking(true);
     try {
-      await bookAppointment(mikvehId, userId!, today, confirmSlot.time, confirmSlot.slotsCount);
+      await bookAppointment(
+        mikvehId, userId!, today, confirmSlot.time, confirmSlot.slotsCount,
+        slotDur, capacity, new Set(daySlots.map((sl) => sl.id)),
+      );
       const [{ slots, userAppt }, upcomingAppts] = await Promise.all([
         getSlotInfo(mikvehId, today, userId!),
         getUserUpcomingAppointments(mikvehId, userId!),
@@ -179,6 +188,13 @@ export default function AppointmentBookingScreen() {
       setConfirmSlot(null);
     } catch (e: any) {
       Alert.alert('שגיאה', describeError(e, 'לא ניתן לקבוע תור'));
+      // Most likely cause: someone grabbed the slot first (the deterministic
+      // mirror-id guard rejects the batch) — refresh so the grid reflects it.
+      setConfirmSlot(null);
+      getSlotInfo(mikvehId, today, userId!).then(({ slots, userAppt }) => {
+        setDaySlots(slots);
+        setUserDateAppt(userAppt);
+      }).catch(() => {});
     } finally {
       setBooking(false);
     }
@@ -193,7 +209,7 @@ export default function AppointmentBookingScreen() {
     }
     setCancelling(true);
     try {
-      await cancelAppointment(mikvehId, appt.id);
+      await cancelAppointment(mikvehId, appt);
       const [{ slots, userAppt }, upcomingAppts] = await Promise.all([
         getSlotInfo(mikvehId, today, userId!),
         getUserUpcomingAppointments(mikvehId, userId!),
