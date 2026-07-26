@@ -114,8 +114,8 @@ For each, confirm the notification **actually arrives on a physical device with 
 ## 13. Shabbat lock
 
 - [x] Identify exactly which screens/actions lock during Shabbat (read the `useShabbatLock`/`getShabbatLock` logic if unsure) and verify each one <!-- note:fixed%20-%20mobile%20already%20locked%20everything%20correctly%20(RootNavigator%20swaps%20the%20whole%20app%20for%20ShabbatClosedScreen%2C%20useCityId()%20always%20defaults%20so%20it%20applies%20even%20without%20a%20city).%20The%20real%20gap%20was%20kehila-admin%2C%20which%20had%20no%20Shabbat%20lock%20at%20all%20-%20added%20one%20(ShabbatLockGate%2FShabbatLockScreen%2C%20wraps%20the%20whole%20app%20incl.%20%2Flogin%2C%20based%20on%20the%20admin's%20own%20computer%20clock%2Ftimezone%2C%20not%20any%20city) -->
-- [ ] Lock engages at the correct candle-lighting time and releases at the correct הבדלה time
-- [ ] Locked state is clearly communicated to the user (not just a silent failure)
+- [ ] Lock engages at the correct candle-lighting time and releases at the correct הבדלה time <!-- note:the%20screen%20don't%20locked.%20I%20waited%203%20minutes -->
+- [ ] Locked state is clearly communicated to the user (not just a silent failure) <!-- note:what%20is%20that%3F%20waht%20do%20I%20need%20to%20test%3F -->
 
 ## 14. Mobile admin screens (bottom-sheet "ניהול" menu)
 
@@ -169,6 +169,31 @@ Sign in (or use `UserManagementScreen`/`UsersPage` to grant temporarily) as each
 - [ ] Background → foreground — data refreshes appropriately, no stale UI
 - [ ] Deep link from a push notification opens the app to the right screen even from a cold start
 - [ ] Test on at least one other physical device (not just the primary dev device) to catch device-specific issues
+
+## 18. Security & booking fixes — 2026-07-26 (rules deployed)
+
+Covers the appointment-privacy mirror, the deterministic-id double-booking lock, and the pushTokens role validation. Rules are already live (`cloud.firestore` release updated), so these test the deployed behavior:
+
+**Booking race & mirror**
+
+- [ ] Book a slot → cancel it → rebook the **same** slot — all three succeed (exercises create + delete of the new `{date}_{HH-MM}_t{track}` mirror docs)
+- [ ] Two accounts on two devices tap the same free slot near-simultaneously — exactly one booking succeeds; the loser gets the "התור הרגע נתפס" error and the grid refreshes to show the slot as taken
+- [ ] Mikveh with `parallelTracks` > 1 — the same slot can be booked by a 2nd account up to capacity, blocked beyond it
+- [ ] "הכנה במקווה" (multi-slot) booking — occupies all covered base slots; cancelling frees **all** of them at once
+- [ ] Cancel an appointment created **before** this change (if any exist) — succeeds and frees its slot (legacy mirror-doc fallback)
+- [ ] As a regular user, the booking grid shows occupied/free correctly with **no permission errors** — occupancy now comes from the non-identifying `appointmentSlots` mirror, and other users' appointment docs (with their userId) are no longer readable
+
+**Push token validation**
+
+- [ ] Fresh app launch signed in with a real account — no `[Push] registerPushToken failed` warning in Metro logs ~3s after load (token doc's `role`/`roles` must now match the Firestore profile exactly)
+- [ ] Same check as a **guest** — token registers with `role: 'guest'` and no warning
+- [ ] Change a user's role via `UserManagementScreen`, then relaunch the app on their device — token re-registers with the new role, no warning
+- [ ] Admin-targeted push (`sendPushToRoles`) still reaches manager devices after the rules tightening
+
+**Privilege boundaries (rules-level — test via a second account or the admin console)**
+
+- [ ] A regular user editing their own profile **cannot** change `roles` (write is rejected, same as `role`)
+- [ ] A `mikveh_manager` whose `homeCityId` is another city cannot view/cancel this city's mikveh appointments
 
 ---
 

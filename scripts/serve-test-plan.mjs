@@ -88,6 +88,14 @@ function parseAndRender() {
       return;
     }
 
+    // A standalone "**Group label**" line inside a section renders as a
+    // sub-group divider (used by e.g. §18 to cluster related checks).
+    const groupMatch = line.match(/^\*\*(.+)\*\*$/);
+    if (groupMatch) {
+      sectionOpenItemsHtml += `<li class="group-label">${escapeHtml(groupMatch[1])}</li>`;
+      return;
+    }
+
     if (checkboxMatch) {
       const [, , mark, rawText] = checkboxMatch;
       const checked = mark === 'x';
@@ -155,6 +163,7 @@ function renderPage() {
     border: 1px solid var(--border); border-radius: 6px; background: #fffdf7; color: #6b5d2e; }
   .item .note:focus { outline: 2px solid var(--gold); border-color: var(--gold); }
   .item .note:not(:placeholder-shown) { border-color: #d9c98a; background: #fffbea; }
+  .group-label { padding: 12px 18px 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--gold); }
   code { background: #f0ede3; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
   .reload-note { text-align: center; font-size: 12px; color: #999; margin-top: 24px; }
 </style>

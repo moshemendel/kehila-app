@@ -6,19 +6,21 @@
  * Privacy: appointment docs store userId, and Firestore rules restrict reads
  * to the owning user or a mikveh manager/admin — nobody else can query them.
  * Since regular users still need to know which slots are taken (to know
- * what's bookable), each booking also writes a non-identifying mirror doc to
- * mikvaot/{mikvehId}/appointmentSlots/{appointmentId} (same id, no userId) —
- * readable by any signed-in user. getSlotInfo() reads occupancy from that
- * mirror, never from the real appointments collection.
+ * what's bookable), each booking also writes non-identifying mirror docs to
+ * mikvaot/{mikvehId}/appointmentSlots — one per occupied (base slot × track),
+ * with DETERMINISTIC ids ("{date}_{HH-MM}_t{track}") — readable by any
+ * signed-in user. getSlotInfo() reads occupancy from that mirror, never from
+ * the real appointments collection. The deterministic ids double as a
+ * uniqueness lock against double-booking (see bookAppointment).
  */
 
 import {
-  collection, doc, getDocs, addDoc, updateDoc, deleteDoc, writeBatch,
+  collection, doc, getDoc, getDocs, writeBatch,
   query, where, serverTimestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { MikvehAppointment } from '../types';
-import { todayString } from '../utils/appointmentSlots';
+import { todayString, addMinutesToTime } from '../utils/appointmentSlots';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -42,14 +44,14 @@ export async function getSlotInfo(
   mikvehId: string,
   date: string,
   userId: string,
-): Promise<{ slots: { time: string; slotsCount?: number }[]; userAppt: MikvehAppointment | null }> {
+): Promise<{ slots: { id: string; time: string; slotsCount?: number }[]; userAppt: MikvehAppointment | null }> {
   const [slotSnap, ownSnap] = await Promise.all([
     getDocs(query(slotCol(mikvehId), where('date', '==', date))),
     getDocs(query(apptCol(mikvehId), where('date', '==', date), where('status', '==', 'booked'), where('userId', '==', userId))),
   ]);
   const slots = slotSnap.docs.map((d) => {
     const data = d.data() as { time: string; slotsCount?: number };
-    return { time: data.time, slotsCount: data.slotsCount };
+    return { id: d.id, time: data.time, slotsCount: data.slotsCount };
   });
   const ownDoc = ownSnap.docs[0];
   const userAppt = ownDoc ? ({ id: ownDoc.id, ...ownDoc.data() } as MikvehAppointment) : null;
@@ -79,14 +81,25 @@ export async function getUserUpcomingAppointments(
 
 // ─── Mutations ───────────────────────────────────────────────────────────────
 
+/** Deterministic mirror-doc id for one occupied track of one base slot.
+ *  ':' avoided in ids for readability/safety → "2026-07-24_18-00_t0". */
+function slotDocId(date: string, time: string, track: number): string {
+  return `${date}_${time.replace(':', '-')}_t${track}`;
+}
+
 /**
  * Book a slot — a "prep at mikveh" appointment spans slotsCount consecutive
- * base slots (per the mikveh's prepMultiplier) instead of just one. Throws if
- * the slot is already taken (race condition guard via re-read before insert
- * in a real app; here we trust the UI flow).
+ * base slots (per the mikveh's prepMultiplier) instead of just one.
  *
- * Writes the real (private) appointment doc and its non-identifying public
- * mirror atomically, sharing the same document id.
+ * Race-safe: each occupied (base slot × track) gets a mirror doc with a
+ * DETERMINISTIC id. Firestore rules allow only `create` (never `update`) on
+ * appointmentSlots, so if two users grab the same track of the same slot
+ * simultaneously, the second batch's set() is evaluated as an update on an
+ * existing doc → rejected → their entire booking atomically fails. The caller
+ * catches, refreshes availability, and asks the user to pick again.
+ *
+ * `existingSlotIds` is the current mirror-doc id set (from getSlotInfo) —
+ * used to pick the lowest free track per covered base slot up front.
  */
 export async function bookAppointment(
   mikvehId: string,
@@ -94,32 +107,56 @@ export async function bookAppointment(
   date: string,
   time: string,
   slotsCount: number = 1,
+  slotDurationMin: number = 20,
+  capacity: number = 1,
+  existingSlotIds: ReadonlySet<string> = new Set(),
 ): Promise<string> {
   const apptRef = doc(apptCol(mikvehId));
-  const slotRef = doc(slotCol(mikvehId), apptRef.id);
-  const batch = writeBatch(db);
+  const batch   = writeBatch(db);
+
+  const slotIds: string[] = [];
+  for (let i = 0; i < slotsCount; i++) {
+    const coveredTime = i === 0 ? time : addMinutesToTime(time, i * slotDurationMin);
+    let picked: string | null = null;
+    for (let t = 0; t < capacity; t++) {
+      const id = slotDocId(date, coveredTime, t);
+      if (!existingSlotIds.has(id) && !slotIds.includes(id)) { picked = id; break; }
+    }
+    if (!picked) throw new Error('התור הרגע נתפס. רענן/י ובחר/י שעה אחרת.');
+    slotIds.push(picked);
+    batch.set(doc(slotCol(mikvehId), picked), { date, time: coveredTime, apptId: apptRef.id });
+  }
+
   batch.set(apptRef, {
     mikvehId,
     userId,
     date,
     time,
     slotsCount,
+    slotIds,
     status:    'booked',
     createdAt: serverTimestamp(),
   });
-  batch.set(slotRef, { date, time, slotsCount });
   await batch.commit();
   return apptRef.id;
 }
 
-/** Cancel a booking (soft-delete on the real doc; the public mirror is removed entirely). */
+/** Cancel a booking (soft-delete on the real doc; the public mirror docs are removed entirely). */
 export async function cancelAppointment(
   mikvehId: string,
-  appointmentId: string,
+  appt: Pick<MikvehAppointment, 'id' | 'slotIds'>,
 ): Promise<void> {
   const batch = writeBatch(db);
-  batch.update(doc(db, 'mikvaot', mikvehId, 'appointments', appointmentId), { status: 'cancelled' });
-  batch.delete(doc(db, 'mikvaot', mikvehId, 'appointmentSlots', appointmentId));
+  batch.update(doc(db, 'mikvaot', mikvehId, 'appointments', appt.id), { status: 'cancelled' });
+  if (appt.slotIds?.length) {
+    appt.slotIds.forEach((sid) => batch.delete(doc(db, 'mikvaot', mikvehId, 'appointmentSlots', sid)));
+  } else {
+    // Legacy booking: its single mirror doc shared the appointment's own id.
+    // Existence-checked first — batch-deleting a nonexistent doc fails the
+    // owner's rules check (resource is null), which would sink the whole batch.
+    const legacy = await getDoc(doc(db, 'mikvaot', mikvehId, 'appointmentSlots', appt.id));
+    if (legacy.exists()) batch.delete(legacy.ref);
+  }
   await batch.commit();
 }
 
@@ -140,7 +177,7 @@ export async function getAppointmentsForDay(
 /** Cancel a booking from the manager side. */
 export async function managerCancelAppointment(
   mikvehId: string,
-  appointmentId: string,
+  appt: Pick<MikvehAppointment, 'id' | 'slotIds'>,
 ): Promise<void> {
-  await cancelAppointment(mikvehId, appointmentId);
+  await cancelAppointment(mikvehId, appt);
 }

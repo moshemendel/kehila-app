@@ -266,6 +266,10 @@ export interface MikvehAppointment {
   date: string;    // YYYY-MM-DD
   time: string;    // HH:MM — start time
   slotsCount?: number; // consecutive base slots occupied (1 = quick, prepMultiplier = prep); absent = 1
+  // Deterministic ids of this booking's appointmentSlots mirror docs
+  // ("{date}_{HH-MM}_t{track}") — used to delete them on cancel. Absent on
+  // legacy bookings whose single mirror doc shared the appointment's own id.
+  slotIds?: string[];
   status: 'booked' | 'cancelled';
   createdAt: any;
 }

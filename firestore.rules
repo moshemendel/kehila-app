@@ -90,6 +90,10 @@ service cloud.firestore {
          !('homeCityId' in request.resource.data.diff(resource.data).affectedKeys())) ||
         (isSignedIn() && request.auth.uid == userId &&
          !('role' in request.resource.data.diff(resource.data).affectedKeys()) &&
+         // roles (the multi-role array) is just as privilege-bearing as role —
+         // push targeting (sendPushToRoles) filters on it, so letting users
+         // self-edit it would let anyone subscribe to admin-targeted pushes.
+         !('roles' in request.resource.data.diff(resource.data).affectedKeys()) &&
          !('managedSynagogueIds' in request.resource.data.diff(resource.data).affectedKeys()) &&
          !('managedRestaurantIds' in request.resource.data.diff(resource.data).affectedKeys()) &&
          // A city_admin's homeCityId is their admin jurisdiction — letting them move it
@@ -139,17 +143,36 @@ service cloud.firestore {
                              || hasCityRole('mikveh_manager', mikvehCityId(mikId)));
       }
 
-      // Non-identifying mirror of active bookings (date/time/slotsCount only,
-      // no userId) — lets any signed-in user compute slot availability
-      // without being able to read who booked what. Shares the same document
-      // id as its corresponding /appointments doc.
+      // Non-identifying mirror of active bookings (date/time/apptId only, no
+      // userId) — lets any signed-in user compute slot availability without
+      // being able to read who booked what.
+      //
+      // Doc ids are DETERMINISTIC ("{date}_{HH-MM}_t{track}"), one per
+      // occupied (base slot × parallel track). Together with create-only
+      // access (no update rule → set() on an existing id is an update →
+      // denied), this makes the mirror a uniqueness lock: when two bookings
+      // race for the same track, the loser's whole batch fails atomically.
+      //
+      // Legacy mirror docs (random id == their appointment's id, carrying
+      // slotsCount, no apptId) still exist until cancelled — the delete rule
+      // keeps a fallback branch for them.
       match /appointmentSlots/{slotId} {
         allow read:   if isSignedIn();
-        allow create: if isRealAccount();
-        allow delete: if isSignedIn()
-                         && (get(/databases/$(database)/documents/mikvaot/$(mikId)/appointments/$(slotId)).data.userId == request.auth.uid
-                             || isAdminRole()
-                             || hasCityRole('mikveh_manager', mikvehCityId(mikId)));
+        // getAfter ties the mirror to a real appointment written in the SAME
+        // batch under the caller's own uid — a fabricated slot doc with no
+        // matching appointment (fake occupancy to block slots) can't exist.
+        allow create: if isRealAccount()
+                         && request.resource.data.keys().hasOnly(['date', 'time', 'apptId'])
+                         && request.resource.data.date is string
+                         && request.resource.data.time is string
+                         && getAfter(/databases/$(database)/documents/mikvaot/$(mikId)/appointments/$(request.resource.data.apptId)).data.userId == request.auth.uid;
+        allow delete: if isAdminRole()
+                         || hasCityRole('mikveh_manager', mikvehCityId(mikId))
+                         || (isSignedIn() && 'apptId' in resource.data
+                             && get(/databases/$(database)/documents/mikvaot/$(mikId)/appointments/$(resource.data.apptId)).data.userId == request.auth.uid)
+                         // Legacy docs: mirror id == appointment id
+                         || (isSignedIn() && !('apptId' in resource.data)
+                             && get(/databases/$(database)/documents/mikvaot/$(mikId)/appointments/$(slotId)).data.userId == request.auth.uid);
       }
     }
 
@@ -209,11 +232,20 @@ service cloud.firestore {
       // aren't guaranteed to be identical, so the strict rule wasn't actually
       // wrong — the client just wasn't reliably sending its own real uid. Fixed
       // there too; this rule is safe to re-enable now.
+      // The roles ARRAY must be validated too, not just the singular role —
+      // sendPushToRoles() filters on the array *first*, so validating only the
+      // singular field would leave the exact escalation it exists to prevent:
+      // write role: <real role> (passes) + roles: ['city_admin'] (targeted).
+      // For real accounts the array must equal the profile's roles (or
+      // [role] when the profile has no roles field, matching what
+      // registerPushToken sends); guests are pinned to 'guest' / ['guest'].
       allow create, update: if isSignedIn()
                                 && request.resource.data.uid == request.auth.uid
                                 && (isRealAccount()
-                                     ? request.resource.data.role == userDoc().role
-                                     : request.resource.data.role == 'guest');
+                                     ? (request.resource.data.role == userDoc().role
+                                        && request.resource.data.roles == userDoc().get('roles', [userDoc().role]))
+                                     : (request.resource.data.role == 'guest'
+                                        && request.resource.data.roles == ['guest']));
       // Admins can prune stale/legacy tokens (e.g. Expo's DeviceNotRegistered
       // cleanup); a device can also self-delete its own token doc on logout.
       allow delete: if isAdminRole() ||

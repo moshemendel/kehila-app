@@ -116,7 +116,7 @@ export default function ManageAppointmentsScreen() {
           text: 'בטל תור', style: 'destructive',
           onPress: async () => {
             try {
-              await managerCancelAppointment(mikvehId, appt.id);
+              await managerCancelAppointment(mikvehId, appt);
               setDayAppts((prev) => prev.filter((a) => a.id !== appt.id));
             } catch (e: any) {
               Alert.alert('שגיאה', e.message);
