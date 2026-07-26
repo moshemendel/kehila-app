@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TextInput,
   TouchableOpacity, Alert, ActivityIndicator,
@@ -49,14 +49,6 @@ function EditForm({ mikveh, onBack }: { mikveh: Mikveh; onBack: () => void }) {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        <View style={s.subHeader}>
-          <TouchableOpacity onPress={onBack} style={s.backBtn}>
-            <Ionicons name="arrow-back" size={20} color={Colors.white} />
-            <Text style={s.backBtnText}>רשימה</Text>
-          </TouchableOpacity>
-          <Text style={s.subHeaderName} numberOfLines={1}>{form.name}</Text>
-        </View>
-
         <View style={s.content}>
           {/* ── Basic info ── */}
           <View style={s.section}>
@@ -270,9 +262,13 @@ export default function ManageMikvehScreen() {
   const visible = mikvaot.filter((m) => !search || m.name.includes(search) || m.address.includes(search));
 
   useLayoutEffect(() => {
-    if (!isAdmin) return;
+    // Reuses the native header (title + back button) to show which mikveh is
+    // open, instead of a second colored bar duplicating it below.
     navigation.setOptions({
-      headerRight: () => (
+      title: selected ? selected.name : 'ניהול מקוואות',
+      // Hidden while viewing/editing a mikveh — the "+" (add) button belongs
+      // to the list view only.
+      headerRight: (isAdmin && !selected) ? () => (
         <TouchableOpacity
           onPress={() => setAdding((a) => !a)}
           style={{ marginRight: 4, padding: 6 }}
@@ -280,9 +276,20 @@ export default function ManageMikvehScreen() {
         >
           <Ionicons name={adding ? 'close' : 'add'} size={26} color={Colors.white} />
         </TouchableOpacity>
-      ),
+      ) : undefined,
     });
-  }, [navigation, isAdmin, adding]);
+  }, [navigation, isAdmin, adding, selected]);
+
+  // Native back (header button, hardware back, swipe gesture) should return to
+  // the list first, not pop this whole screen off the stack — beforeRemove is
+  // the single event React Navigation fires for all three of those triggers.
+  useEffect(() => {
+    return navigation.addListener('beforeRemove', (e: any) => {
+      if (!selected) return;
+      e.preventDefault();
+      setSelected(null);
+    });
+  }, [navigation, selected]);
 
   if (selected) return <EditForm mikveh={selected} onBack={() => setSelected(null)} />;
 
@@ -371,10 +378,6 @@ const s = StyleSheet.create({
   emptyState:   { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
   emptyTitle:   { fontSize: 18, fontWeight: '700', color: Colors.textSecondary },
   // Edit form
-  subHeader:    { backgroundColor: Colors.mikveh, flexDirection: 'row', alignItems: 'center', padding: Spacing.md, gap: Spacing.sm },
-  backBtn:      { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  backBtnText:  { color: Colors.white, fontSize: 14, fontWeight: '600' },
-  subHeaderName:{ flex: 1, fontSize: 17, fontWeight: '800', color: Colors.white },
   content:      { padding: Spacing.md, gap: Spacing.lg },
   section:      { gap: 6 },
   sectionTitle: { fontSize: 13, fontWeight: '700', color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1 },

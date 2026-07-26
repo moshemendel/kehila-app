@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TextInput,
   TouchableOpacity, Alert, ActivityIndicator,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useRestaurants } from '../../hooks/useRestaurants';
 import { useCityId } from '../../hooks/useCityId';
@@ -51,17 +52,6 @@ function EditForm({ rest, onBack }: { rest: Restaurant; onBack: () => void }) {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
     <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-      <View style={s.subHeader}>
-        <TouchableOpacity onPress={onBack} style={s.backBtn}>
-          <Ionicons name="arrow-back" size={20} color={Colors.white} />
-          <Text style={s.backBtnText}>רשימה</Text>
-        </TouchableOpacity>
-        <View style={s.subHeaderInfo}>
-          <Text style={s.subHeaderName}>{form.name}</Text>
-          <Text style={s.subHeaderSub}>{CATEGORY_LABELS[form.category] ?? ''} · {form.address}</Text>
-        </View>
-      </View>
-
       <View style={s.content}>
         <View style={s.section}>
           <Text style={s.sectionTitle}>פרטים כלליים</Text>
@@ -161,10 +151,28 @@ function EditForm({ rest, onBack }: { rest: Restaurant; onBack: () => void }) {
 // ─── List view ────────────────────────────────────────────────────────────────
 export default function ManageRestaurantScreen() {
   const cityId = useCityId();
+  const navigation = useNavigation();
   const { appUser } = useAuth();
   const { restaurants, loading } = useRestaurants(cityId);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Restaurant | null>(null);
+
+  // Native back (header button, hardware back, swipe gesture) should return to
+  // the list first, not pop this whole screen off the stack — beforeRemove is
+  // the single event React Navigation fires for all three of those triggers.
+  useEffect(() => {
+    return navigation.addListener('beforeRemove', (e) => {
+      if (!selected) return;
+      e.preventDefault();
+      setSelected(null);
+    });
+  }, [navigation, selected]);
+
+  // Reuses the native header (title + back button) to show which business is
+  // open, instead of a second colored bar duplicating it below.
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: selected ? selected.name : 'ניהול בתי עסק' });
+  }, [navigation, selected]);
 
   const roles = appUser?.roles ?? (appUser?.role ? [appUser.role] : []);
   const isAdmin = roles.some((r) => ['city_admin', 'super_admin', 'dev'].includes(r));
@@ -273,12 +281,6 @@ const s = StyleSheet.create({
   emptyTitle: { fontSize: 18, fontWeight: '700', color: Colors.textSecondary, textAlign: 'center' },
   emptySubtitle: { fontSize: 14, color: Colors.textMuted, textAlign: 'center', lineHeight: 20 },
   // Edit form
-  subHeader: { backgroundColor: Colors.kosher, flexDirection: 'row', alignItems: 'center', padding: Spacing.md, gap: Spacing.sm },
-  backBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  backBtnText: { color: Colors.white, fontSize: 14, fontWeight: '600' },
-  subHeaderInfo: { flex: 1 },
-  subHeaderName: { fontSize: 17, fontWeight: '800', color: Colors.white },
-  subHeaderSub: { fontSize: 12, color: 'rgba(255,255,255,0.75)' },
   content: { padding: Spacing.md },
   section: { marginBottom: Spacing.lg },
   sectionTitle: { fontSize: 13, fontWeight: '700', color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },

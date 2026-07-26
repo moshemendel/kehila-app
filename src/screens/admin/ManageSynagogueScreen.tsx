@@ -888,15 +888,6 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
     <ScrollView contentContainerStyle={s.editContent}>
-      {/* Sub-header */}
-      <View style={s.subHeader}>
-        <TouchableOpacity onPress={onBack} style={s.backBtn}>
-          <Ionicons name="arrow-back" size={20} color={Colors.white} />
-          <Text style={s.backBtnTxt}>רשימה</Text>
-        </TouchableOpacity>
-        <Text style={s.subHeaderName} numberOfLines={1}>{form.name}</Text>
-      </View>
-
       {isDemo && (
         <View style={s.demoBanner}>
           <Ionicons name="warning-outline" size={14} color={Colors.gold} />
@@ -1296,9 +1287,13 @@ export default function ManageSynagogueScreen() {
     .filter((s) => !search || s.name.includes(search) || (s.address.he ?? s.address.en ?? '').includes(search));
 
   useLayoutEffect(() => {
-    if (!isAdmin) return;
+    // Reuses the native header (title + back button) to show which synagogue is
+    // open, instead of a second colored bar duplicating it below.
     navigation.setOptions({
-      headerRight: () => (
+      title: selected ? selected.name : 'ניהול בית כנסת',
+      // Hidden while viewing/editing a synagogue — the "+" (add) button belongs
+      // to the list view only.
+      headerRight: (isAdmin && !selected) ? () => (
         <TouchableOpacity
           onPress={() => setAdding((a) => !a)}
           style={{ marginRight: 4, padding: 6 }}
@@ -1306,9 +1301,20 @@ export default function ManageSynagogueScreen() {
         >
           <Ionicons name={adding ? 'close' : 'add'} size={26} color={Colors.white} />
         </TouchableOpacity>
-      ),
+      ) : undefined,
     });
-  }, [navigation, isAdmin, adding]);
+  }, [navigation, isAdmin, adding, selected]);
+
+  // Native back (header button, hardware back, swipe gesture) should return to
+  // the list first, not pop this whole screen off the stack — beforeRemove is
+  // the single event React Navigation fires for all three of those triggers.
+  useEffect(() => {
+    return navigation.addListener('beforeRemove', (e) => {
+      if (!selected) return;
+      e.preventDefault();
+      setSelected(null);
+    });
+  }, [navigation, selected]);
 
   if (selected) {
     return (
@@ -1415,10 +1421,6 @@ const s = StyleSheet.create({
   editContent:  { paddingBottom: 40 },
   demoBanner:   { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FEF9C3', paddingHorizontal: Spacing.md, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F9E547' },
   demoBannerTxt:{ fontSize: 13, fontWeight: '600', color: Colors.gold, flex: 1 },
-  subHeader:    { backgroundColor: Colors.primary, flexDirection: 'row', alignItems: 'center', padding: Spacing.md, gap: Spacing.sm },
-  backBtn:      { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  backBtnTxt:   { color: Colors.white, fontSize: 14, fontWeight: '600' },
-  subHeaderName:{ flex: 1, fontSize: 17, fontWeight: '800', color: Colors.white },
   content:      { padding: Spacing.md, gap: Spacing.lg },
   section:      { gap: 6 },
   sectionTitle: { fontSize: 13, fontWeight: '700', color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1 },

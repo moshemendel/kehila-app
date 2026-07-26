@@ -235,18 +235,6 @@ function CertEditor({ rest, onBack, onDelete }: { rest: Restaurant; onBack: () =
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
     <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-      {/* Sub-header */}
-      <View style={[s.subHeader, rest.isHidden && { backgroundColor: Colors.danger }]}>
-        <TouchableOpacity onPress={onBack} style={s.backBtn}>
-          <Ionicons name="arrow-back" size={20} color={Colors.white} />
-          <Text style={s.backBtnText}>רשימה</Text>
-        </TouchableOpacity>
-        <View style={s.subHeaderInfo}>
-          <Text style={s.subHeaderName}>{rest.name}</Text>
-          <Text style={s.subHeaderSub}>{CATEGORY_LABELS[rest.category] ?? ''} · {rest.address}</Text>
-        </View>
-      </View>
-
       {/* Suspended banner */}
       {rest.isHidden && (
         <View style={s.suspendedBanner}>
@@ -620,9 +608,13 @@ export default function ManageKosherScreen() {
     .filter((r) => !search || r.name.includes(search) || r.address.includes(search));
 
   useLayoutEffect(() => {
-    if (!isAdmin && !isKosherManager) return;
+    // Reuses the native header (title + back button) to show which business is
+    // open, instead of a second colored bar duplicating it below.
     navigation.setOptions({
-      headerRight: () => (
+      title: selected ? selected.name : 'ניהול כשרות',
+      // Hidden while viewing/editing a business — the "+" (add) button belongs
+      // to the list view only.
+      headerRight: ((isAdmin || isKosherManager) && !selected) ? () => (
         <TouchableOpacity
           onPress={() => setAdding((a) => !a)}
           style={{ marginRight: 4, padding: 6 }}
@@ -630,9 +622,20 @@ export default function ManageKosherScreen() {
         >
           <Ionicons name={adding ? 'close' : 'add'} size={26} color={Colors.white} />
         </TouchableOpacity>
-      ),
+      ) : undefined,
     });
-  }, [navigation, isAdmin, isKosherManager, adding]);
+  }, [navigation, isAdmin, isKosherManager, adding, selected]);
+
+  // Native back (header button, hardware back, swipe gesture) should return to
+  // the list first, not pop this whole screen off the stack — beforeRemove is
+  // the single event React Navigation fires for all three of those triggers.
+  useEffect(() => {
+    return navigation.addListener('beforeRemove', (e) => {
+      if (!selected) return;
+      e.preventDefault();
+      setSelected(null);
+    });
+  }, [navigation, selected]);
 
   if (selected) {
     return <CertEditor rest={selected} onBack={() => setSelected(null)} onDelete={() => setSelected(null)} />;
@@ -749,12 +752,6 @@ const s = StyleSheet.create({
   emptySubtitle: { fontSize: 14, color: Colors.textMuted, textAlign: 'center', lineHeight: 20 },
   emptyText: { fontSize: 14, color: Colors.textMuted, textAlign: 'center', lineHeight: 20 },
   // Cert editor
-  subHeader: { backgroundColor: Colors.success, flexDirection: 'row', alignItems: 'center', padding: Spacing.md, gap: Spacing.sm },
-  backBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  backBtnText: { color: Colors.white, fontSize: 14, fontWeight: '600' },
-  subHeaderInfo: { flex: 1 },
-  subHeaderName: { fontSize: 17, fontWeight: '800', color: Colors.white },
-  subHeaderSub: { fontSize: 12, color: 'rgba(255,255,255,0.75)' },
   content: { padding: Spacing.md },
   sectionTitle: { fontSize: 13, fontWeight: '700', color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: Spacing.sm },
   certCard: { backgroundColor: Colors.cardBackground, borderRadius: Radius.md, marginBottom: Spacing.md, overflow: 'hidden', ...Shadow.card },
