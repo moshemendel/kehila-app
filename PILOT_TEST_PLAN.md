@@ -114,8 +114,8 @@ For each, confirm the notification **actually arrives on a physical device with 
 ## 13. Shabbat lock
 
 - [x] Identify exactly which screens/actions lock during Shabbat (read the `useShabbatLock`/`getShabbatLock` logic if unsure) and verify each one <!-- note:fixed%20-%20mobile%20already%20locked%20everything%20correctly%20(RootNavigator%20swaps%20the%20whole%20app%20for%20ShabbatClosedScreen%2C%20useCityId()%20always%20defaults%20so%20it%20applies%20even%20without%20a%20city).%20The%20real%20gap%20was%20kehila-admin%2C%20which%20had%20no%20Shabbat%20lock%20at%20all%20-%20added%20one%20(ShabbatLockGate%2FShabbatLockScreen%2C%20wraps%20the%20whole%20app%20incl.%20%2Flogin%2C%20based%20on%20the%20admin's%20own%20computer%20clock%2Ftimezone%2C%20not%20any%20city) -->
-- [ ] Lock engages at the correct candle-lighting time and releases at the correct הבדלה time <!-- note:the%20screen%20don't%20locked.%20I%20waited%203%20minutes -->
-- [ ] Locked state is clearly communicated to the user (not just a silent failure) <!-- note:what%20is%20that%3F%20waht%20do%20I%20need%20to%20test%3F -->
+- [ ] Lock engages at the correct candle-lighting time and releases at the correct הבדלה time
+- [ ] Locked state is clearly communicated to the user (not just a silent failure) <!-- note:this%20means%3A%20when%20locked%2C%20confirm%20the%20screen%20shows%20a%20clear%20title%20(%D7%A9%D7%91%D7%AA%20%D7%A9%D7%9C%D7%95%D7%9D%2F%D7%97%D7%92%20%D7%A9%D7%9E%D7%97)%2C%20the%20%22%D7%94%D7%9E%D7%A2%D7%A8%D7%9B%D7%AA%20%D7%A1%D7%92%D7%95%D7%A8%D7%94%22%20message%2C%20and%20a%20reopen%20time%20-%20not%20a%20blank%2Ffrozen%2Fgeneric-error%20screen.%20Use%20the%20new%20%F0%9F%95%AF%EF%B8%8F%20dev%20button%20above%20to%20trigger%20it%20and%20check -->
 
 ## 14. Mobile admin screens (bottom-sheet "ניהול" menu)
 

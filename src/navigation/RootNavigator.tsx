@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
@@ -79,6 +79,12 @@ export default function RootNavigator() {
   const { settings } = useZmanimSettings();
   const lock         = useShabbatLock(city, settings);
   const [devBypass, setDevBypass] = useState(false);
+  // There was previously no way to test "does the lock screen engage/look
+  // right" without waiting for an actual real candle-lighting moment (or
+  // fiddling with the device's system clock) — this forces it on for
+  // preview, same __DEV__ gating as the bypass button below.
+  const [devForceLock, setDevForceLock] = useState(false);
+  const isLocked = (lock.locked || devForceLock) && !devBypass;
 
   if (loading) {
     return (
@@ -98,10 +104,10 @@ export default function RootNavigator() {
 
   // Hard lock for everyone on Shabbat / Yom Tov. The bypass is only ever wired
   // in development builds (__DEV__) — in production there is no way in.
-  if (lock.locked && !devBypass) {
+  if (isLocked) {
     return (
       <ShabbatClosedScreen
-        title={lock.title ?? 'שבת שלום'}
+        title={lock.locked ? (lock.title ?? 'שבת שלום') : 'שבת שלום (בדיקה)'}
         kind={lock.kind}
         parasha={lock.parasha}
         reopenAt={lock.reopenAt}
@@ -117,6 +123,15 @@ export default function RootNavigator() {
   return (
     <>
     <CityGpsPrompt />
+    {__DEV__ && (
+      <TouchableOpacity
+        style={styles.devLockBtn}
+        onPress={() => setDevForceLock(true)}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Text style={styles.devLockBtnTxt}>🕯️</Text>
+      </TouchableOpacity>
+    )}
     <Root.Navigator screenOptions={{ animation: 'slide_from_right' }}>
       {/* Main tabs — tab bar handles its own safe area */}
       <Root.Screen
@@ -246,4 +261,13 @@ export default function RootNavigator() {
 
 const styles = StyleSheet.create({
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background },
+  // __DEV__-only — lets a developer preview the Shabbat lock screen without
+  // waiting for a real candle-lighting moment. Never renders outside __DEV__.
+  devLockBtn: {
+    position: 'absolute', top: 50, left: 8, zIndex: 999,
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  devLockBtnTxt: { fontSize: 16 },
 });
