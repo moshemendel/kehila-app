@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Radius, Spacing } from '../utils/theme';
 import { useCityId } from '../hooks/useCityId';
 import { useSynagogues } from '../hooks/useSynagogues';
-import { useRestaurants } from '../hooks/useRestaurants';
+import { useBusinesses } from '../hooks/useBusinesses';
 
 const STORAGE_KEY = 'kehila_saved_locations_v1';
 const MAX_SAVED = 12;
@@ -29,7 +29,7 @@ export default function LocationPicker({
 }: LocationPickerProps) {
   const cityId = useCityId();
   const { synagogues } = useSynagogues(cityId);
-  const { restaurants } = useRestaurants(cityId);
+  const { businesses } = useBusinesses(cityId);
 
   const [visible, setVisible] = useState(false);
   const [query, setQuery] = useState('');
@@ -58,10 +58,10 @@ export default function LocationPicker({
 
   const filteredRests = useMemo(
     () =>
-      restaurants
+      businesses
         .filter(r => !q || r.name.toLowerCase().includes(q) || (r.neighborhood ?? '').toLowerCase().includes(q) || r.address.toLowerCase().includes(q))
         .slice(0, MAX_PER_SECTION),
-    [restaurants, q],
+    [businesses, q],
   );
 
   function bookmarkQuery() {
@@ -210,7 +210,7 @@ export default function LocationPicker({
                 </>
               )}
 
-              {/* Businesses / restaurants */}
+              {/* Businesses */}
               {filteredRests.length > 0 && (
                 <>
                   <RowHeader label="בתי עסק" icon="storefront-outline" color={Colors.kosher} />

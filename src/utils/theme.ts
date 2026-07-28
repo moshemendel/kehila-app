@@ -17,7 +17,7 @@ export const Colors = {
   goldMuted:    '#C9A84C',   // muted warm gold (zmanim screen values)
 
   // ── Module semantic colors ───────────────────────────────────────────────
-  kosher:    '#1B6B47',   // forest green  — kashrut / restaurants
+  kosher:    '#1B6B47',   // forest green  — kashrut / businesses
   mikveh:    '#0B6B87',   // water teal    — mikveh
   events:    '#5B3594',   // deep purple   — events / community / shiurim
   shacharit: '#C2600A',   // amber morning — shacharit prayer

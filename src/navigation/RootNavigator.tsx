@@ -13,14 +13,14 @@ import CityGpsPrompt from '../components/CityGpsPrompt';
 import AuthNavigator from './AuthNavigator';
 import MainTabNavigator from './MainTabNavigator';
 import SynagogueDetailScreen  from '../screens/main/SynagogueDetailScreen';
-import RestaurantDetailScreen from '../screens/main/RestaurantDetailScreen';
+import BusinessDetailScreen from '../screens/main/BusinessDetailScreen';
 import MikvehDetailScreen         from '../screens/main/MikvehDetailScreen';
 import AppointmentBookingScreen   from '../screens/main/AppointmentBookingScreen';
 import KashrutUpdatesScreen        from '../screens/main/KashrutUpdatesScreen';
 import EventDetailScreen           from '../screens/main/EventDetailScreen';
 import ManageSynagogueScreen      from '../screens/admin/ManageSynagogueScreen';
 import ManageAppointmentsScreen   from '../screens/admin/ManageAppointmentsScreen';
-import ManageRestaurantScreen from '../screens/admin/ManageRestaurantScreen';
+import ManageBusinessScreen from '../screens/admin/ManageBusinessScreen';
 import ManageKosherScreen     from '../screens/admin/ManageKosherScreen';
 import ManageMikvehScreen     from '../screens/admin/ManageMikvehScreen';
 import ManageEventsScreen     from '../screens/admin/ManageEventsScreen';
@@ -154,10 +154,10 @@ export default function RootNavigator() {
         options={{ ...HEADER, title: 'בית הכנסת', contentStyle: stackContentStyle }}
       />
 
-      {/* Restaurant detail — custom header baked into the screen (overlaid on gallery image) */}
+      {/* Business detail — custom header baked into the screen (overlaid on gallery image) */}
       <Root.Screen
-        name="RestaurantDetail"
-        component={RestaurantDetailScreen}
+        name="BusinessDetail"
+        component={BusinessDetailScreen}
         options={{ headerShown: false }}
       />
 
@@ -196,8 +196,8 @@ export default function RootNavigator() {
         options={{ ...HEADER, title: 'ניהול בית כנסת', contentStyle: stackContentStyle }}
       />
       <Root.Screen
-        name="ManageRestaurant"
-        component={ManageRestaurantScreen}
+        name="ManageBusiness"
+        component={ManageBusinessScreen}
         options={{ ...HEADER, headerStyle: { backgroundColor: Colors.kosher }, title: 'ניהול בתי עסק', contentStyle: stackContentStyle }}
       />
       <Root.Screen

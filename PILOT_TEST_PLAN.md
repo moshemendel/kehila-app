@@ -119,8 +119,9 @@ For each, confirm the notification **actually arrives on a physical device with 
 
 ## 14. Mobile admin screens (bottom-sheet "ניהול" menu)
 
-- [ ] `ManageSynagogueScreen` — create/edit/delete a synagogue
-- [ ] `ManageRestaurantScreen` / `ManageKosherScreen` — create/edit a restaurant, toggle certs (see §12 for the push-notification retest), publish confirmation modal shows the right changes
+- [x] `ManageSynagogueScreen` — create/edit/delete a synagogue
+- [ ] `ManageRestaurantScreen` / `ManageKosherScreen` — create/edit a restaurant, toggle certs (see §12 for the push-notification retest), publish confirmation modal shows the right changes <!-- note:fixed%20-%20removed%20the%20manager%20dropdown%20from%20the%20create%20modal%3B%20added%20a%20manager-by-email%20field%20(%D7%9E%D7%A0%D7%94%D7%9C%20%D7%94%D7%A2%D7%A1%D7%A7)%20in%20the%20cert%20editor%20instead%20-%20assigns%20managedRestaurantIds%20%2B%20bumps%20role%20to%20business_manager%2C%20same%20logic%20as%20before%2C%20just%20moved%20and%20by%20email%20instead%20of%20a%20dropdown -->
+
 - [ ] `ManageMikvehScreen` — create/edit mikveh, hours
 - [ ] `ManageAppointmentsScreen` — view/manage bookings
 - [ ] `ManageEruvScreen` — update status, edit polygon, push fires

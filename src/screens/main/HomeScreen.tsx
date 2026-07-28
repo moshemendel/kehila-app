@@ -52,7 +52,7 @@ const QUICK_LINKS = [
   { icon: 'business-outline',      customIcon: SynagoguesIcon,          label: 'בתי כנסת',   tab: 'Synagogues'  as const, color: Colors.primary   },
   { icon: 'time-outline',          customIcon: PrayersIcon,             label: 'מניינים', tab: 'PrayerTimes' as const, color: Colors.shacharit },
   { icon: 'sunny-outline',         customIcon: ZmanimIcon,              label: 'זמנים',       tab: 'Zmanim'      as const, color: Colors.gold      },
-  { icon: 'restaurant-outline',    customIcon: KosherCertificationIcon, label: 'כשרות',       tab: 'Restaurants' as const, color: Colors.kosher    },
+  { icon: 'restaurant-outline',    customIcon: KosherCertificationIcon, label: 'כשרות',       tab: 'Businesses' as const, color: Colors.kosher    },
   { icon: 'water-outline',         customIcon: MikvahsIcon,             label: 'מקווה',        tab: 'Mikveh'      as const, color: Colors.mikveh   },
   { icon: 'calendar-outline',      customIcon: EventsIcon,              label: 'אירועים',      tab: 'Events'      as const, color: Colors.events   },
   { icon: 'shield-outline',        customIcon: EruvIcon,                label: 'עירוב',         tab: 'Eruv'        as const, color: Colors.gold     },
@@ -437,10 +437,10 @@ export default function HomeScreen() {
         {QUICK_LINKS.map(({ icon, customIcon, label, tab, color }) => {
           const badgeCount =
             tab === 'Events'      ? unreadCount  :
-            tab === 'Restaurants' ? kashrutCount  : 0;
+            tab === 'Businesses' ? kashrutCount  : 0;
           const badgeRed =
-            (tab === 'Events'      && unreadAlerts.length > 0) ||
-            (tab === 'Restaurants' && hasDowngrade);
+            (tab === 'Events'     && unreadAlerts.length > 0) ||
+            (tab === 'Businesses' && hasDowngrade);
           return (
             <TouchableOpacity
               key={tab}

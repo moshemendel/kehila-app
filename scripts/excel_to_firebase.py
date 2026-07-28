@@ -9,7 +9,7 @@ Usage:
 
 Outputs (written to ./firebase_import/):
     synagogues.json
-    restaurants.json
+    businesses.json
     mikveh.json
     events.json
 
@@ -192,7 +192,7 @@ def convert_synagogue(
     return syn
 
 
-def convert_restaurant(d: dict, cityId: str) -> dict | None:
+def convert_business(d: dict, cityId: str) -> dict | None:
     if not d.get("id") or not d.get("name"):
         return None
 
@@ -369,13 +369,13 @@ def main():
             if obj:
                 syns.append(obj)
 
-    # ── Restaurants ──────────────────────────────────────────────────────────
-    rests = []
+    # ── Businesses ───────────────────────────────────────────────────────────
+    bizs = []
     if "מסעדות_כשרות" in wb.sheetnames:
         for d in sheet_to_dicts(wb["מסעדות_כשרות"]):
-            obj = convert_restaurant(d, city)
+            obj = convert_business(d, city)
             if obj:
-                rests.append(obj)
+                bizs.append(obj)
 
     # ── Mikveh ───────────────────────────────────────────────────────────────
     mikveh = []
@@ -395,10 +395,10 @@ def main():
 
     # ── Write JSON ───────────────────────────────────────────────────────────
     files = {
-        "synagogues.json":  syns,
-        "restaurants.json": rests,
-        "mikveh.json":      mikveh,
-        "events.json":      events,
+        "synagogues.json": syns,
+        "businesses.json": bizs,
+        "mikveh.json":     mikveh,
+        "events.json":     events,
     }
     for fname, data in files.items():
         p = out_dir / fname

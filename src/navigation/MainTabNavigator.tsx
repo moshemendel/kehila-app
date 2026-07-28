@@ -13,7 +13,7 @@ import HomeScreen        from '../screens/main/HomeScreen';
 import SynagoguesScreen  from '../screens/main/SynagoguesScreen';
 import PrayerTimesScreen from '../screens/main/PrayerTimesScreen';
 import ZmanimScreen      from '../screens/main/ZmanimScreen';
-import RestaurantsScreen from '../screens/main/RestaurantsScreen';
+import BusinessesScreen from '../screens/main/BusinessesScreen';
 import MikvehScreen      from '../screens/main/MikvehScreen';
 import EventsScreen      from '../screens/main/EventsScreen';
 import ProfileScreen     from '../screens/main/ProfileScreen';
@@ -38,7 +38,7 @@ const TAB_INFO: Record<TabName, TabInfo> = {
   Synagogues:  { icon: 'business-outline',   iconActive: 'business',   label: 'בתי כנסת', color: Colors.primary   },
   PrayerTimes: { icon: 'time-outline',       iconActive: 'time',       label: 'מניינים',    color: Colors.shacharit },
   Zmanim:      { icon: 'sunny-outline',      iconActive: 'sunny',      label: 'זמנים',     color: Colors.gold      },
-  Restaurants: { icon: 'restaurant-outline', iconActive: 'restaurant', label: 'כשרות',    color: Colors.kosher    },
+  Businesses: { icon: 'restaurant-outline', iconActive: 'restaurant', label: 'כשרות',    color: Colors.kosher    },
   Mikveh:      { icon: 'water-outline',      iconActive: 'water',      label: 'מקווה',     color: Colors.mikveh    },
   Events:      { icon: 'calendar-outline',   iconActive: 'calendar',   label: 'אירועים',   color: Colors.events    },
   Eruv:        { icon: 'shield-outline',     iconActive: 'shield',     label: 'עירוב',     color: Colors.gold      },
@@ -48,7 +48,7 @@ const TAB_INFO: Record<TabName, TabInfo> = {
 
 const ALL_TABS: TabName[] = [
   'Home','Search','Synagogues','PrayerTimes','Zmanim',
-  'Restaurants','Mikveh','Events','Eruv','Gemach','Profile',
+  'Businesses','Mikveh','Events','Eruv','Gemach','Profile',
 ];
 
 // Default: 4 bar slots (More fixed in center, remaining 4 go to popup)
@@ -421,7 +421,7 @@ export default function MainTabNavigator() {
         <Tab.Screen name="Synagogues"  component={SynagoguesScreen} />
         <Tab.Screen name="PrayerTimes" component={PrayerTimesScreen} />
         <Tab.Screen name="Zmanim"      component={ZmanimScreen} />
-        <Tab.Screen name="Restaurants" component={RestaurantsScreen} />
+        <Tab.Screen name="Businesses" component={BusinessesScreen} />
         <Tab.Screen name="Mikveh"      component={MikvehScreen} />
         <Tab.Screen name="Events"      component={EventsScreen} />
         <Tab.Screen name="Eruv"        component={EruvScreen} />

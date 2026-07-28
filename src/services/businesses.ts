@@ -2,7 +2,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Restaurant, KosherCertificate } from '../types';
+import { Business, KosherCertificate } from '../types';
 
 const COL = 'businesses';
 
@@ -27,7 +27,7 @@ export const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(CATEGO
 export const CATEGORY_ICONS:  Record<string, string> = Object.fromEntries(CATEGORY_META.map((c) => [c.key, c.icon]));
 
 /** Multi-choice categories, falling back to the legacy single `category`. */
-export function restaurantCategories(r: { categories?: string[]; category?: string }): string[] {
+export function businessCategories(r: { categories?: string[]; category?: string }): string[] {
   if (r.categories?.length) return r.categories;
   return r.category ? [r.category] : [];
 }
@@ -175,36 +175,36 @@ export function sortCertTags(tags: string[]): string[] {
   });
 }
 
-export async function getRestaurantsByCity(cityId: string): Promise<Restaurant[]> {
+export async function getBusinessesByCity(cityId: string): Promise<Business[]> {
   const q = query(collection(db, COL), where('cityId', '==', cityId));
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Restaurant));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Business));
 }
 
-export async function getRestaurant(id: string): Promise<Restaurant | null> {
+export async function getBusiness(id: string): Promise<Business | null> {
   const snap = await getDoc(doc(db, COL, id));
   if (!snap.exists()) return null;
-  return { id: snap.id, ...snap.data() } as Restaurant;
+  return { id: snap.id, ...snap.data() } as Business;
 }
 
-export async function updateRestaurant(id: string, data: Partial<Restaurant>): Promise<void> {
+export async function updateBusiness(id: string, data: Partial<Business>): Promise<void> {
   await updateDoc(doc(db, COL, id), { ...sanitize(data), updatedAt: serverTimestamp() });
 }
 
-export async function addRestaurant(data: Omit<Restaurant, 'id'>): Promise<string> {
+export async function addBusiness(data: Omit<Business, 'id'>): Promise<string> {
   const ref = await addDoc(collection(db, COL), { ...sanitize(data), updatedAt: serverTimestamp() });
   return ref.id;
 }
 
-export async function deleteRestaurant(id: string): Promise<void> {
+export async function deleteBusiness(id: string): Promise<void> {
   await deleteDoc(doc(db, COL, id));
 }
 
 export async function updateKosherCertificates(
-  restaurantId: string,
+  businessId: string,
   certificates: KosherCertificate[]
 ): Promise<void> {
-  await updateDoc(doc(db, COL, restaurantId), {
+  await updateDoc(doc(db, COL, businessId), {
     kosherCertificates: sanitize(certificates),
     updatedAt: serverTimestamp(),
   });

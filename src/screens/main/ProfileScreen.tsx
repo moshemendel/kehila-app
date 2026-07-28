@@ -221,7 +221,7 @@ export default function ProfileScreen() {
               )}
               {(roles.includes('business_manager') || isAdminRole) && (
                 <MenuRow icon="restaurant-outline" label="ניהול בתי עסק" color={Colors.kosher}
-                  onPress={() => openManage('ManageRestaurant')} />
+                  onPress={() => openManage('ManageBusiness')} />
               )}
               {(roles.includes('kosher_manager') || isAdminRole) && (
                 <MenuRow icon="shield-checkmark-outline" label="ניהול כשרות" color={Colors.success}

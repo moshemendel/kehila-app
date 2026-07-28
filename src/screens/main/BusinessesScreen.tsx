@@ -7,10 +7,10 @@ import MapView, { Marker, Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as Location from 'expo-location';
-import RestaurantCard from '../../components/RestaurantCard';
+import BusinessCard from '../../components/BusinessCard';
 import FilterBar from '../../components/FilterBar';
-import { restaurantCategories, certificationTags, sortCertTags } from '../../services/restaurants';
-import { useRestaurants } from '../../hooks/useRestaurants';
+import { businessCategories, certificationTags, sortCertTags } from '../../services/businesses';
+import { useBusinesses } from '../../hooks/useBusinesses';
 import { useCityId } from '../../hooks/useCityId';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCity } from '../../hooks/useCity';
@@ -46,14 +46,14 @@ const MAP_STYLE = [
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
-export default function RestaurantsScreen() {
+export default function BusinessesScreen() {
   useAnalyticsTrack('kosher');
   const cityId     = useCityId();
   const navigation = useNavigation<any>();
   const { top, bottom } = useSafeAreaInsets();
   const [focused, setFocused] = useState(false);
   useFocusEffect(useCallback(() => { setFocused(true); return () => setFocused(false); }, []));
-  const { restaurants, loading, error } = useRestaurants(cityId, focused);
+  const { businesses, loading, error } = useBusinesses(cityId, focused);
   const { city } = useCity(cityId);
   const { count: kashrutCount, totalCount: kashrutTotal, hasDowngrade } = useKashrutUpdates();
 
@@ -72,7 +72,7 @@ export default function RestaurantsScreen() {
 
   // ── Map region ────────────────────────────────────────────────────────────
   const mapRegion = useMemo<Region>(() => {
-    const wc = restaurants.filter((r) => r.latitude && r.longitude);
+    const wc = businesses.filter((r) => r.latitude && r.longitude);
     if (!wc.length) {
       if (city) return { latitude: city.latitude, longitude: city.longitude, latitudeDelta: 0.018, longitudeDelta: 0.018 };
       return DEFAULT_REGION;
@@ -87,7 +87,7 @@ export default function RestaurantsScreen() {
       latitudeDelta: Math.max((maxLat - minLat) * 1.5, 0.015),
       longitudeDelta: Math.max((maxLon - minLon) * 1.5, 0.015),
     };
-  }, [city, restaurants]);
+  }, [city, businesses]);
 
   useEffect(() => {
     if (!loading) {
@@ -100,7 +100,7 @@ export default function RestaurantsScreen() {
   }, [loading, viewMode, mapRegion]);
 
   // ── Pin press ─────────────────────────────────────────────────────────────
-  function handlePinPress(r: typeof restaurants[0]) {
+  function handlePinPress(r: typeof businesses[0]) {
     setSelectedId(r.id);
     cardSlide.setValue(400);
     Animated.spring(cardSlide, { toValue: 0, useNativeDriver: true, bounciness: 4, speed: 14 }).start();
@@ -146,21 +146,21 @@ export default function RestaurantsScreen() {
   // ── Filter options ────────────────────────────────────────────────────────
   const availableNeighborhoods = useMemo(() => {
     const set = new Set<string>();
-    restaurants.filter((r) => !r.isHidden).forEach((r) => { if (r.neighborhood) set.add(r.neighborhood); });
+    businesses.filter((r) => !r.isHidden).forEach((r) => { if (r.neighborhood) set.add(r.neighborhood); });
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'he')).map((n) => ({ key: n, label: n }));
-  }, [restaurants]);
+  }, [businesses]);
 
   const availableCertTags = useMemo(() => {
     const set = new Set<string>();
-    restaurants.filter((r) => !r.isHidden).forEach((r) => certificationTags(r).forEach((t) => set.add(t)));
+    businesses.filter((r) => !r.isHidden).forEach((r) => certificationTags(r).forEach((t) => set.add(t)));
     return sortCertTags([...set]);
-  }, [restaurants]);
+  }, [businesses]);
 
-  const visible = restaurants
+  const visible = businesses
     .filter((r) => {
       if (r.isHidden) return false;
       if (filters.businessType.length > 0 && !filters.businessType.includes(r.businessType ?? 'serving')) return false;
-      if (filters.category.length > 0 && !restaurantCategories(r).some((c) => filters.category.includes(c))) return false;
+      if (filters.category.length > 0 && !businessCategories(r).some((c) => filters.category.includes(c))) return false;
       if (filters.neighborhood.length > 0 && !filters.neighborhood.includes(r.neighborhood ?? '')) return false;
       if (filters.kashrut.length > 0 && !certificationTags(r).some((t) => filters.kashrut.includes(t))) return false;
       if (search && !r.name.includes(search) && !r.address.includes(search)) return false;
@@ -171,7 +171,7 @@ export default function RestaurantsScreen() {
       return a.name.localeCompare(b.name, 'he');
     });
 
-  const selectedRestaurant = useMemo(
+  const selectedBusiness = useMemo(
     () => visible.find((r) => r.id === selectedId) ?? null,
     [visible, selectedId],
   );
@@ -186,7 +186,7 @@ export default function RestaurantsScreen() {
           <View style={{ flex: 1 }}>
             <Text style={s.title}>עסקים כשרים</Text>
             <Text style={s.subtitle}>
-              {loading ? '...' : `${visible.length} מתוך ${restaurants.filter((r) => !r.isHidden).length} עסקים`}
+              {loading ? '...' : `${visible.length} מתוך ${businesses.filter((r) => !r.isHidden).length} עסקים`}
             </Text>
           </View>
           <View style={s.headerActions}>
@@ -324,10 +324,10 @@ export default function RestaurantsScreen() {
               const dist = getDist(r);
               return (
                 <View key={r.id} style={s.cardWrap}>
-                  <RestaurantCard
-                    restaurant={r}
+                  <BusinessCard
+                    business={r}
                     distLabel={dist !== null ? formatDist(dist) : undefined}
-                    onPress={() => navigation.navigate('RestaurantDetail', { restaurantId: r.id })}
+                    onPress={() => navigation.navigate('BusinessDetail', { businessId: r.id })}
                   />
                 </View>
               );
@@ -362,11 +362,11 @@ export default function RestaurantsScreen() {
 
           {/* Floating animated card — slides up from bottom on pin press */}
           <Animated.View style={[s.mapCard, { bottom: 10, transform: [{ translateY: cardSlide }] }]}>
-            {selectedRestaurant && (
-              <RestaurantCard
-                restaurant={selectedRestaurant}
-                distLabel={getDist(selectedRestaurant) !== null ? formatDist(getDist(selectedRestaurant)!) : undefined}
-                onPress={() => navigation.navigate('RestaurantDetail', { restaurantId: selectedRestaurant.id })}
+            {selectedBusiness && (
+              <BusinessCard
+                business={selectedBusiness}
+                distLabel={getDist(selectedBusiness) !== null ? formatDist(getDist(selectedBusiness)!) : undefined}
+                onPress={() => navigation.navigate('BusinessDetail', { businessId: selectedBusiness.id })}
                 cardStyle={{ marginBottom: 0 }}
               />
             )}
@@ -431,7 +431,7 @@ const s = StyleSheet.create({
   errorText: { textAlign: 'center', color: Colors.danger, marginTop: 40, padding: Spacing.md },
 
   // ── Map mode ──────────────────────────────────────────────────────────────
-  // Transparent positioning container — RestaurantCard provides its own visuals
+  // Transparent positioning container — BusinessCard provides its own visuals
   mapCard: {
     position: 'absolute', left: 16, right: 16,
   },

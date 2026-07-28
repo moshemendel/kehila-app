@@ -9,7 +9,7 @@
  *   value        – current URL (may be undefined / empty)
  *   onChange     – called with the new URL once the image is ready
  *   storagePath  – Firebase Storage destination prefix,
- *                  e.g. "restaurants/abc123/gallery"
+ *                  e.g. "businesses/abc123/gallery"
  *   label        – human-readable label shown above the field
  *   aspectRatio  – [w, h] passed to ImagePicker (default [4, 3])
  */
@@ -27,7 +27,7 @@ import { uploadImage } from '../utils/uploadImage';
 interface Props {
   value:       string | undefined;
   onChange:    (url: string) => void;
-  storagePath: string;          // e.g. "restaurants/abc/gallery"
+  storagePath: string;          // e.g. "businesses/abc/gallery"
   label:       string;
   aspectRatio?: [number, number];
 }

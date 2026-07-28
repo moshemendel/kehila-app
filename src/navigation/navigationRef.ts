@@ -4,7 +4,7 @@ export const navigationRef = createNavigationContainerRef();
 
 const TAB_SCREENS = new Set([
   'Home', 'Synagogues', 'PrayerTimes', 'Zmanim',
-  'Restaurants', 'Mikveh', 'Events', 'Eruv', 'Gemach', 'Profile',
+  'Businesses', 'Mikveh', 'Events', 'Eruv', 'Gemach', 'Profile',
 ]);
 
 /**

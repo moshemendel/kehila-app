@@ -22,7 +22,7 @@ import {
   parseTimeToMinutes, nowInMinutes, hebrewDayOfWeek,
 } from '../../utils/prayerUtils';
 
-// ─── Layout constants (identical to RestaurantDetailScreen / MikvehDetailScreen) ──
+// ─── Layout constants (identical to BusinessDetailScreen / MikvehDetailScreen) ──
 const MOOD_H        = 186;
 const CIRCLE_D      = 72;
 const CBORDER       = 3;
@@ -284,7 +284,7 @@ export default function SynagogueDetailScreen() {
   const nusachLabel = nusachValues.join(' / ');
   const nusachEmoji = NUSACH_EMOJIS[primaryNusach] ?? '🕍';
 
-  // Images — same pattern as RestaurantDetailScreen / MikvehDetailScreen
+  // Images — same pattern as BusinessDetailScreen / MikvehDetailScreen
   const allImages: string[] = [
     ...(syn.imageUrl ? [syn.imageUrl] : []),
     ...(syn.images ?? []),
@@ -323,7 +323,7 @@ export default function SynagogueDetailScreen() {
         contentContainerStyle={{ paddingTop: top + 8, paddingBottom: (bottom || 0) + 48 }}
       >
 
-        {/* ══ Main card (same pattern as restaurant / mikveh) ═══════════════ */}
+        {/* ══ Main card (same pattern as business / mikveh) ═══════════════ */}
         <View style={st.card}>
 
           {/* ── Mood / cover image (or nusach-tinted emoji placeholder) ── */}
@@ -429,7 +429,7 @@ export default function SynagogueDetailScreen() {
               </TouchableOpacity>
             )}
 
-            {/* Action buttons — same layout as restaurant / mikveh */}
+            {/* Action buttons — same layout as business / mikveh */}
             {(hasNav || !!syn.wazeLink || hasPhone) && (
               <View style={st.actionsRow}>
                 {(hasNav || !!syn.wazeLink) && (
@@ -625,7 +625,7 @@ export default function SynagogueDetailScreen() {
 const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
 
-  // ── Main card (matches RestaurantDetailScreen / MikvehDetailScreen) ────────
+  // ── Main card (matches BusinessDetailScreen / MikvehDetailScreen) ────────
   card: {
     backgroundColor:  Colors.cardBackground,
     marginHorizontal: Spacing.md,
@@ -652,7 +652,7 @@ const st = StyleSheet.create({
   moodEmoji: { fontSize: 64 },
   moodLabel: { fontSize: 16, fontWeight: '700' },
 
-  // Extra-image circles — same geometry as restaurant/mikveh
+  // Extra-image circles — same geometry as business/mikveh
   circlesRow: {
     position:       'absolute',
     top:            MOOD_H - CIRCLE_OVERLAP,
@@ -735,7 +735,7 @@ const st = StyleSheet.create({
   },
   favNoticeTxt: { fontSize: 11, color: Colors.gold, fontWeight: '600' },
 
-  // Action buttons — full-width row inside card (same as restaurant/mikveh)
+  // Action buttons — full-width row inside card (same as business/mikveh)
   actionsRow: {
     flexDirection: 'row',
     gap:           Spacing.sm,
@@ -761,7 +761,7 @@ const st = StyleSheet.create({
   sectionHdr:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: Spacing.sm },
   sectionTitle:{ fontSize: 16, fontWeight: '700', color: Colors.text, flex: 1,  },
 
-  // Inner section card (same visual as restaurant hoursCard / certCard container)
+  // Inner section card (same visual as business hoursCard / certCard container)
   sectionCard: {
     backgroundColor: Colors.cardBackground,
     borderRadius:    Radius.md,

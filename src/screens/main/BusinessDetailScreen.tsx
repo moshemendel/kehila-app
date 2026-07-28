@@ -8,8 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
-import { Restaurant, KosherCertificate } from '../../types';
-import { getRestaurant, restaurantCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../../services/restaurants';
+import { Business, KosherCertificate } from '../../types';
+import { getBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../../services/businesses';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 
@@ -59,21 +59,21 @@ function openMaps(address: string, lat?: number, lon?: number) {
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
-export default function RestaurantDetailScreen() {
+export default function BusinessDetailScreen() {
   const route           = useRoute<any>();
   const { top, bottom } = useSafeAreaInsets();
 
-  const { restaurantId } = route.params as { restaurantId: string };
+  const { businessId } = route.params as { businessId: string };
 
-  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
-  const [loading,    setLoading]    = useState(true);
-  const [certModal,  setCertModal]  = useState<string | null>(null);
+  const [business, setBusiness] = useState<Business | null>(null);
+  const [loading,  setLoading]  = useState(true);
+  const [certModal, setCertModal] = useState<string | null>(null);
 
   useEffect(() => {
-    getRestaurant(restaurantId)
-      .then((r) => { setRestaurant(r); setLoading(false); })
+    getBusiness(businessId)
+      .then((r) => { setBusiness(r); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [restaurantId]);
+  }, [businessId]);
 
   // ── Loading / error ─────────────────────────────────────────────────────────
   if (loading) {
@@ -84,7 +84,7 @@ export default function RestaurantDetailScreen() {
       </View>
     );
   }
-  if (!restaurant) {
+  if (!business) {
     return (
       <View style={styles.loader}>
         <StatusBar style="dark" />
@@ -96,28 +96,28 @@ export default function RestaurantDetailScreen() {
 
   // ── Derived data ─────────────────────────────────────────────────────────────
   const todayIdx      = new Date().getDay();
-  const todayKey      = DAY_KEYS[todayIdx] as keyof typeof restaurant.openingHours;
-  const todayHours    = restaurant.openingHours[todayKey] ?? '—';
+  const todayKey      = DAY_KEYS[todayIdx] as keyof typeof business.openingHours;
+  const todayHours    = business.openingHours[todayKey] ?? '—';
   const isClosedToday = todayHours.toLowerCase() === 'closed' || todayHours === 'סגור';
 
   // Flatten imageUrl + images[] → [moodImage, ...extraImages]
   const allImages: string[] = [
-    ...(restaurant.imageUrl ? [restaurant.imageUrl] : []),
-    ...(restaurant.images ?? []),
+    ...(business.imageUrl ? [business.imageUrl] : []),
+    ...(business.images ?? []),
   ].filter(Boolean);
 
   const moodImage   = allImages[0];              // cover photo (full-width at top of card)
   const extraImages = allImages.slice(1, 4);     // up to 3 circles
   const hasCircles  = extraImages.length > 0;
 
-  const certs       = restaurant.kosherCertificates ?? [];
+  const certs       = business.kosherCertificates ?? [];
   const activeCerts = certs.filter((c) => c.isActive && !isExpired(c.validUntil));
 
   // Tag line: businessType first, then the kashrut categories (each tag is its own
   // <Text> rendered in a flex-wrap row, so emoji + word always wrap together).
   const categoryTags = [
-    restaurant.businessType === 'factory' ? '🏭 מפעל' : '🍴 בית אוכל',
-    ...restaurantCategories(restaurant).map((c) => `${CATEGORY_ICONS[c] ?? '🍽️'} ${CATEGORY_LABELS[c] ?? c}`),
+    business.businessType === 'factory' ? '🏭 מפעל' : '🍴 בית אוכל',
+    ...businessCategories(business).map((c) => `${CATEGORY_ICONS[c] ?? '🍽️'} ${CATEGORY_LABELS[c] ?? c}`),
   ];
 
   // ─── Render ────────────────────────────────────────────────────────────────
@@ -173,10 +173,10 @@ export default function RestaurantDetailScreen() {
               /* Emoji placeholder when no images exist */
               <View style={styles.moodPlaceholder}>
                 <Text style={styles.moodEmoji}>
-                  {CATEGORY_ICONS[restaurant.category] ?? '🍽️'}
+                  {CATEGORY_ICONS[business.category] ?? '🍽️'}
                 </Text>
                 <Text style={styles.moodCategoryLabel}>
-                  {CATEGORY_LABELS[restaurant.category] ?? restaurant.category}
+                  {CATEGORY_LABELS[business.category] ?? business.category}
                 </Text>
               </View>
             )}
@@ -197,10 +197,10 @@ export default function RestaurantDetailScreen() {
           <View style={[styles.cardBody, hasCircles && { paddingTop: CIRCLE_OVERLAP + 12 }]}>
 
             {/* Active alert */}
-            {!!restaurant.activeAlert && (
+            {!!business.activeAlert && (
               <View style={styles.alertBanner}>
                 <Ionicons name="warning" size={15} color="#fff" />
-                <Text style={styles.alertText}>{restaurant.activeAlert}</Text>
+                <Text style={styles.alertText}>{business.activeAlert}</Text>
               </View>
             )}
 
@@ -212,7 +212,7 @@ export default function RestaurantDetailScreen() {
                     <Text key={i} style={styles.categoryLabel}>{t}</Text>
                   ))}
                 </View>
-                <Text style={styles.name}>{restaurant.name}</Text>
+                <Text style={styles.name}>{business.name}</Text>
               </View>
               <View style={[
                 styles.statusPill,
@@ -231,11 +231,11 @@ export default function RestaurantDetailScreen() {
             {/* Address → maps */}
             <TouchableOpacity
               style={styles.metaRow}
-              onPress={() => openMaps(restaurant.address, restaurant.latitude, restaurant.longitude)}
+              onPress={() => openMaps(business.address, business.latitude, business.longitude)}
               activeOpacity={0.7}
             >
               <Ionicons name="location-outline" size={15} color={Colors.kosher} />
-              <Text style={styles.metaText}>{restaurant.address}</Text>
+              <Text style={styles.metaText}>{business.address}</Text>
               <Ionicons name="chevron-back" size={13} color={Colors.textMuted} />
             </TouchableOpacity>
 
@@ -249,28 +249,28 @@ export default function RestaurantDetailScreen() {
             </View>
 
             {/* Phone */}
-            {!!restaurant.phone && (
+            {!!business.phone && (
               <TouchableOpacity
                 style={styles.metaRow}
-                onPress={() => Linking.openURL(`tel:${restaurant.phone}`)}
+                onPress={() => Linking.openURL(`tel:${business.phone}`)}
                 activeOpacity={0.7}
               >
                 <Ionicons name="call-outline" size={15} color={Colors.textSecondary} />
-                <Text style={[styles.metaText, { color: Colors.kosher }]}>{restaurant.phone}</Text>
+                <Text style={[styles.metaText, { color: Colors.kosher }]}>{business.phone}</Text>
               </TouchableOpacity>
             )}
 
             {/* Description */}
-            {!!restaurant.description && (
-              <Text style={styles.description}>{restaurant.description}</Text>
+            {!!business.description && (
+              <Text style={styles.description}>{business.description}</Text>
             )}
 
             {/* Action buttons */}
             <View style={styles.actionsRow}>
-              {restaurant.phone && (
+              {business.phone && (
                 <TouchableOpacity
                   style={styles.actionBtn}
-                  onPress={() => Linking.openURL(`tel:${restaurant.phone}`)}
+                  onPress={() => Linking.openURL(`tel:${business.phone}`)}
                 >
                   <Ionicons name="call-outline" size={18} color={Colors.kosher} />
                   <Text style={styles.actionBtnTxt}>חייג</Text>
@@ -278,15 +278,15 @@ export default function RestaurantDetailScreen() {
               )}
               <TouchableOpacity
                 style={[styles.actionBtn, styles.actionBtnPrimary]}
-                onPress={() => openMaps(restaurant.address, restaurant.latitude, restaurant.longitude)}
+                onPress={() => openMaps(business.address, business.latitude, business.longitude)}
               >
                 <Ionicons name="navigate" size={18} color="#fff" />
                 <Text style={[styles.actionBtnTxt, { color: '#fff' }]}>ניווט</Text>
               </TouchableOpacity>
-              {restaurant.website && (
+              {business.website && (
                 <TouchableOpacity
                   style={styles.actionBtn}
-                  onPress={() => Linking.openURL(restaurant.website!)}
+                  onPress={() => Linking.openURL(business.website!)}
                 >
                   <Ionicons name="globe-outline" size={18} color={Colors.kosher} />
                   <Text style={styles.actionBtnTxt}>אתר</Text>
@@ -297,7 +297,7 @@ export default function RestaurantDetailScreen() {
         </View>
 
         {/* ── Kashrut: mashgiach contact + certificates ──────────────────── */}
-        {(activeCerts.length > 0 || restaurant.mashgiachName || restaurant.mashgiachPhone) && (
+        {(activeCerts.length > 0 || business.mashgiachName || business.mashgiachPhone) && (
           <View style={styles.section}>
             <View style={styles.sectionHdr}>
               <Ionicons name="shield-checkmark" size={18} color={Colors.success} />
@@ -310,22 +310,22 @@ export default function RestaurantDetailScreen() {
             </View>
 
             {/* Mashgiach (supervisor) contact */}
-            {(restaurant.mashgiachName || restaurant.mashgiachPhone) && (
+            {(business.mashgiachName || business.mashgiachPhone) && (
               <View style={styles.mashgiachCard}>
                 <Ionicons name="person-outline" size={18} color={Colors.kosher} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.mashgiachLabel}>משגיח כשרות</Text>
-                  {!!restaurant.mashgiachName && (
-                    <Text style={styles.mashgiachName}>{restaurant.mashgiachName}</Text>
+                  {!!business.mashgiachName && (
+                    <Text style={styles.mashgiachName}>{business.mashgiachName}</Text>
                   )}
                 </View>
-                {!!restaurant.mashgiachPhone && (
+                {!!business.mashgiachPhone && (
                   <TouchableOpacity
                     style={styles.mashgiachCallBtn}
-                    onPress={() => Linking.openURL(`tel:${restaurant.mashgiachPhone}`)}
+                    onPress={() => Linking.openURL(`tel:${business.mashgiachPhone}`)}
                   >
                     <Ionicons name="call" size={13} color="#fff" />
-                    <Text style={styles.mashgiachCallTxt}>{restaurant.mashgiachPhone}</Text>
+                    <Text style={styles.mashgiachCallTxt}>{business.mashgiachPhone}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -350,7 +350,7 @@ export default function RestaurantDetailScreen() {
           <View style={styles.hoursCard}>
             {DAY_KEYS.map((key, i) => {
               const isToday = i === todayIdx;
-              const hours   = restaurant.openingHours[key as keyof typeof restaurant.openingHours] ?? '—';
+              const hours   = business.openingHours[key as keyof typeof business.openingHours] ?? '—';
               const closed  = hours.toLowerCase() === 'closed' || hours === 'סגור';
               return (
                 <View key={key} style={[styles.hoursRow, isToday && styles.hoursRowToday]}>
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
     backgroundColor:      Colors.kosher + '20',
   },
 
-  // Emoji placeholder when restaurant has no images
+  // Emoji placeholder when business has no images
   moodPlaceholder: {
     ...StyleSheet.absoluteFillObject,
     alignItems:     'center',

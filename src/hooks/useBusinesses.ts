@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import { Restaurant } from '../types';
+import { Business } from '../types';
 
-export function useRestaurants(cityId: string, active = true) {
-  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+export function useBusinesses(cityId: string, active = true) {
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(active);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,7 +15,7 @@ export function useRestaurants(cityId: string, active = true) {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        setRestaurants(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Restaurant)));
+        setBusinesses(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Business)));
         setLoading(false);
       },
       (err) => { setError(err.message); setLoading(false); }
@@ -23,5 +23,5 @@ export function useRestaurants(cityId: string, active = true) {
     return unsub;
   }, [cityId, active]);
 
-  return { restaurants, loading, error };
+  return { businesses, loading, error };
 }

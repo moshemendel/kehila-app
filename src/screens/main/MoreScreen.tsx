@@ -16,12 +16,12 @@ interface MoreItem {
   icon: string;
   label: string;
   sublabel: string;
-  tab: 'Restaurants' | 'Mikveh' | 'Events' | 'Profile';
+  tab: 'Businesses' | 'Mikveh' | 'Events' | 'Profile';
   color: string;
 }
 
 const MORE_ITEMS: MoreItem[] = [
-  { icon: 'restaurant-outline', label: 'כשרות',   sublabel: 'מסעדות ועסקים',    tab: 'Restaurants', color: Colors.kosher  },
+  { icon: 'restaurant-outline', label: 'כשרות',   sublabel: 'מסעדות ועסקים',    tab: 'Businesses', color: Colors.kosher  },
   { icon: 'water-outline',      label: 'מקווה',    sublabel: 'שעות ומידע',       tab: 'Mikveh',      color: Colors.mikveh  },
   { icon: 'calendar-outline',   label: 'אירועים',  sublabel: 'שיעורים ואירועים', tab: 'Events',      color: Colors.events  },
   { icon: 'person-outline',     label: 'פרופיל',   sublabel: 'הגדרות חשבון',     tab: 'Profile',     color: Colors.primary },

@@ -13,7 +13,7 @@ import { getMikveh } from '../../services/mikvaot';
 import { hoursTextForDay } from '../../utils/appointmentSlots';
 import { useAuth } from '../../context/AuthContext';
 
-// ─── Layout constants (identical to RestaurantDetailScreen) ───────────────────
+// ─── Layout constants (identical to BusinessDetailScreen) ───────────────────
 
 const MOOD_H        = 186;
 const CIRCLE_D      = 72;

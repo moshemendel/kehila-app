@@ -28,6 +28,13 @@ export async function getUsersByCity(cityId: string): Promise<AppUser[]> {
   return snap.docs.map((d) => ({ ...d.data() } as AppUser));
 }
 
+// Exact match only — email casing must match what the user registered with.
+export async function getUserByEmail(email: string): Promise<AppUser | null> {
+  const q = query(collection(db, 'users'), where('email', '==', email));
+  const snap = await getDocs(q);
+  return snap.empty ? null : ({ ...snap.docs[0].data() } as AppUser);
+}
+
 export async function setUserRole(uid: string, role: UserRole): Promise<void> {
   await updateDoc(doc(db, 'users', uid), { role });
 }
@@ -38,6 +45,15 @@ export async function setManagedSynagogues(uid: string, ids: string[]): Promise<
 
 export async function setManagedRestaurants(uid: string, ids: string[]): Promise<void> {
   await updateDoc(doc(db, 'users', uid), { managedRestaurantIds: ids });
+}
+
+// Reverse lookup — a business doesn't carry its managers' uids itself, only each
+// user carries the businesses they manage, so listing "who manages this business"
+// means querying from the users side.
+export async function getBusinessManagers(businessId: string): Promise<AppUser[]> {
+  const q = query(collection(db, 'users'), where('managedRestaurantIds', 'array-contains', businessId));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ ...d.data() } as AppUser));
 }
 
 export async function updateUserCity(uid: string, cityId: string): Promise<void> {

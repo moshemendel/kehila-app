@@ -26,10 +26,10 @@ except ImportError:
     sys.exit("Run:  pip install firebase-admin")
 
 COLLECTION_MAP = {
-    "synagogues.json":  "synagogues",
-    "restaurants.json": "restaurants",
-    "mikveh.json":      "mikveh",
-    "events.json":      "events",
+    "synagogues.json": "synagogues",
+    "businesses.json": "businesses",
+    "mikveh.json":     "mikveh",
+    "events.json":     "events",
 }
 
 

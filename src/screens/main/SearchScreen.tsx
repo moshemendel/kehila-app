@@ -9,10 +9,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useCityId } from '../../hooks/useCityId';
 import { useSynagogues } from '../../hooks/useSynagogues';
-import { useRestaurants } from '../../hooks/useRestaurants';
+import { useBusinesses } from '../../hooks/useBusinesses';
 import { useEvents } from '../../hooks/useEvents';
 import { useGemachs } from '../../hooks/useGemachs';
-import { Synagogue, Restaurant, CommunityEvent, Gemach, GemachCategory } from '../../types';
+import { Synagogue, Business, CommunityEvent, Gemach, GemachCategory } from '../../types';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -38,12 +38,12 @@ function hit(query: string, ...fields: (string | undefined | null)[]): boolean {
 
 // ── Filter chips ──────────────────────────────────────────────────────────────
 
-type FilterCat = 'all' | 'synagogues' | 'restaurants' | 'events' | 'gemachs';
+type FilterCat = 'all' | 'synagogues' | 'businesses' | 'events' | 'gemachs';
 
 const CHIPS: { key: FilterCat; label: string; icon: string; color: string }[] = [
   { key: 'all',         label: 'הכל',      icon: 'apps-outline',       color: Colors.primary  },
   { key: 'synagogues',  label: 'בתי כנסת', icon: 'business-outline',   color: Colors.primary  },
-  { key: 'restaurants', label: 'כשרות',    icon: 'restaurant-outline', color: Colors.kosher   },
+  { key: 'businesses',  label: 'כשרות',    icon: 'restaurant-outline', color: Colors.kosher   },
   { key: 'events',      label: 'אירועים',  icon: 'calendar-outline',   color: Colors.events   },
   { key: 'gemachs',     label: 'גמ"ח',     icon: 'gift-outline',       color: '#B06B3A'       },
 ];
@@ -55,15 +55,15 @@ export default function SearchScreen() {
   const navigation = useNavigation<any>();
   const cityId = useCityId();
 
-  const { synagogues,  loading: lSyn  } = useSynagogues(cityId);
-  const { restaurants, loading: lRest } = useRestaurants(cityId);
-  const { events,      loading: lEvt  } = useEvents(cityId);
-  const { gemachs,     loading: lGem  } = useGemachs(cityId);
+  const { synagogues, loading: lSyn  } = useSynagogues(cityId);
+  const { businesses, loading: lBiz  } = useBusinesses(cityId);
+  const { events,     loading: lEvt  } = useEvents(cityId);
+  const { gemachs,    loading: lGem  } = useGemachs(cityId);
 
   const [query,  setQuery]  = useState('');
   const [filter, setFilter] = useState<FilterCat>('all');
 
-  const loading = lSyn || lRest || lEvt || lGem;
+  const loading = lSyn || lBiz || lEvt || lGem;
   const q = query.trim();
 
   const show = (cat: FilterCat) => filter === 'all' || filter === cat;
@@ -75,10 +75,10 @@ export default function SearchScreen() {
   }, [q, filter, synagogues]);
 
   const restResults = useMemo(() => {
-    if (!q || !show('restaurants')) return [];
-    return restaurants.filter(r =>
+    if (!q || !show('businesses')) return [];
+    return businesses.filter(r =>
       hit(q, r.name, r.neighborhood, r.address, r.description, r.category, ...(r.categories ?? [])));
-  }, [q, filter, restaurants]);
+  }, [q, filter, businesses]);
 
   const evtResults = useMemo(() => {
     if (!q || !show('events')) return [];
@@ -204,7 +204,7 @@ export default function SearchScreen() {
                     <TouchableOpacity
                       key={r.id}
                       style={sc.card}
-                      onPress={() => navigation.navigate('RestaurantDetail', { restaurantId: r.id })}
+                      onPress={() => navigation.navigate('BusinessDetail', { businessId: r.id })}
                       activeOpacity={0.75}
                     >
                       <CircleIcon name="restaurant" bg={Colors.kosher + '18'} color={Colors.kosher} />

@@ -7,11 +7,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
-import { useRestaurants } from '../../hooks/useRestaurants';
+import { useBusinesses } from '../../hooks/useBusinesses';
 import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
-import { updateRestaurant, deleteRestaurant } from '../../services/restaurants';
-import { Restaurant } from '../../types';
+import { updateBusiness, deleteBusiness } from '../../services/businesses';
+import { Business } from '../../types';
 import LocationEditModal from '../../components/LocationEditModal';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
 import TimeRangePicker from '../../components/TimeRangePicker';
@@ -26,8 +26,8 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 // ─── Edit form ────────────────────────────────────────────────────────────────
-function EditForm({ rest, onBack }: { rest: Restaurant; onBack: () => void }) {
-  const [form,       setForm]       = useState<Restaurant>({ ...rest });
+function EditForm({ rest, onBack }: { rest: Business; onBack: () => void }) {
+  const [form,       setForm]       = useState<Business>({ ...rest });
   const [saving,     setSaving]     = useState(false);
   const [editingLoc, setEditingLoc] = useState(false);
 
@@ -40,7 +40,7 @@ function EditForm({ rest, onBack }: { rest: Restaurant; onBack: () => void }) {
   async function handleSave() {
     setSaving(true);
     try {
-      await updateRestaurant(form.id, form);
+      await updateBusiness(form.id, form);
       Alert.alert('✓ נשמר', 'פרטי העסק עודכנו', [{ text: 'אישור', onPress: onBack }]);
     } catch (e: any) {
       Alert.alert('שגיאה', e.message);
@@ -56,7 +56,7 @@ function EditForm({ rest, onBack }: { rest: Restaurant; onBack: () => void }) {
         <View style={s.section}>
           <Text style={s.sectionTitle}>פרטים כלליים</Text>
           <View style={s.card}>
-            {([['name','שם העסק'],['address','כתובת'],['phone','טלפון'],['website','אתר אינטרנט']] as [keyof Restaurant, string][]).map(([key, label]) => (
+            {([['name','שם העסק'],['address','כתובת'],['phone','טלפון'],['website','אתר אינטרנט']] as [keyof Business, string][]).map(([key, label]) => (
               <View key={key} style={s.fieldRow}>
                 <Text style={s.fieldLabel}>{label}</Text>
                 <TextInput scrollEnabled={false} style={s.fieldInput} value={(form[key] as string) ?? ''}
@@ -149,13 +149,13 @@ function EditForm({ rest, onBack }: { rest: Restaurant; onBack: () => void }) {
 }
 
 // ─── List view ────────────────────────────────────────────────────────────────
-export default function ManageRestaurantScreen() {
+export default function ManageBusinessScreen() {
   const cityId = useCityId();
   const navigation = useNavigation();
   const { appUser } = useAuth();
-  const { restaurants, loading } = useRestaurants(cityId);
+  const { businesses, loading } = useBusinesses(cityId);
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState<Restaurant | null>(null);
+  const [selected, setSelected] = useState<Business | null>(null);
 
   // Native back (header button, hardware back, swipe gesture) should return to
   // the list first, not pop this whole screen off the stack — beforeRemove is
@@ -181,18 +181,18 @@ export default function ManageRestaurantScreen() {
   // a city_admin explicitly granted them via managedRestaurantIds, same as business_manager.
   const managed = appUser?.managedRestaurantIds ?? [];
 
-  const visible = restaurants
+  const visible = businesses
     .filter((r) => isAdmin || managed.includes(r.id))
     .filter((r) => !search || r.name.includes(search) || r.address.includes(search));
 
-  function handleDeleteRestaurant(rest: Restaurant) {
+  function handleDeleteBusiness(rest: Business) {
     Alert.alert('מחיקת עסק', `למחוק את "${rest.name}"?`, [
       { text: 'ביטול', style: 'cancel' },
       {
         text: 'מחק', style: 'destructive',
         onPress: async () => {
           try {
-            await deleteRestaurant(rest.id);
+            await deleteBusiness(rest.id);
           } catch (e: any) {
             Alert.alert('שגיאה', e.message);
           }
@@ -251,7 +251,7 @@ export default function ManageRestaurantScreen() {
                     </View>
                   )}
                 </View>
-                <TouchableOpacity onPress={() => handleDeleteRestaurant(rest)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <TouchableOpacity onPress={() => handleDeleteBusiness(rest)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                   <Ionicons name="trash-outline" size={20} color={Colors.danger} />
                 </TouchableOpacity>
                 <Ionicons name="chevron-back-outline" size={20} color={Colors.textMuted} />

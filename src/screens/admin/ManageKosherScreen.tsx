@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TextInput,
   TouchableOpacity, Alert, ActivityIndicator, Switch,
@@ -6,18 +6,18 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
-import { useRestaurants } from '../../hooks/useRestaurants';
+import { useBusinesses } from '../../hooks/useBusinesses';
 import { useNavigation } from '@react-navigation/native';
 import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
-import { updateRestaurant, addRestaurant, deleteRestaurant, restaurantCategories, detectCertChanges, CertChange, BADATZ_LIST, isLocalRabbanut } from '../../services/restaurants';
-import { getUsersByCity, setManagedRestaurants, setUserRole } from '../../services/users';
+import { updateBusiness, addBusiness, deleteBusiness, businessCategories, detectCertChanges, CertChange, BADATZ_LIST, isLocalRabbanut } from '../../services/businesses';
+import { getUserByEmail, getBusinessManagers, setManagedRestaurants, setUserRole } from '../../services/users';
 import { createKashrutUpdate, formatKashrutUpdateTitle, formatKashrutUpdateDetail } from '../../services/kashrutUpdates';
 import { sendPushToCity } from '../../services/pushNotifications';
 import { addBadatz, addRabbanut } from '../../services/kashrutConfig';
 import { useCity } from '../../hooks/useCity';
 import { useKashrutConfig } from '../../hooks/useKashrutConfig';
-import { Restaurant, KosherCertificate, KosherLevel, BusinessType, AppUser } from '../../types';
+import { Business, KosherCertificate, KosherLevel, BusinessType, AppUser } from '../../types';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
 import AddItemModal from '../../components/AddItemModal';
 import Dropdown from '../../components/Dropdown';
@@ -49,14 +49,14 @@ const BUSINESS_TYPE_CHIPS: { key: BusinessType; label: string }[] = [
 ];
 
 // ─── Cert editor ──────────────────────────────────────────────────────────────
-function CertEditor({ rest, onBack, onDelete }: { rest: Restaurant; onBack: () => void; onDelete: () => void }) {
+function CertEditor({ rest, onBack, onDelete }: { rest: Business; onBack: () => void; onDelete: () => void }) {
   const cityId = useCityId();
   const config = useKashrutConfig(cityId);
   const [certs, setCerts] = useState<KosherCertificate[]>(rest.kosherCertificates ?? []);
   const [mashgiachName, setMashgiachName]   = useState(rest.mashgiachName ?? '');
   const [mashgiachPhone, setMashgiachPhone] = useState(rest.mashgiachPhone ?? '');
   const [businessType, setBusinessType]     = useState<BusinessType>(rest.businessType ?? 'serving');
-  const [categories, setCategories]         = useState<string[]>(restaurantCategories(rest));
+  const [categories, setCategories]         = useState<string[]>(businessCategories(rest));
   const [saving, setSaving]         = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [expandedIdx, setExpandedIdx]             = useState<number | null>(null);
@@ -64,6 +64,74 @@ function CertEditor({ rest, onBack, onDelete }: { rest: Restaurant; onBack: () =
   const [addingList, setAddingList]               = useState(false);
   const [alertsToConfirm, setAlertsToConfirm]     = useState<CertChange[] | null>(null);
   const [selectedAlerts, setSelectedAlerts]       = useState<Set<number>>(new Set());
+  const [managerEmail, setManagerEmail]           = useState('');
+  const [checkingManagerEmail, setCheckingManagerEmail] = useState(false);
+  const [foundManager, setFoundManager]           = useState<AppUser | null>(null);
+  const [managerEmailChecked, setManagerEmailChecked]   = useState(false);
+  const [assigningManager, setAssigningManager]   = useState(false);
+  const [managers, setManagers]                   = useState<AppUser[]>([]);
+  const [loadingManagers, setLoadingManagers]     = useState(true);
+  const [removingManagerUid, setRemovingManagerUid] = useState<string | null>(null);
+
+  const loadManagers = useCallback(() => {
+    setLoadingManagers(true);
+    getBusinessManagers(rest.id)
+      .then(setManagers)
+      .catch(() => setManagers([]))
+      .finally(() => setLoadingManagers(false));
+  }, [rest.id]);
+
+  useEffect(() => { loadManagers(); }, [loadManagers]);
+
+  function confirmRemoveManager(u: AppUser) {
+    Alert.alert(
+      'הסרת מנהל עסק',
+      `להסיר את ${u.displayName || u.email} מניהול "${rest.name}"?`,
+      [
+        { text: 'ביטול', style: 'cancel' },
+        { text: 'הסר', style: 'destructive', onPress: () => performRemoveManager(u) },
+      ],
+    );
+  }
+
+  async function performRemoveManager(u: AppUser) {
+    setRemovingManagerUid(u.uid);
+    try {
+      const remaining = (u.managedRestaurantIds ?? []).filter((id) => id !== rest.id);
+      await setManagedRestaurants(u.uid, remaining);
+      // Only demote if this was their last managed business and they were never
+      // promoted beyond business_manager (mirrors the primary-role bump on assign).
+      if (remaining.length === 0 && u.role === 'business_manager') {
+        await setUserRole(u.uid, 'user');
+      }
+      loadManagers();
+    } catch (e: any) {
+      Alert.alert('שגיאה', e.message ?? 'לא ניתן להסיר מנהל');
+    } finally {
+      setRemovingManagerUid(null);
+    }
+  }
+
+  // Debounced lookup-as-you-type — avoids a query per keystroke while still
+  // giving inline feedback (red field + note) before the admin presses assign.
+  useEffect(() => {
+    const email = managerEmail.trim();
+    if (!email.includes('@') || !email.includes('.')) {
+      setFoundManager(null);
+      setManagerEmailChecked(false);
+      setCheckingManagerEmail(false);
+      return;
+    }
+    setCheckingManagerEmail(true);
+    setManagerEmailChecked(false);
+    const timer = setTimeout(() => {
+      getUserByEmail(email)
+        .then((u) => { setFoundManager(u); setManagerEmailChecked(true); })
+        .catch(() => { setFoundManager(null); setManagerEmailChecked(true); })
+        .finally(() => setCheckingManagerEmail(false));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [managerEmail]);
 
   // Built-in defaults + the authority's custom additions
   const badatzOptions   = [...new Set([...BADATZ_LIST, ...config.badatzList])];
@@ -127,6 +195,40 @@ function CertEditor({ rest, onBack, onDelete }: { rest: Restaurant; onBack: () =
     ]);
   }
 
+  // Assigns a business manager by email instead of at creation time, so the
+  // admin doesn't need to know the user's uid or pick from a dropdown. The
+  // lookup already ran (see the debounced effect above) — this just confirms
+  // and commits it.
+  function confirmAssignManager() {
+    if (!foundManager) return;
+    Alert.alert(
+      'שיוך מנהל עסק',
+      `לשייך את ${foundManager.displayName || foundManager.email} כמנהל העסק "${rest.name}"?`,
+      [
+        { text: 'ביטול', style: 'cancel' },
+        { text: 'שייך', onPress: performAssignManager },
+      ],
+    );
+  }
+
+  async function performAssignManager() {
+    if (!foundManager) return;
+    setAssigningManager(true);
+    try {
+      await setManagedRestaurants(foundManager.uid, [...(foundManager.managedRestaurantIds ?? []), rest.id]);
+      if (foundManager.role === 'user') await setUserRole(foundManager.uid, 'business_manager');
+      setManagerEmail('');
+      setFoundManager(null);
+      setManagerEmailChecked(false);
+      loadManagers();
+      Alert.alert('✓ שויך', `${foundManager.displayName || foundManager.email} שויך כמנהל העסק`);
+    } catch (e: any) {
+      Alert.alert('שגיאה', e.message ?? 'לא ניתן לשייך מנהל');
+    } finally {
+      setAssigningManager(false);
+    }
+  }
+
   // ── Display helpers for the confirmation modal ──────────────────────────────
   function changeTitle(ch: CertChange): string {
     const down = ch.direction === 'down';
@@ -159,7 +261,7 @@ function CertEditor({ rest, onBack, onDelete }: { rest: Restaurant; onBack: () =
         { text: 'ביטול', style: 'cancel' },
         { text: 'מחק', style: 'destructive', onPress: async () => {
           try {
-            await deleteRestaurant(rest.id);
+            await deleteBusiness(rest.id);
             onDelete();
           } catch (e: any) {
             Alert.alert('שגיאה', e.message);
@@ -179,7 +281,7 @@ function CertEditor({ rest, onBack, onDelete }: { rest: Restaurant; onBack: () =
       const rabbanutDeactivated = certChanges.some((c) => c.certType === 'local_rabbanut' && c.direction === 'down' && c.tags.includes('הושבתה'));
       const rabbanutReactivated = certChanges.some((c) => c.certType === 'local_rabbanut' && c.direction === 'up'   && c.tags.includes('הופעלה'));
 
-      await updateRestaurant(rest.id, {
+      await updateBusiness(rest.id, {
         kosherCertificates: certs,
         mashgiachName:  mashgiachName.trim()  || undefined,
         mashgiachPhone: mashgiachPhone.trim() || undefined,
@@ -305,6 +407,68 @@ function CertEditor({ rest, onBack, onDelete }: { rest: Restaurant; onBack: () =
                 keyboardType="phone-pad"
               />
             </View>
+          </View>
+        </View>
+
+        {/* Business manager — assigned by email, after creation (not at create time) */}
+        <Text style={[s.sectionTitle, { marginTop: Spacing.lg }]}>מנהלי העסק</Text>
+        <View style={s.certCard}>
+          <View style={s.certBody}>
+            {loadingManagers ? (
+              <ActivityIndicator color={Colors.success} style={{ marginVertical: Spacing.sm }} />
+            ) : managers.length === 0 ? (
+              <Text style={s.managerEmptyText}>אין מנהלים משויכים לעסק זה</Text>
+            ) : (
+              managers.map((u) => (
+                <View key={u.uid} style={s.managerRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.managerName}>{u.displayName || u.email}</Text>
+                    {!!u.displayName && <Text style={s.managerEmail}>{u.email}</Text>}
+                  </View>
+                  {removingManagerUid === u.uid ? (
+                    <ActivityIndicator size="small" color={Colors.danger} />
+                  ) : (
+                    <TouchableOpacity onPress={() => confirmRemoveManager(u)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                      <Ionicons name="trash-outline" size={18} color={Colors.danger} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))
+            )}
+
+            <View style={s.managerDivider} />
+
+            {(() => {
+              const managerNotFound = managerEmailChecked && !checkingManagerEmail && !foundManager;
+              return (
+                <>
+                  <View style={[s.fieldRow, { borderBottomWidth: 0 }]}>
+                    <Text style={s.fieldLabel}>אימייל</Text>
+                    <TextInput scrollEnabled={false}
+                      style={[s.fieldInput, managerNotFound && s.fieldInputError]}
+                      value={managerEmail}
+                      onChangeText={setManagerEmail}
+                      textAlign="right"
+                      placeholder="כתובת אימייל של משתמש רשום"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                    />
+                  </View>
+                  {managerNotFound && (
+                    <Text style={s.managerNotFoundText}>לא נמצא משתמש רשום עם כתובת אימייל זו</Text>
+                  )}
+                  <TouchableOpacity
+                    style={[s.addBtn, (!foundManager || assigningManager) && { opacity: 0.5 }]}
+                    onPress={confirmAssignManager}
+                    disabled={!foundManager || assigningManager}
+                  >
+                    {assigningManager || checkingManagerEmail
+                      ? <ActivityIndicator color={Colors.success} />
+                      : <><Ionicons name="person-add-outline" size={18} color={Colors.success} /><Text style={s.addBtnText}>שייך כמנהל העסק</Text></>}
+                  </TouchableOpacity>
+                </>
+              );
+            })()}
           </View>
         </View>
 
@@ -471,7 +635,7 @@ function CertEditor({ rest, onBack, onDelete }: { rest: Restaurant; onBack: () =
     />
 
     {/* ── Pre-publish confirmation sheet ── */}
-    <Modal visible={!!alertsToConfirm} transparent animationType="slide">
+    <Modal visible={!!alertsToConfirm} transparent animationType="slide" onRequestClose={() => setAlertsToConfirm(null)}>
       <View style={s.modalOverlay}>
         <View style={s.modalSheet}>
           <Text style={s.modalTitle}>עדכוני כשרות לפרסום</Text>
@@ -515,9 +679,16 @@ function CertEditor({ rest, onBack, onDelete }: { rest: Restaurant; onBack: () =
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={s.skipBtn} onPress={() => { setAlertsToConfirm(null); onBack(); }}>
-            <Text style={s.skipBtnText}>דלג על הפרסום</Text>
-          </TouchableOpacity>
+          <View style={s.alertFooterRow}>
+            <TouchableOpacity style={s.skipBtn} onPress={() => { setAlertsToConfirm(null); onBack(); }}>
+              <Text style={s.skipBtnText}>דלג על הפרסום</Text>
+            </TouchableOpacity>
+            {/* Dismisses the dialog only — the business stays open, and the
+                publish decision can be revisited by saving again. */}
+            <TouchableOpacity style={s.skipBtn} onPress={() => setAlertsToConfirm(null)}>
+              <Text style={s.skipBtnText}>ביטול</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -531,12 +702,11 @@ export default function ManageKosherScreen() {
   const { appUser } = useAuth();
   const navigation = useNavigation();
   const { city } = useCity(cityId);
-  const { restaurants, loading } = useRestaurants(cityId);
+  const { businesses, loading } = useBusinesses(cityId);
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState<Restaurant | null>(null);
+  const [selected, setSelected] = useState<Business | null>(null);
   const [adding, setAdding] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [users, setUsers] = useState<AppUser[]>([]);
 
   const roles = appUser?.roles ?? (appUser?.role ? [appUser.role] : []);
   const isAdmin = roles.some((r) => ['city_admin', 'super_admin', 'dev'].includes(r));
@@ -546,19 +716,9 @@ export default function ManageKosherScreen() {
   const isKosherManager = roles.includes('kosher_manager');
   const managed = appUser?.managedRestaurantIds ?? [];
 
-  // Load users so the admin (or kosher_manager, who can also create businesses) can
-  // assign a business manager at creation time.
-  useEffect(() => {
-    if (!isAdmin && !isKosherManager) return;
-    getUsersByCity(cityId).then(setUsers).catch(() => {});
-  }, [cityId, isAdmin, isKosherManager]);
-
-  const managerOptions = users
-    .filter((u) => u.role === 'user' || u.role === 'business_manager')
-    .map((u) => ({ value: u.uid, label: u.displayName || u.email || u.uid }));
-
-  // A kosher business is born here (in kashrut management), optionally with a
-  // manager assigned, then it appears in "ניהול עסקים" for editing business info.
+  // A kosher business is born here (in kashrut management), then it appears in
+  // "ניהול עסקים" for editing business info. A manager can be assigned afterwards,
+  // by email, from the cert editor — not at creation time.
   async function handleCreate(values: Record<string, string>) {
     setCreating(true);
     try {
@@ -573,7 +733,7 @@ export default function ManageKosherScreen() {
         validUntil: '',
         isActive: true,
       };
-      const base: Omit<Restaurant, 'id'> = {
+      const base: Omit<Business, 'id'> = {
         cityId,
         name: values.name.trim(),
         address: values.address.trim(),
@@ -583,17 +743,7 @@ export default function ManageKosherScreen() {
         openingHours: {},
         kosherCertificates: [localCert],
       };
-      const id = await addRestaurant(base);
-
-      // Optional: assign a business manager
-      if (values.manager) {
-        const u = users.find((x) => x.uid === values.manager);
-        if (u) {
-          await setManagedRestaurants(u.uid, [...(u.managedRestaurantIds ?? []), id]);
-          if (u.role === 'user') await setUserRole(u.uid, 'business_manager');
-        }
-      }
-
+      const id = await addBusiness(base);
       setAdding(false);
       setSelected({ id, ...base }); // continue into certificates + mashgiach
     } catch (e: any) {
@@ -603,7 +753,7 @@ export default function ManageKosherScreen() {
     }
   }
 
-  const visible = restaurants
+  const visible = businesses
     .filter((r) => isAdmin || isKosherManager || managed.includes(r.id))
     .filter((r) => !search || r.name.includes(search) || r.address.includes(search));
 
@@ -674,9 +824,6 @@ export default function ManageKosherScreen() {
                 { value: 'factory', label: '🏭 מפעל' },
               ] },
               { key: 'categories', label: 'סוג (ניתן לבחור כמה)', type: 'multiselect', required: true, options: CAT_OPTIONS },
-              ...(managerOptions.length > 0
-                ? [{ key: 'manager', label: 'מנהל העסק (אופציונלי)', type: 'select' as const, options: managerOptions }]
-                : []),
             ]}
           />
         ) : loading ? (
@@ -769,6 +916,13 @@ const s = StyleSheet.create({
   fieldRow: { borderBottomWidth: 1, borderBottomColor: Colors.border, paddingVertical: Spacing.sm },
   fieldLabel: { fontSize: 11, color: Colors.textMuted, marginBottom: 2 },
   fieldInput: { fontSize: 15, color: Colors.text, paddingVertical: 2 },
+  fieldInputError: { borderWidth: 1.5, borderColor: Colors.danger, borderRadius: Radius.sm, paddingHorizontal: 8 },
+  managerNotFoundText: { fontSize: 12, color: Colors.danger, marginBottom: Spacing.sm },
+  managerEmptyText: { fontSize: 13, color: Colors.textMuted, paddingVertical: Spacing.sm },
+  managerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  managerName: { fontSize: 14, fontWeight: '600', color: Colors.text },
+  managerEmail: { fontSize: 12, color: Colors.textMuted, marginTop: 1 },
+  managerDivider: { height: 1, backgroundColor: Colors.border, marginVertical: Spacing.sm },
   levelsTitle: { fontSize: 13, fontWeight: '700', color: Colors.textSecondary, marginTop: Spacing.sm, marginBottom: 6 },
   levelsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: Spacing.sm },
   levelChip: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full, borderWidth: 1.5, borderColor: Colors.border },
@@ -804,6 +958,7 @@ const s = StyleSheet.create({
   publishBtn:      { backgroundColor: Colors.primary, borderRadius: Radius.md, paddingVertical: 14, alignItems: 'center', marginTop: Spacing.md },
   publishBtnDim:   { backgroundColor: Colors.textMuted },
   publishBtnText:  { fontSize: 16, fontWeight: '800', color: Colors.white },
-  skipBtn:         { alignItems: 'center', paddingVertical: Spacing.md },
+  alertFooterRow:  { flexDirection: 'row' },
+  skipBtn:         { flex: 1, alignItems: 'center', paddingVertical: Spacing.md },
   skipBtnText:     { fontSize: 14, color: Colors.textMuted },
 });

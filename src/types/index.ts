@@ -166,7 +166,7 @@ export interface Synagogue {
   updatedAt?: Date;
 }
 
-// ---- Kosher Restaurants ----
+// ---- Kosher Businesses ----
 
 export type KosherLevel =
   | "mehadrin"
@@ -204,7 +204,7 @@ export interface OpeningHours {
 
 export type BusinessType = "serving" | "factory"; // dine-in vs production (bakery/dairy/factory)
 
-export interface Restaurant {
+export interface Business {
   id: string;
   cityId: string;
   name: string;
@@ -400,7 +400,7 @@ export type MainTabParamList = {
   Synagogues: undefined;
   PrayerTimes: undefined;
   Zmanim: undefined;
-  Restaurants: undefined;
+  Businesses: undefined;
   Mikveh: undefined;
   Events: undefined;
   Eruv: undefined;
@@ -441,8 +441,8 @@ export interface EruvReport {
 export type AdminStackParamList = {
   AdminHome: undefined;
   ManageSynagogue: { synagogueId: string };
-  ManageRestaurant: { restaurantId: string };
-  ManageKosher: { restaurantId: string };
+  ManageBusiness: { businessId: string };
+  ManageKosher: { businessId: string };
   ManageEvents: undefined;
   CreateEvent: undefined;
   ManageEruv: undefined;

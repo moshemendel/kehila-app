@@ -78,8 +78,8 @@ const synagogues = [
   },
 ];
 
-// ── Restaurants ───────────────────────────────────────────────────────────────
-const restaurants = [
+// ── Businesses ──────────────────────────────────────────────────────────────
+const businesses = [
   {
     id: 'rest-1',
     cityId: 'city-1',
@@ -207,10 +207,10 @@ async function seed() {
     console.log(`✓ Synagogue: ${data.name}`);
   }
 
-  for (const rest of restaurants) {
-    const { id, ...data } = rest;
-    await setDoc(doc(db, 'restaurants', id), data);
-    console.log(`✓ Restaurant: ${data.name}`);
+  for (const biz of businesses) {
+    const { id, ...data } = biz;
+    await setDoc(doc(db, 'businesses', id), data);
+    console.log(`✓ Business: ${data.name}`);
   }
 
   for (const mik of mikvaot) {

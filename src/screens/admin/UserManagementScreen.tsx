@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { getUsersByCity, setUserRoles } from '../../services/users';
 import { useSynagogues } from '../../hooks/useSynagogues';
-import { useRestaurants } from '../../hooks/useRestaurants';
+import { useBusinesses } from '../../hooks/useBusinesses';
 import { useCityId } from '../../hooks/useCityId';
 import { AppUser, UserRole } from '../../types';
 
@@ -71,7 +71,7 @@ function initDraft(user: AppUser): UserDraft {
 export default function UserManagementScreen() {
   const cityId = useCityId();
   const { synagogues } = useSynagogues(cityId);
-  const { restaurants } = useRestaurants(cityId);
+  const { businesses } = useBusinesses(cityId);
 
   const [users, setUsers]             = useState<AppUser[]>([]);
   const [loading, setLoading]         = useState(true);
@@ -225,7 +225,7 @@ export default function UserManagementScreen() {
             const pillInfo   = getPillInfo(draft);
 
             const showSynList  = draft.roles.includes('gabbai') && synagogues.length > 0;
-            const showRestList = draft.roles.includes('business_manager') && restaurants.length > 0;
+            const showRestList = draft.roles.includes('business_manager') && businesses.length > 0;
 
             return (
               <View key={user.uid} style={styles.userCard}>
@@ -357,7 +357,7 @@ export default function UserManagementScreen() {
                           </Text>
                           <Ionicons name={subList.rest ? 'chevron-up' : 'chevron-down'} size={14} color={Colors.textMuted} />
                         </TouchableOpacity>
-                        {subList.rest && restaurants.map((rest) => {
+                        {subList.rest && businesses.map((rest) => {
                           const assigned = draft.managedRestaurantIds.includes(rest.id);
                           return (
                             <TouchableOpacity

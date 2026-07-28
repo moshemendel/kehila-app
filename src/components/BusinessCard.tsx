@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow } from '../utils/theme';
-import { Restaurant } from '../types';
-import { updateRestaurant, restaurantCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../services/restaurants';
+import { Business } from '../types';
+import { updateBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../services/businesses';
 import LocationEditModal from './LocationEditModal';
 
 const KOSHER_LABELS: Record<string, string> = {
@@ -12,17 +12,17 @@ const KOSHER_LABELS: Record<string, string> = {
 };
 
 interface Props {
-  restaurant: Restaurant;
+  business: Business;
   distLabel?: string;
   canManage?: boolean;
   onPress?: () => void;
   cardStyle?: any;
 }
 
-function getTodayHours(restaurant: Restaurant): string {
+function getTodayHours(business: Business): string {
   const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const today = days[new Date().getDay()] as keyof typeof restaurant.openingHours;
-  return restaurant.openingHours[today] ?? '—';
+  const today = days[new Date().getDay()] as keyof typeof business.openingHours;
+  return business.openingHours[today] ?? '—';
 }
 
 function openMaps(address: string, lat?: number, lon?: number) {
@@ -32,29 +32,29 @@ function openMaps(address: string, lat?: number, lon?: number) {
   Linking.openURL(url);
 }
 
-export default function RestaurantCard({ restaurant, distLabel, canManage, onPress, cardStyle }: Props) {
-  const todayHours    = getTodayHours(restaurant);
+export default function BusinessCard({ business, distLabel, canManage, onPress, cardStyle }: Props) {
+  const todayHours    = getTodayHours(business);
   const isClosedToday = todayHours.toLowerCase() === 'closed' || todayHours === 'סגור';
-  const activeCert    = restaurant.kosherCertificates.find((c) => c.isActive);
-  const cats          = restaurantCategories(restaurant);
-  const bizTypeLabel  = restaurant.businessType === 'factory' ? '🏭 מפעל' : '🍴 בית אוכל';
+  const activeCert    = business.kosherCertificates.find((c) => c.isActive);
+  const cats          = businessCategories(business);
+  const bizTypeLabel  = business.businessType === 'factory' ? '🏭 מפעל' : '🍴 בית אוכל';
   const [editingLoc, setEditingLoc] = useState(false);
 
   return (
     <>
       <TouchableOpacity style={[styles.card, cardStyle]} onPress={onPress} activeOpacity={0.85}>
-        {restaurant.activeAlert && (
+        {business.activeAlert && (
           <View style={styles.alertBanner}>
             <Ionicons name="warning" size={14} color={Colors.white} />
-            <Text style={styles.alertText}>{restaurant.activeAlert}</Text>
+            <Text style={styles.alertText}>{business.activeAlert}</Text>
           </View>
         )}
 
         <View style={styles.header}>
           <Text style={styles.emoji}>{CATEGORY_ICONS[cats[0]] ?? '🍽️'}</Text>
           <View style={styles.headerInfo}>
-            <Text style={styles.name}>{restaurant.name}</Text>
-            <Text style={styles.address}>{restaurant.address}</Text>
+            <Text style={styles.name}>{business.name}</Text>
+            <Text style={styles.address}>{business.address}</Text>
             <Text style={styles.tags} numberOfLines={1}>
               {[bizTypeLabel, ...cats.map((c) => `${CATEGORY_ICONS[c] ?? ''} ${CATEGORY_LABELS[c] ?? c}`)].join(' · ')}
             </Text>
@@ -88,26 +88,26 @@ export default function RestaurantCard({ restaurant, distLabel, canManage, onPre
         )}
 
         <View style={styles.actions}>
-          {restaurant.phone && (
-            <TouchableOpacity style={styles.actionBtn} onPress={() => Linking.openURL(`tel:${restaurant.phone}`)}>
+          {business.phone && (
+            <TouchableOpacity style={styles.actionBtn} onPress={() => Linking.openURL(`tel:${business.phone}`)}>
               <Ionicons name="call-outline" size={16} color={Colors.kosher} />
               <Text style={styles.actionText}>חייג</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.mapsBtn} onPress={() => openMaps(restaurant.address, restaurant.latitude, restaurant.longitude)}>
+          <TouchableOpacity style={styles.mapsBtn} onPress={() => openMaps(business.address, business.latitude, business.longitude)}>
             <Ionicons name="map-outline" size={16} color={Colors.kosher} />
             <Text style={styles.mapsText}>ניווט</Text>
           </TouchableOpacity>
-          {restaurant.website && (
-            <TouchableOpacity style={styles.actionBtn} onPress={() => Linking.openURL(restaurant.website!)}>
+          {business.website && (
+            <TouchableOpacity style={styles.actionBtn} onPress={() => Linking.openURL(business.website!)}>
               <Ionicons name="globe-outline" size={16} color={Colors.kosher} />
               <Text style={styles.actionText}>אתר</Text>
             </TouchableOpacity>
           )}
           {canManage && (
             <TouchableOpacity style={styles.pinBtn} onPress={() => setEditingLoc(true)}>
-              <Ionicons name={restaurant.latitude ? 'location' : 'location-outline'} size={16} color={Colors.warning} />
-              <Text style={styles.pinText}>{restaurant.latitude ? 'עריכת מיקום' : 'הוסף מיקום'}</Text>
+              <Ionicons name={business.latitude ? 'location' : 'location-outline'} size={16} color={Colors.warning} />
+              <Text style={styles.pinText}>{business.latitude ? 'עריכת מיקום' : 'הוסף מיקום'}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -115,12 +115,12 @@ export default function RestaurantCard({ restaurant, distLabel, canManage, onPre
 
       <LocationEditModal
         visible={editingLoc}
-        name={restaurant.name}
-        address={restaurant.address}
-        latitude={restaurant.latitude}
-        longitude={restaurant.longitude}
-        onSave={(lat, lon) => updateRestaurant(restaurant.id, { latitude: lat, longitude: lon })}
-        onClear={() => updateRestaurant(restaurant.id, { latitude: undefined, longitude: undefined })}
+        name={business.name}
+        address={business.address}
+        latitude={business.latitude}
+        longitude={business.longitude}
+        onSave={(lat, lon) => updateBusiness(business.id, { latitude: lat, longitude: lon })}
+        onClear={() => updateBusiness(business.id, { latitude: undefined, longitude: undefined })}
         onClose={() => setEditingLoc(false)}
       />
     </>
