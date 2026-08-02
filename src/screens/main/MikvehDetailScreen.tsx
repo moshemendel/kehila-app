@@ -12,6 +12,7 @@ import { Mikveh, DayKey } from '../../types';
 import { getMikveh } from '../../services/mikvaot';
 import { hoursTextForDay } from '../../utils/appointmentSlots';
 import { useAuth } from '../../context/AuthContext';
+import { useTodayZmanim } from '../../hooks/useTodayZmanim';
 
 // ─── Layout constants (identical to BusinessDetailScreen) ───────────────────
 
@@ -53,6 +54,7 @@ export default function MikvehDetailScreen() {
 
   const [mikveh,  setMikveh]  = useState<Mikveh | null>(null);
   const [loading, setLoading] = useState(true);
+  const todayZmanim = useTodayZmanim(mikveh?.cityId ?? '');
 
   function handleBookPress() {
     if (isGuest) {
@@ -102,7 +104,7 @@ export default function MikvehDetailScreen() {
   // ── Derived ─────────────────────────────────────────────────────────────────
   const todayIdx      = new Date().getDay();
   const todayKey      = DAY_KEYS[todayIdx];
-  const todayHours    = hoursTextForDay(mikveh.hoursSchedule, todayKey);
+  const todayHours    = hoursTextForDay(mikveh.hoursSchedule, todayKey, todayZmanim);
   const isClosedToday = todayHours === 'סגור';
 
   const allImages: string[] = [
@@ -303,7 +305,7 @@ export default function MikvehDetailScreen() {
           <View style={styles.hoursCard}>
             {DAY_KEYS.map((key, i) => {
               const isToday = i === todayIdx;
-              const hours   = hoursTextForDay(mikveh.hoursSchedule, key);
+              const hours   = hoursTextForDay(mikveh.hoursSchedule, key, todayZmanim);
               const closed  = hours === 'סגור';
               return (
                 <View key={key} style={[styles.hoursRow, isToday && styles.hoursRowToday]}>

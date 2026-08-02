@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Alert, Modal, ScrollView, Dimensions,
+  ActivityIndicator, Alert, Modal, ScrollView,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,15 +18,9 @@ import {
   formatDateHeLong, formatDateHeShort,
   todayString, isSlotInPast, addMinutesToTime,
 } from '../../utils/appointmentSlots';
+import { useTodayZmanim } from '../../hooks/useTodayZmanim';
 import { Mikveh, MikvehAppointment } from '../../types';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
-
-// ─── Layout ───────────────────────────────────────────────────────────────────
-
-const SW       = Dimensions.get('window').width;
-const SLOT_GAP = 8;
-const SLOT_W   = Math.floor((SW - 32 - SLOT_GAP * 2) / 3);
-const SLOT_H   = 72;
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
@@ -42,6 +36,7 @@ export default function AppointmentBookingScreen() {
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [mikveh,       setMikveh]       = useState<Mikveh | null>(null);
+  const todayZmanim = useTodayZmanim(mikveh?.cityId ?? '');
   const [loading,      setLoading]      = useState(true);
   const [daySlots,     setDaySlots]     = useState<{ id: string; time: string; slotsCount?: number }[]>([]);
   const [userDateAppt, setUserDateAppt] = useState<MikvehAppointment | null>(null);
@@ -88,8 +83,8 @@ export default function AppointmentBookingScreen() {
 
   // ── Derive slots for today from the mikveh's hour blocks ─────────────────
   const slots = useMemo(
-    () => slotsForDate(mikveh?.hoursSchedule, today, slotDur),
-    [mikveh?.hoursSchedule, slotDur],
+    () => slotsForDate(mikveh?.hoursSchedule, today, slotDur, todayZmanim),
+    [mikveh?.hoursSchedule, slotDur, todayZmanim],
   );
 
   // Per-base-slot occupancy count, compared against parallelTracks to decide
@@ -110,12 +105,20 @@ export default function AppointmentBookingScreen() {
 
   type SlotStatus = 'available' | 'booked' | 'mine' | 'past';
   function slotStatus(time: string): SlotStatus {
-    if (mineTimes.has(time))                        return 'mine';
-    if ((occupancy.get(time) ?? 0) >= capacity)      return 'booked';
-    if (isSlotInPast(today, time))                   return 'past';
-    if (userDateAppt)                                return 'booked'; // already has a slot today → lock rest
+    if (mineTimes.has(time))                   return 'mine';
+    if ((occupancy.get(time) ?? 0) >= capacity) return 'booked';
+    if (isSlotInPast(today, time))              return 'past';
     return 'available';
   }
+
+  // Once the user already has an appointment today, every other slot is
+  // off-limits (one appointment/day) — but they're not actually "תפוס" (taken
+  // by someone else), so showing them that way is misleading. Hide them
+  // instead, same as prepGroups already does for windows that aren't bookable.
+  const visibleSlots = useMemo(
+    () => (userDateAppt ? slots.filter((t) => slotStatus(t) === 'mine') : slots),
+    [slots, userDateAppt, mineTimes, occupancy, today, capacity],
+  );
 
   // "Prep at mikveh" options: every run of `prepMultiplier` immediately-
   // adjacent base slots that are all free, merged into one bookable long
@@ -133,7 +136,11 @@ export default function AppointmentBookingScreen() {
         'blocked';
       if (status !== 'blocked') groups.push({ start: window[0], end: window[window.length - 1], status });
     }
-    return groups;
+    // Same one-appointment-per-day hiding as visibleSlots — slotStatus no
+    // longer marks other slots 'booked' just because the user already has an
+    // appointment today, so without this, still-technically-free windows
+    // would show up here as bookable even though a second booking isn't allowed.
+    return userDateAppt ? groups.filter((g) => g.status === 'mine') : groups;
   }, [slots, occupancy, mineTimes, userDateAppt, today, capacity, prepMultiplier]);
 
   // Firestore writes require a real signed-in account: demo mode has no
@@ -296,7 +303,7 @@ export default function AppointmentBookingScreen() {
                 onPress={() => setMode(key)}
                 activeOpacity={0.8}
               >
-                <Text style={[s.modeBtnTxt, mode === key && s.modeBtnTxtActive]}>{label}</Text>
+                <Text style={[s.modeBtnTxt, mode === key && s.modeBtnTxtActive]} numberOfLines={1} adjustsFontSizeToFit>{label}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -321,7 +328,7 @@ export default function AppointmentBookingScreen() {
           <View style={s.slotsSection}>
 
             <View style={s.slotsGrid}>
-              {slots.map((time) => {
+              {visibleSlots.map((time) => {
                 const st = slotStatus(time);
                 return (
                   <TouchableOpacity
@@ -340,30 +347,24 @@ export default function AppointmentBookingScreen() {
                     disabled={st === 'booked' || st === 'past'}
                     activeOpacity={0.8}
                   >
-                    {st === 'mine' ? (
-                      <>
-                        <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
-                        <Text style={[s.slotTime, { color: Colors.success }]}>{time}</Text>
-                        <Text style={s.slotMineLabel}>שלי · לחץ לביטול</Text>
-                      </>
-                    ) : (
-                      <>
-                        <Text style={[
-                          s.slotTime,
-                          st === 'available' && { color: '#fff' },
-                          (st === 'booked' || st === 'past') && { color: Colors.textMuted },
-                        ]}>
-                          {time}
-                        </Text>
-                        <Text style={[
-                          s.slotLabel,
-                          st === 'available' && { color: 'rgba(255,255,255,0.85)' },
-                          (st === 'booked' || st === 'past') && { color: Colors.textMuted },
-                        ]}>
-                          {st === 'available' ? 'פנוי' : st === 'booked' ? 'תפוס' : 'עבר'}
-                        </Text>
-                      </>
-                    )}
+                    {st === 'mine' && <Ionicons name="checkmark-circle" size={18} color={Colors.success} />}
+                    <Text style={[
+                      s.slotTime,
+                      st === 'mine' && { color: Colors.success },
+                      st === 'available' && { color: '#fff' },
+                      (st === 'booked' || st === 'past') && { color: Colors.textMuted },
+                    ]}>
+                      {time}
+                    </Text>
+                    <View style={{ flex: 1 }} />
+                    <Text style={[
+                      s.slotLabel,
+                      st === 'mine' && { color: Colors.success },
+                      st === 'available' && { color: 'rgba(255,255,255,0.85)' },
+                      (st === 'booked' || st === 'past') && { color: Colors.textMuted },
+                    ]}>
+                      {st === 'mine' ? 'שלי · לחץ לביטול' : st === 'available' ? 'פנוי' : st === 'booked' ? 'תפוס' : 'עבר'}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
@@ -373,7 +374,7 @@ export default function AppointmentBookingScreen() {
             <View style={s.slotFooter}>
               <Ionicons name="time-outline" size={13} color={Colors.textMuted} />
               <Text style={s.slotFooterTxt}>
-                משך כל תור: {slotDur} דקות · {slots.length} תורים היום
+                משך כל תור: {slotDur} דקות
               </Text>
             </View>
 
@@ -415,7 +416,7 @@ export default function AppointmentBookingScreen() {
                   </Text>
                   <View style={{ flex: 1 }} />
                   <Text style={[s.prepHint, status === 'mine' && { color: Colors.success }]}>
-                    {status === 'mine' ? 'שלי · לחץ לביטול' : `${slotDur * prepMultiplier} דק'`}
+                    {status === 'mine' ? 'שלי · לחץ לביטול' : 'פנוי'}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -425,7 +426,7 @@ export default function AppointmentBookingScreen() {
             <View style={s.slotFooter}>
               <Ionicons name="time-outline" size={13} color={Colors.textMuted} />
               <Text style={s.slotFooterTxt}>
-                תור הכנה = {prepMultiplier} תורים רצופים · {slotDur * prepMultiplier} דקות · {prepGroups.length} אפשרויות פנויות
+                תור הכנה = {prepMultiplier} תורים רצופים · {slotDur * prepMultiplier} דקות
               </Text>
             </View>
           </View>
@@ -574,7 +575,9 @@ const s = StyleSheet.create({
   modeBtnTxt:    { fontSize: 13, fontWeight: '700', color: Colors.textSecondary },
   modeBtnTxtActive: { color: '#fff' },
 
-  // "Prep at mikveh" group list
+  // "Prep at mikveh" group list — same color/typography language as the
+  // quick-mode slot grid, but a row layout (a time range reads better with
+  // room to breathe than squeezed into a fixed-width card).
   prepList: { paddingHorizontal: Spacing.md, gap: 8 },
   prepRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
@@ -583,25 +586,17 @@ const s = StyleSheet.create({
     ...Shadow.card,
   },
   prepRowMine: { backgroundColor: Colors.success + '15', borderWidth: 2, borderColor: Colors.success },
-  prepTime:    { fontSize: 16, fontWeight: '800', color: '#fff' },
-  prepHint:    { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
+  prepTime:    { fontSize: 17, fontWeight: '800', color: '#fff' },
+  prepHint:    { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
 
   // Slots
   slotsSection: { paddingTop: Spacing.md },
-  slotsGrid: {
-    flexDirection:     'row',
-    flexWrap:          'wrap',
-    gap:               SLOT_GAP,
-    paddingHorizontal: Spacing.md,
-    paddingBottom:     Spacing.sm,
-  },
+  // Row list — same layout family as the prep-mode list below.
+  slotsGrid: { paddingHorizontal: Spacing.md, gap: 8 },
   slot: {
-    width:          SLOT_W,
-    height:         SLOT_H,
-    borderRadius:   Radius.md,
-    alignItems:     'center',
-    justifyContent: 'center',
-    gap:            3,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md, paddingVertical: 14,
     ...Shadow.card,
   },
   slotAvail:  { backgroundColor: Colors.mikveh },
@@ -609,9 +604,8 @@ const s = StyleSheet.create({
   slotPast:   { backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.border, opacity: 0.45 },
   slotMine:   { backgroundColor: Colors.success + '15', borderWidth: 2, borderColor: Colors.success },
 
-  slotTime:      { fontSize: 17, fontWeight: '800' },
-  slotLabel:     { fontSize: 11, fontWeight: '600' },
-  slotMineLabel: { fontSize: 10, color: Colors.textMuted, textAlign: 'center' },
+  slotTime:  { fontSize: 17, fontWeight: '800' },
+  slotLabel: { fontSize: 11, fontWeight: '600' },
 
   slotFooter: {
     flexDirection:     'row',

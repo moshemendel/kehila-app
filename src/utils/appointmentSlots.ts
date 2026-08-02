@@ -1,4 +1,6 @@
 import { DayKey, HoursBlock } from '../types';
+import { resolveSlotTime, formatAnchorFormula } from './prayerUtils';
+import { ZmanimResult } from './zmanim';
 
 // ─── Slot generation ──────────────────────────────────────────────────────────
 
@@ -37,12 +39,39 @@ export function addMinutesToTime(time: string, minutes: number): string {
   return `${hh}:${mm}`;
 }
 
+/** Resolves a block's start/end (each may be a fixed "HH:MM" or anchor-relative)
+ *  to concrete "HH:MM" strings. Returns null if an anchor boundary can't yet be
+ *  resolved (zmanim not loaded) — callers should treat that as "no hours". */
+export function resolveHoursBlock(block: HoursBlock, zmanim?: ZmanimResult | null): { start: string; end: string } | null {
+  const start = block.startAnchor
+    ? resolveSlotTime({ time: block.start, anchor: block.startAnchor, offsetMin: block.startOffsetMin, proportional: block.startProportional }, zmanim)
+    : block.start;
+  const end = block.endAnchor
+    ? resolveSlotTime({ time: block.end, anchor: block.endAnchor, offsetMin: block.endOffsetMin, proportional: block.endProportional }, zmanim)
+    : block.end;
+  if (!start || !end) return null;
+  return { start, end };
+}
+
+/** Formula fallback text for a block whose anchor boundary hasn't resolved yet,
+ *  e.g. "שקיעה -30 – 22:00". */
+function formatBlockFormula(block: HoursBlock): string {
+  const start = block.startAnchor ? formatAnchorFormula(block.startAnchor, block.startOffsetMin ?? 0, block.startProportional) : block.start;
+  const end   = block.endAnchor   ? formatAnchorFormula(block.endAnchor,   block.endOffsetMin ?? 0,   block.endProportional)   : block.end;
+  return `${start}–${end}`;
+}
+
 /** All bookable base-slot times for a date, derived from whichever hour blocks
  *  apply to that day of the week (a day can be covered by more than one block). */
-export function slotsForDate(hoursSchedule: HoursBlock[] | undefined, dateStr: string, durationMin: number): string[] {
+export function slotsForDate(
+  hoursSchedule: HoursBlock[] | undefined, dateStr: string, durationMin: number, zmanim?: ZmanimResult | null,
+): string[] {
   const day    = dayKeyFromDate(dateStr);
   const blocks = (hoursSchedule ?? []).filter((b) => b.days.includes(day));
-  const all    = blocks.flatMap((b) => generateSlots(b.start, b.end, durationMin));
+  const all    = blocks.flatMap((b) => {
+    const resolved = resolveHoursBlock(b, zmanim);
+    return resolved ? generateSlots(resolved.start, resolved.end, durationMin) : [];
+  });
   return Array.from(new Set(all)).sort();
 }
 
@@ -95,11 +124,17 @@ const DAY_KEYS: DayKey[] = [
   'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday',
 ];
 
-/** Human display text for a day's hours, e.g. "18:00–22:00", "18:00–20:00, 21:00–23:00", or "סגור". */
-export function hoursTextForDay(hoursSchedule: HoursBlock[] | undefined, day: DayKey): string {
+/** Human display text for a day's hours, e.g. "18:00–22:00", "18:00–20:00, 21:00–23:00", or "סגור".
+ *  Anchor-relative boundaries resolve to real times when `zmanim` is supplied;
+ *  otherwise (or while zmanim is still loading) they fall back to a formula
+ *  like "שקיעה -30 – 22:00". */
+export function hoursTextForDay(hoursSchedule: HoursBlock[] | undefined, day: DayKey, zmanim?: ZmanimResult | null): string {
   const blocks = (hoursSchedule ?? []).filter((b) => b.days.includes(day));
   if (!blocks.length) return 'סגור';
-  return blocks.map((b) => `${b.start}–${b.end}`).join(', ');
+  return blocks.map((b) => {
+    const resolved = resolveHoursBlock(b, zmanim);
+    return resolved ? `${resolved.start}–${resolved.end}` : formatBlockFormula(b);
+  }).join(', ');
 }
 
 export function dayKeyFromDate(dateStr: string): DayKey {

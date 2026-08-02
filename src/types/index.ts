@@ -86,7 +86,8 @@ export type ZmanimAnchor =
   | 'chatzot'
   | 'plagHamincha'
   | 'minchaGedola'
-  | 'minchaKetana';
+  | 'minchaKetana'
+  | 'tzeit';
 
 // Storage format: one time entry that applies to specific days
 // days: 1=Sunday, 2=Monday, ..., 6=Friday, 7=Shabbat
@@ -242,12 +243,22 @@ export type DayKey =
   | 'thursday' | 'friday' | 'saturday';
 
 /** One opening-hours block: a time range that applies to a chosen set of days.
- *  A day can appear in more than one block (e.g. split morning/evening hours). */
+ *  A day can appear in more than one block (e.g. split morning/evening hours).
+ *  Each boundary can independently be a fixed clock time or anchor-relative
+ *  (e.g. "shkia -30" for a Friday closing tied to sunset) — mirrors the
+ *  PrayerTimeSlot anchor/offsetMin/proportional convention: the string field
+ *  ('start'/'end') is '' when the corresponding anchor field is set. */
 export interface HoursBlock {
   id: string;
   days: DayKey[];
-  start: string;   // "HH:MM"
-  end: string;     // "HH:MM"
+  start: string;   // "HH:MM"; '' when startAnchor is set
+  end: string;     // "HH:MM"; '' when endAnchor is set
+  startAnchor?: ZmanimAnchor;
+  startOffsetMin?: number;
+  startProportional?: boolean;
+  endAnchor?: ZmanimAnchor;
+  endOffsetMin?: number;
+  endProportional?: boolean;
 }
 
 /** Stored inline in the Mikveh document — appointment-specific settings only.

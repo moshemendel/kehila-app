@@ -5,6 +5,7 @@ import { Colors, Spacing, Radius, Shadow } from '../utils/theme';
 import { Mikveh, DayKey } from '../types';
 import { updateMikveh } from '../services/mikvaot';
 import { hoursTextForDay } from '../utils/appointmentSlots';
+import { useTodayZmanim } from '../hooks/useTodayZmanim';
 import LocationEditModal from './LocationEditModal';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -21,9 +22,9 @@ interface Props {
 
 const DAYS: DayKey[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
-function getTodayHours(mikveh: Mikveh): string {
+function getTodayHours(mikveh: Mikveh, zmanim: ReturnType<typeof useTodayZmanim>): string {
   const today = DAYS[new Date().getDay()];
-  return hoursTextForDay(mikveh.hoursSchedule, today);
+  return hoursTextForDay(mikveh.hoursSchedule, today, zmanim);
 }
 
 function openMaps(address: string, lat?: number, lon?: number) {
@@ -34,7 +35,8 @@ function openMaps(address: string, lat?: number, lon?: number) {
 }
 
 export default function MikvehCard({ mikveh, distLabel, canManage, onPress, cardStyle }: Props) {
-  const todayHours = getTodayHours(mikveh);
+  const todayZmanim = useTodayZmanim(mikveh.cityId);
+  const todayHours = getTodayHours(mikveh, todayZmanim);
   const [editingLoc, setEditingLoc] = useState(false);
 
   return (

@@ -105,7 +105,7 @@ export default function GemachScreen() {
   const { firebaseUser, isGuest } = useAuth();
   const uid = firebaseUser?.uid;
   const { gemachs, loading } = useGemachs(cityId);
-  const [activeCategory, setActiveCategory] = useState<GemachCategory | 'all'>('all');
+  const [selectedCategories, setSelectedCategories] = useState<GemachCategory[]>([]);
   const [editing, setEditing] = useState<Gemach | null>(null);
 
   // useGemachs only returns active listings (the public list) — a user who
@@ -127,8 +127,8 @@ export default function GemachScreen() {
   }, [gemachs, myGemachs]);
 
   const filtered = useMemo(() =>
-    activeCategory === 'all' ? merged : merged.filter(g => g.category === activeCategory),
-    [merged, activeCategory],
+    selectedCategories.length === 0 ? merged : merged.filter(g => selectedCategories.includes(g.category)),
+    [merged, selectedCategories],
   );
 
   const usedCategories = useMemo(() =>
@@ -183,22 +183,27 @@ export default function GemachScreen() {
           contentContainerStyle={s.chips}
         >
           <TouchableOpacity
-            style={[s.chip, activeCategory === 'all' && s.chipActive]}
-            onPress={() => setActiveCategory('all')}
+            style={[s.chip, selectedCategories.length === 0 && s.chipActive]}
+            onPress={() => setSelectedCategories([])}
           >
-            <Text style={[s.chipTxt, activeCategory === 'all' && s.chipTxtActive]}>הכל</Text>
+            <Text style={[s.chipTxt, selectedCategories.length === 0 && s.chipTxtActive]}>הכל</Text>
           </TouchableOpacity>
-          {usedCategories.map(cat => (
-            <TouchableOpacity
-              key={cat}
-              style={[s.chip, activeCategory === cat && s.chipActive]}
-              onPress={() => setActiveCategory(cat)}
-            >
-              <Text style={[s.chipTxt, activeCategory === cat && s.chipTxtActive]}>
-                {CATEGORY_LABELS[cat]}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {usedCategories.map(cat => {
+            const active = selectedCategories.includes(cat);
+            return (
+              <TouchableOpacity
+                key={cat}
+                style={[s.chip, active && s.chipActive]}
+                onPress={() => setSelectedCategories(prev =>
+                  active ? prev.filter(c => c !== cat) : [...prev, cat]
+                )}
+              >
+                <Text style={[s.chipTxt, active && s.chipTxtActive]}>
+                  {CATEGORY_LABELS[cat]}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </LinearGradient>
 

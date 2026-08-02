@@ -1,5 +1,30 @@
-import { PrayerTimes, PrayerTimeSlot, ShabbatSchedule, WeeklySchedule } from '../types';
+import { PrayerTimes, PrayerTimeSlot, ShabbatSchedule, WeeklySchedule, ZmanimAnchor } from '../types';
 import { ZmanimResult } from './zmanim';
+
+const ANCHOR_SHORT: Record<string, string> = {
+  netz:         'הנץ',
+  shkia:        'שקיעה',
+  chatzot:      'חצות',
+  plagHamincha: 'פלג',
+  minchaGedola: 'מנחה גד׳',
+  minchaKetana: 'מנחה קט׳',
+  tzeit:        'צאת הכוכבים',
+};
+
+// The only anchor whose ZmanimAnchor key doesn't match its ZmanimResult field
+// name 1:1 (the rest are indexed directly) — tzetHakochavim is already the
+// user's configured tzeit (per their preset's tzetMethod/tzetMinutes).
+const ZMANIM_FIELD: Partial<Record<ZmanimAnchor, keyof ZmanimResult>> = {
+  tzeit: 'tzetHakochavim',
+};
+
+/** Formula string for an anchor-relative time, e.g. "שקיעה +30" or "פלג -5ז׳". */
+export function formatAnchorFormula(anchor: ZmanimAnchor, offsetMin = 0, proportional = false): string {
+  const base = ANCHOR_SHORT[anchor] ?? anchor;
+  const minSuffix = proportional ? 'ז׳' : '׳';
+  if (offsetMin === 0) return base;
+  return offsetMin > 0 ? `${base} +${offsetMin}${minSuffix}` : `${base} ${offsetMin}${minSuffix}`;
+}
 
 // Returns the current local time.
 // Target users are in Israel so the device clock equals Israel time.
@@ -23,7 +48,8 @@ export function todayDayNumber(): number {
 export function resolveSlotTime(slot: PrayerTimeSlot, zmanim?: ZmanimResult | null): string {
   if (!slot.anchor) return slot.time;
   if (!zmanim) return '';
-  const base = zmanim[slot.anchor] as number;
+  const field = ZMANIM_FIELD[slot.anchor] ?? (slot.anchor as unknown as keyof ZmanimResult);
+  const base = zmanim[field] as number;
   if (base < 0) return '';
   // Proportional (halachic) minutes: 1 daka zmanit = sha'ah zmanit / 60
   const factor = slot.proportional ? (zmanim.shaahZmanitGra / 60) : 1;
@@ -132,14 +158,6 @@ export function tomorrowDayOfWeek(): string {
  * (e.g. "פלג +5׳") when they are not.
  */
 export function getSlotLabel(slot: PrayerTimeSlot, zmanim?: ZmanimResult | null): string {
-  const ANCHOR_SHORT: Record<string, string> = {
-    netz:         'הנץ',
-    shkia:        'שקיעה',
-    chatzot:      'חצות',
-    plagHamincha: 'פלג',
-    minchaGedola: 'מנחה גד׳',
-    minchaKetana: 'מנחה קט׳',
-  };
   if (slot.anchor) {
     // Try to resolve to an actual time
     if (zmanim) {
@@ -147,11 +165,7 @@ export function getSlotLabel(slot: PrayerTimeSlot, zmanim?: ZmanimResult | null)
       if (resolved) return resolved;
     }
     // Fall back to formula
-    const base = ANCHOR_SHORT[slot.anchor] ?? slot.anchor;
-    const off  = slot.offsetMin ?? 0;
-    const minSuffix = slot.proportional ? 'ז׳' : '׳';
-    if (off === 0) return base;
-    return off > 0 ? `${base} +${off}${minSuffix}` : `${base} ${off}${minSuffix}`;
+    return formatAnchorFormula(slot.anchor, slot.offsetMin ?? 0, slot.proportional);
   }
   return slot.time || '—';
 }

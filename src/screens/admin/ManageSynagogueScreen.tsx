@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView, Platform, Modal,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useSynagogues } from '../../hooks/useSynagogues';
@@ -59,6 +60,7 @@ const SHABBAT_PRAYER_TYPES: { key: ShabbatKey; label: string; color: string }[] 
 const ANCHOR_OPTIONS: { key: ZmanimAnchor; label: string }[] = [
   { key: 'netz',         label: 'הנץ' },
   { key: 'shkia',        label: 'שקיעה' },
+  { key: 'tzeit',        label: 'צאת הכוכבים' },
   { key: 'chatzot',      label: 'חצות' },
   { key: 'plagHamincha', label: 'פלג המנחה' },
   { key: 'minchaGedola', label: 'מנחה גדולה' },
@@ -66,7 +68,7 @@ const ANCHOR_OPTIONS: { key: ZmanimAnchor; label: string }[] = [
 ];
 
 const ANCHOR_SHORT: Record<ZmanimAnchor, string> = {
-  netz: 'הנץ', shkia: 'שקיעה', chatzot: 'חצות',
+  netz: 'הנץ', shkia: 'שקיעה', tzeit: 'צאת הכוכבים', chatzot: 'חצות',
   plagHamincha: 'פלג', minchaGedola: 'מנחה גד׳', minchaKetana: 'מנחה קט׳',
 };
 
@@ -163,6 +165,8 @@ function SlotEditModal({ visible, slot, prayerType: initialType, showTypeSelecto
               <Ionicons name="close" size={22} color={Colors.textSecondary} />
             </TouchableOpacity>
           </View>
+
+          <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
           {/* Prayer type selector (add mode only) */}
           {showTypeSelector && (
@@ -328,6 +332,8 @@ function SlotEditModal({ visible, slot, prayerType: initialType, showTypeSelecto
             textAlignVertical="top"
           />
 
+          </ScrollView>
+
           {/* Actions */}
           <View style={sm.actions}>
             {!isNew && (
@@ -437,6 +443,8 @@ function ShiurEditModal({ visible, shiur, isNew, onSave, onDelete, onClose }: {
             <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color={Colors.textSecondary} /></TouchableOpacity>
           </View>
 
+          <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+
           {/* Title */}
           <Text style={sm.label}>שם השיעור *</Text>
           <TextInput scrollEnabled={false}
@@ -490,6 +498,8 @@ function ShiurEditModal({ visible, shiur, isNew, onSave, onDelete, onClose }: {
             placeholderTextColor={Colors.textMuted} textAlign="right"
             multiline numberOfLines={2} textAlignVertical="top"
           />
+
+          </ScrollView>
 
           {/* Actions */}
           <View style={[sm.actions, { marginTop: 8 }]}>
@@ -569,6 +579,7 @@ function SubmitEventModal({ visible, onSave, onClose }: {
   onSave: (ann: SynagogueAnnouncement, submitForApproval: boolean) => Promise<void>;
   onClose: () => void;
 }) {
+  const { bottom } = useSafeAreaInsets();
   const [title,              setTitle]              = useState('');
   const [description,        setDescription]        = useState('');
   const [category,           setCategory]           = useState<EventCategory>('announcement');
@@ -638,7 +649,7 @@ function SubmitEventModal({ visible, onSave, onClose }: {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={sm.overlay}>
-        <ScrollView style={sm.sheet} contentContainerStyle={{ gap: 4, paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
+        <ScrollView style={sm.sheet} contentContainerStyle={{ gap: 4, paddingBottom: 24 + bottom }} keyboardShouldPersistTaps="handled">
           {/* Header */}
           <View style={sm.header}>
             <Text style={sm.title}>הוספת אירוע לבית הכנסת</Text>
@@ -1457,7 +1468,7 @@ const s = StyleSheet.create({
 // ─── Slot modal styles ────────────────────────────────────────────────────────
 const sm = StyleSheet.create({
   overlay:      { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
-  sheet:        { backgroundColor: Colors.cardBackground, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: Spacing.lg, paddingBottom: 36, gap: 6, maxHeight: '85%', flexShrink: 1 },
+  sheet:        { backgroundColor: Colors.cardBackground, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: Spacing.lg, paddingBottom: 36, gap: 6, maxHeight: '75%', flexShrink: 1 },
   header:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   title:        { fontSize: 18, fontWeight: '800', color: Colors.text },
   label:        { fontSize: 12, fontWeight: '700', color: Colors.textSecondary, marginTop: 8 },
