@@ -133,7 +133,7 @@ For each, confirm the notification **actually arrives on a physical device with 
 
 ## 15. Admin web dashboard (kehila-admin)
 
-- [ ] Login works, session persists on refresh
+- [ ] Login works, session persists on refresh <!-- note:fixed%20-%20ALLOWED_ROLES%20was%20missing%20mikveh_manager%20entirely%2C%20silently%20signing%20them%20out%20right%20after%20a%20successful%20login%3B%20also%20switched%20the%20role%20check%20to%20look%20at%20the%20full%20roles%5B%5D%20array%20(not%20just%20the%20primary%20role)%2C%20same%20pattern%20used%20everywhere%20else%20-%20a%20multi-role%20user%20whose%20primary%20role%20wasn't%20in%20the%20allowlist%20would've%20been%20blocked%20too.%20Session%20persistence%20itself%20is%20Firebase%20Auth's%20default%20(browserLocalPersistence%2C%20no%20override%20found)%20-%20should%20already%20work%2C%20needs%20on-device%2Fbrowser%20confirm -->
 - [ ] `Dashboard` — key stats/overview correct
 - [ ] `CitiesPage` / `CitiesMapPage` — city list and map view correct
 - [ ] `CityDashboard` / `CitySettingsPage` — per-city overview and settings
