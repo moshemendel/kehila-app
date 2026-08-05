@@ -9,7 +9,7 @@ import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useMikvaot } from '../../hooks/useMikvaot';
 import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
-import { updateMikveh, addMikveh, deleteMikveh } from '../../services/mikvaot';
+import { updateMikveh, addMikveh, deleteMikveh, newMikvehId } from '../../services/mikvaot';
 import { Mikveh } from '../../types';
 import { useNavigation } from '@react-navigation/native';
 import LocationEditModal from '../../components/LocationEditModal';
@@ -243,6 +243,25 @@ export default function ManageMikvehScreen() {
     }
   }
 
+  // Most fields (hours, type, appointment config) are legitimately the same
+  // across a city's mikvaot and tedious to re-enter — copy those, leave the
+  // per-location fields (name/address/contacts/photos/pin) blank so the admin
+  // only has to fill in what's actually unique to the new one. Nothing is
+  // written to Firestore here — just an id reserved client-side (newMikvehId)
+  // — so backing out of EditForm without saving leaves no orphaned record.
+  function handleDuplicateMikveh(m: Mikveh) {
+    const base: Omit<Mikveh, 'id'> = {
+      cityId: m.cityId,
+      name: `${m.name} (העתק)`,
+      type: m.type,
+      address: '',
+      requiresAppointment: m.requiresAppointment,
+      hoursSchedule: m.hoursSchedule ?? [],
+      appointmentConfig: m.appointmentConfig,
+    };
+    setSelected({ id: newMikvehId(), ...base });
+  }
+
   function handleDeleteMikveh(m: Mikveh) {
     Alert.alert('מחיקת מקווה', `למחוק את "${m.name}"?`, [
       { text: 'ביטול', style: 'cancel' },
@@ -350,6 +369,9 @@ export default function ManageMikvehScreen() {
                     </View>
                   )}
                 </View>
+                <TouchableOpacity onPress={() => handleDuplicateMikveh(m)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <Ionicons name="copy-outline" size={20} color={Colors.primary} />
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleDeleteMikveh(m)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                   <Ionicons name="trash-outline" size={20} color={Colors.danger} />
                 </TouchableOpacity>

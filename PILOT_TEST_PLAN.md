@@ -127,9 +127,9 @@ For each, confirm the notification **actually arrives on a physical device with 
 - [x] `ManageEruvScreen` — update status, edit polygon, push fires
 - [x] `ManageEventsScreen` — create/edit/delete event, approve pending gabbai submissions <!-- note:fixed!%20when%20adding%20event%20from%20a%20synaguge%2C%20the%20%D7%94%D7%95%D7%A1%D7%A3%20%D7%95%D7%A9%D7%9C%D7%97%20%D7%9C%D7%90%D7%99%D7%A9%D7%95%D7%A8%20button%20is%20behind%20the%20device%20nav%20bar -->
 - [x] `ManageGemachScreen` — approve/reject pending gemach submissions
-- [ ] `ManageCitiesScreen` — city settings editable by the right roles only
-- [ ] `UserManagementScreen` — assign/change roles, assign managed businesses/synagogues to a `business_manager`/`gabbai`
-- [ ] Biometric/PIN gate — entering any management screen prompts once, doesn't re-prompt within the 5-minute window, re-prompts after it expires
+- [x] `ManageCitiesScreen` — city settings editable by the right roles only <!-- note:the%20%D7%A9%D7%9B%D7%95%D7%A0%D7%94%20need%20to%20be%20choose%20from%20fixed%20dropdown%20and%20not%20free%20text -->
+- [x] `UserManagementScreen` — assign/change roles, assign managed businesses/synagogues to a `business_manager`/`gabbai`
+- [x] Biometric/PIN gate — entering any management screen prompts once, doesn't re-prompt within the 5-minute window, re-prompts after it expires
 
 ## 15. Admin web dashboard (kehila-admin)
 

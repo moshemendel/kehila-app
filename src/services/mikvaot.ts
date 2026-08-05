@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, addDoc, setDoc, deleteDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
 import { Mikveh } from '../types';
 
@@ -17,6 +17,13 @@ export async function addMikveh(data: Omit<Mikveh, 'id'>): Promise<string> {
   return ref.id;
 }
 
+// Generates an id without writing anything — lets a caller build a not-yet-persisted
+// draft (e.g. "duplicate this mikveh") that only actually creates a document once
+// updateMikveh is called for the first time (an upsert, see below).
+export function newMikvehId(): string {
+  return doc(collection(db, COL)).id;
+}
+
 export async function getMikvaotByCity(cityId: string): Promise<Mikveh[]> {
   const q = query(collection(db, COL), where('cityId', '==', cityId));
   const snap = await getDocs(q);
@@ -29,8 +36,10 @@ export async function getMikveh(id: string): Promise<Mikveh | null> {
   return { id: snap.id, ...snap.data() } as Mikveh;
 }
 
+// Upsert (not update-only) — needed so a not-yet-persisted duplicate draft
+// (see newMikvehId above) only actually gets created on its first real save.
 export async function updateMikveh(id: string, data: Partial<Mikveh>): Promise<void> {
-  await updateDoc(doc(db, COL, id), { ...sanitize(data), updatedAt: serverTimestamp() });
+  await setDoc(doc(db, COL, id), { ...sanitize(data), updatedAt: serverTimestamp() }, { merge: true });
 }
 
 export async function deleteMikveh(id: string): Promise<void> {
