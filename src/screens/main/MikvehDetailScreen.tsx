@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
+import ReportListingButton from '../../components/ReportListingButton';
+import { useNavigateTo } from '../../hooks/useNavigateTo';
 import { Mikveh, DayKey } from '../../types';
 import { getMikveh } from '../../services/mikvaot';
 import { hoursTextForDay } from '../../utils/appointmentSlots';
@@ -36,16 +38,10 @@ const DAY_HE   = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמיש�
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function openMaps(address: string, lat?: number, lon?: number) {
-  const url = lat && lon
-    ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-  Linking.openURL(url);
-}
-
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function MikvehDetailScreen() {
+  const { go: navigateTo, sheet: navSheet } = useNavigateTo();
   const route           = useRoute<any>();
   const navigation      = useNavigation<any>();
   const { top, bottom } = useSafeAreaInsets();
@@ -119,6 +115,18 @@ export default function MikvehDetailScreen() {
   // ─── Render ─────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
+      {/* Floating report control — these screens have no header bar, so it sits
+          over the cover image where a header would be. */}
+      <View style={styles.reportFab} pointerEvents="box-none">
+        <ReportListingButton
+          variant="overlay"
+          cityId={mikveh.cityId}
+          entityType="mikveh"
+          entityId={mikveh.id}
+          entityName={mikveh.name}
+          color={Colors.mikveh}
+        />
+      </View>
       <StatusBar style="dark" />
 
       <ScrollView
@@ -212,7 +220,7 @@ export default function MikvehDetailScreen() {
             {/* Address → maps */}
             <TouchableOpacity
               style={styles.metaRow}
-              onPress={() => openMaps(mikveh.address, mikveh.latitude, mikveh.longitude)}
+              onPress={() => navigateTo({ latitude: mikveh.latitude, longitude: mikveh.longitude, address: mikveh.address })}
               activeOpacity={0.7}
             >
               <Ionicons name="location-outline" size={15} color={Colors.mikveh} />
@@ -267,7 +275,7 @@ export default function MikvehDetailScreen() {
               )}
               <TouchableOpacity
                 style={[styles.actionBtn, styles.actionBtnPrimary]}
-                onPress={() => openMaps(mikveh.address, mikveh.latitude, mikveh.longitude)}
+                onPress={() => navigateTo({ latitude: mikveh.latitude, longitude: mikveh.longitude, address: mikveh.address })}
               >
                 <Ionicons name="navigate" size={18} color="#fff" />
                 <Text style={[styles.actionBtnTxt, { color: '#fff' }]}>ניווט</Text>
@@ -339,6 +347,8 @@ export default function MikvehDetailScreen() {
         </View>
 
       </ScrollView>
+
+      {navSheet}
     </View>
   );
 }
@@ -346,6 +356,7 @@ export default function MikvehDetailScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  reportFab: { position: 'absolute', top: 44, left: 14, zIndex: 20 },
 
   container: { flex: 1, backgroundColor: Colors.background },
   loader:    { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background, gap: 12 },

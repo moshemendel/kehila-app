@@ -15,7 +15,6 @@ import { useAuth } from '../../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { submitEruvReport, getEruvPolygons } from '../../services/eruv';
 import { useAnalyticsTrack } from '../../services/analytics';
-import { sendPushToRoles } from '../../services/pushNotifications';
 import { uploadImage } from '../../utils/uploadImage';
 import { Colors, Spacing, Radius } from '../../utils/theme';
 import { EruvCoordinate } from '../../types';
@@ -225,13 +224,10 @@ export default function EruvScreen() {
       });
       closeReport();
       Alert.alert('תודה', 'הדיווח נשלח למנהל העירוב');
-      const typeLabel = reportType === 'breach' ? '⚠️ פרצה בעירוב' : '❓ שאלה על עירוב';
-      sendPushToRoles(
-        cityId,
-        ['eruv_manager', 'city_admin'],
-        typeLabel,
-        description.trim().slice(0, 120),
-      ).catch(() => {});
+      // Notifying the eruv managers is done by the onEruvReportCreated Cloud
+      // Function, not here: sendPushToRoles reads pushTokens, which is
+      // admin-read-only, so this call silently no-opped for every non-admin
+      // reporter — i.e. almost everyone who actually files a report.
     } catch (e: any) {
       Alert.alert('שגיאה', e.message);
     } finally {

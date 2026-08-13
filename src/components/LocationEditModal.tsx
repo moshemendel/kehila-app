@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Modal, View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, KeyboardAvoidingView, Platform, ActivityIndicator,
+  View, Text, TextInput, TouchableOpacity,
+  StyleSheet, Alert, ActivityIndicator,
 } from 'react-native';
+import BottomSheetModal from './BottomSheetModal';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { Colors, Spacing, Radius } from '../utils/theme';
@@ -96,90 +97,94 @@ export default function LocationEditModal({
 
   return (
     <>
-      <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={s.overlay}>
-          <View style={s.sheet}>
-            {/* Header */}
-            <View style={s.header}>
-              <Text style={s.title}>עריכת מיקום</Text>
-              <TouchableOpacity onPress={onClose}>
-                <Ionicons name="close" size={22} color={Colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-            <Text style={s.subtitle}>{name}</Text>
-
-            {/* Option 1 — GPS */}
-            <TouchableOpacity style={s.gpsBtn} onPress={useGPS} disabled={locating}>
-              {locating
-                ? <ActivityIndicator size="small" color={Colors.white} />
-                : <Ionicons name="navigate" size={16} color={Colors.white} />}
-              <Text style={s.gpsBtnText}>{locating ? 'מאתר מיקום...' : 'השתמש במיקום הנוכחי (GPS)'}</Text>
+      <BottomSheetModal
+        visible={visible}
+        onClose={onClose}
+        maxHeight="90%"
+        dimOpacity={0.45}
+        sheetStyle={s.sheetPad}
+        avoidKeyboard
+        header={
+          <View style={s.header}>
+            <Text style={s.title}>עריכת מיקום</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={22} color={Colors.textSecondary} />
             </TouchableOpacity>
-
-            <View style={s.orRow}>
-              <View style={s.orLine} />
-              <Text style={s.orText}>או</Text>
-              <View style={s.orLine} />
-            </View>
-
-            {/* Option 2 — In-app map */}
-            <TouchableOpacity style={s.mapPickerBtn} onPress={() => setMapOpen(true)}>
-              <Ionicons name="map" size={18} color={Colors.primary} />
-              <Text style={s.mapPickerText}>בחר מיקום על המפה</Text>
-              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
-            </TouchableOpacity>
-
-            {/* Coordinate inputs */}
-            <View style={s.inputRow}>
-              <View style={s.inputGroup}>
-                <Text style={s.label}>Latitude</Text>
-                <TextInput scrollEnabled={false}
-                  style={s.input}
-                  value={lat}
-                  onChangeText={setLat}
-                  placeholder="31.776710"
-                  keyboardType="numbers-and-punctuation"
-                  textAlign="left"
-                  autoCorrect={false}
-                />
-              </View>
-              <View style={s.inputGroup}>
-                <Text style={s.label}>Longitude</Text>
-                <TextInput scrollEnabled={false}
-                  style={s.input}
-                  value={lon}
-                  onChangeText={setLon}
-                  placeholder="35.298800"
-                  keyboardType="numbers-and-punctuation"
-                  textAlign="left"
-                  autoCorrect={false}
-                />
-              </View>
-            </View>
-
-            {/* Actions */}
-            <View style={s.actions}>
-              {(latitude || longitude) && (
-                <TouchableOpacity style={s.clearBtn} onPress={handleClear} disabled={saving}>
-                  <Ionicons name="trash-outline" size={16} color={Colors.danger} />
-                  <Text style={s.clearText}>מחק מיקום</Text>
-                </TouchableOpacity>
-              )}
-              <View style={s.spacer} />
-              <TouchableOpacity style={s.cancelBtn} onPress={onClose} disabled={saving}>
-                <Text style={s.cancelText}>ביטול</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[s.saveBtn, saving && s.saveBtnDisabled]}
-                onPress={handleSave}
-                disabled={saving}
-              >
-                <Text style={s.saveText}>{saving ? 'שומר...' : 'שמור'}</Text>
-              </TouchableOpacity>
-            </View>
           </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        }
+      >
+        <Text style={s.subtitle}>{name}</Text>
+
+        {/* Option 1 — GPS */}
+        <TouchableOpacity style={s.gpsBtn} onPress={useGPS} disabled={locating}>
+          {locating
+            ? <ActivityIndicator size="small" color={Colors.white} />
+            : <Ionicons name="navigate" size={16} color={Colors.white} />}
+          <Text style={s.gpsBtnText}>{locating ? 'מאתר מיקום...' : 'השתמש במיקום הנוכחי (GPS)'}</Text>
+        </TouchableOpacity>
+
+        <View style={s.orRow}>
+          <View style={s.orLine} />
+          <Text style={s.orText}>או</Text>
+          <View style={s.orLine} />
+        </View>
+
+        {/* Option 2 — In-app map */}
+        <TouchableOpacity style={s.mapPickerBtn} onPress={() => setMapOpen(true)}>
+          <Ionicons name="map" size={18} color={Colors.primary} />
+          <Text style={s.mapPickerText}>בחר מיקום על המפה</Text>
+          <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+        </TouchableOpacity>
+
+        {/* Coordinate inputs */}
+        <View style={s.inputRow}>
+          <View style={s.inputGroup}>
+            <Text style={s.label}>Latitude</Text>
+            <TextInput scrollEnabled={false}
+              style={s.input}
+              value={lat}
+              onChangeText={setLat}
+              placeholder="31.776710"
+              keyboardType="numbers-and-punctuation"
+              textAlign="left"
+              autoCorrect={false}
+            />
+          </View>
+          <View style={s.inputGroup}>
+            <Text style={s.label}>Longitude</Text>
+            <TextInput scrollEnabled={false}
+              style={s.input}
+              value={lon}
+              onChangeText={setLon}
+              placeholder="35.298800"
+              keyboardType="numbers-and-punctuation"
+              textAlign="left"
+              autoCorrect={false}
+            />
+          </View>
+        </View>
+
+        {/* Actions */}
+        <View style={s.actions}>
+          {(latitude || longitude) && (
+            <TouchableOpacity style={s.clearBtn} onPress={handleClear} disabled={saving}>
+              <Ionicons name="trash-outline" size={16} color={Colors.danger} />
+              <Text style={s.clearText}>מחק מיקום</Text>
+            </TouchableOpacity>
+          )}
+          <View style={s.spacer} />
+          <TouchableOpacity style={s.cancelBtn} onPress={onClose} disabled={saving}>
+            <Text style={s.cancelText}>ביטול</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[s.saveBtn, saving && s.saveBtnDisabled]}
+            onPress={handleSave}
+            disabled={saving}
+          >
+            <Text style={s.saveText}>{saving ? 'שומר...' : 'שמור'}</Text>
+          </TouchableOpacity>
+        </View>
+      </BottomSheetModal>
 
       <MapPickerModal
         visible={mapOpen}
@@ -193,8 +198,7 @@ export default function LocationEditModal({
 }
 
 const s = StyleSheet.create({
-  overlay:        { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
-  sheet:          { backgroundColor: Colors.cardBackground, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: Spacing.lg, paddingBottom: 36 },
+  sheetPad:       { paddingHorizontal: Spacing.lg, paddingBottom: 36 },
   header:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   title:          { fontSize: 18, fontWeight: '800', color: Colors.text },
   subtitle:       { fontSize: 13, color: Colors.textSecondary, marginBottom: Spacing.md },

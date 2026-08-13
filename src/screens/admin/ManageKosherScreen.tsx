@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TextInput,
   TouchableOpacity, Alert, ActivityIndicator, Switch,
@@ -7,7 +7,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useBusinesses } from '../../hooks/useBusinesses';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
 import { updateBusiness, addBusiness, deleteBusiness, businessCategories, detectCertChanges, CertChange, BADATZ_LIST, isLocalRabbanut } from '../../services/businesses';
@@ -20,6 +20,7 @@ import { useKashrutConfig } from '../../hooks/useKashrutConfig';
 import { Business, KosherCertificate, KosherLevel, BusinessType, AppUser } from '../../types';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
 import AddItemModal from '../../components/AddItemModal';
+import BottomSheetModal from '../../components/BottomSheetModal';
 import Dropdown from '../../components/Dropdown';
 
 const KOSHER_LEVELS: { key: KosherLevel; label: string }[] = [
@@ -635,11 +636,14 @@ function CertEditor({ rest, onBack, onDelete }: { rest: Business; onBack: () => 
     />
 
     {/* ── Pre-publish confirmation sheet ── */}
-    <Modal visible={!!alertsToConfirm} transparent animationType="slide" onRequestClose={() => setAlertsToConfirm(null)}>
-      <View style={s.modalOverlay}>
-        <View style={s.modalSheet}>
-          <Text style={s.modalTitle}>עדכוני כשרות לפרסום</Text>
-          <Text style={s.modalSub}>בחר אילו שינויים לפרסם לציבור</Text>
+    <BottomSheetModal
+      visible={!!alertsToConfirm}
+      onClose={() => setAlertsToConfirm(null)}
+      title="עדכוני כשרות לפרסום"
+      dimOpacity={0.45}
+      sheetStyle={s.modalSheetPad}
+    >
+      <Text style={s.modalSub}>בחר אילו שינויים לפרסם לציבור</Text>
 
           {(alertsToConfirm ?? []).map((ch, i) => {
             const sel  = selectedAlerts.has(i);
@@ -689,9 +693,7 @@ function CertEditor({ rest, onBack, onDelete }: { rest: Business; onBack: () => 
               <Text style={s.skipBtnText}>ביטול</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
-    </Modal>
+    </BottomSheetModal>
     </KeyboardAvoidingView>
   );
 }
@@ -705,6 +707,22 @@ export default function ManageKosherScreen() {
   const { businesses, loading } = useBusinesses(cityId);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Business | null>(null);
+  // Deep-link from a content report ("פתח לתיקון") — preselect the reported
+  // item once the list has loaded so the manager lands straight on it.
+  const route = useRoute<any>();
+  const focusId = route.params?.focusId as string | undefined;
+  // Arriving from a report means the list was never on screen — back should
+  // return to the reports queue, not drop the user into a list they never saw.
+  const cameFromReport = useRef(!!focusId);
+  const onBackFromItem = () => {
+    if (cameFromReport.current) navigation.goBack();
+    else setSelected(null);
+  };
+  useEffect(() => {
+    if (!focusId) return;
+    const hit = businesses.find((x: any) => x.id === focusId);
+    if (hit) setSelected(hit);
+  }, [focusId, businesses]);
   const [adding, setAdding] = useState(false);
   const [creating, setCreating] = useState(false);
 
@@ -781,14 +799,14 @@ export default function ManageKosherScreen() {
   // the single event React Navigation fires for all three of those triggers.
   useEffect(() => {
     return navigation.addListener('beforeRemove', (e) => {
-      if (!selected) return;
+      if (!selected || cameFromReport.current) return;
       e.preventDefault();
       setSelected(null);
     });
   }, [navigation, selected]);
 
   if (selected) {
-    return <CertEditor rest={selected} onBack={() => setSelected(null)} onDelete={() => setSelected(null)} />;
+    return <CertEditor rest={selected} onBack={onBackFromItem} onDelete={() => setSelected(null)} />;
   }
 
   return (
@@ -945,8 +963,7 @@ const s = StyleSheet.create({
   suspendedChip: { backgroundColor: Colors.danger, borderRadius: Radius.full, paddingHorizontal: 7, paddingVertical: 2 },
   suspendedChipText: { fontSize: 10, fontWeight: '800', color: Colors.white },
   // Pre-publish confirmation modal
-  modalOverlay:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
-  modalSheet:      { backgroundColor: Colors.cardBackground, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: Spacing.lg, paddingBottom: 40 },
+  modalSheetPad:   { paddingHorizontal: Spacing.lg, paddingBottom: 40 },
   modalTitle:      { fontSize: 19, fontWeight: '800', color: Colors.text, textAlign: 'center', marginBottom: 4 },
   modalSub:        { fontSize: 13, color: Colors.textMuted, textAlign: 'center', marginBottom: Spacing.lg },
   alertRow:        { flexDirection: 'row', alignItems: 'center', gap: 10, padding: Spacing.sm, borderRadius: Radius.md, marginBottom: Spacing.sm, borderWidth: 1.5, borderColor: Colors.border },

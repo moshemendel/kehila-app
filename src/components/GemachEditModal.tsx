@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, Modal, ScrollView, StyleSheet, TextInput,
-  TouchableOpacity, Alert, ActivityIndicator, Switch, KeyboardAvoidingView, Platform,
+  View, Text, ScrollView, StyleSheet, TextInput,
+  TouchableOpacity, Alert, ActivityIndicator, Switch,
 } from 'react-native';
+import BottomSheetModal from './BottomSheetModal';
 import { Ionicons } from '@expo/vector-icons';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { Colors, Spacing, Radius } from '../utils/theme';
 import { Gemach, GemachCategory } from '../types';
 import TimeRangePicker from './TimeRangePicker';
+import { useNeighborhoodOptions } from '../hooks/useNeighborhoodOptions';
+import NeighborhoodPickerModal from './NeighborhoodPickerModal';
 
 const GEMACH_COLOR = '#B06B3A';
 
@@ -42,6 +45,8 @@ export default function GemachEditModal({ gemach, visible, onClose, onSaved, onD
   const [description,  setDescription]  = useState(gemach.description ?? '');
   const [isActive,     setIsActive]     = useState(gemach.isActive);
   const [saving,       setSaving]       = useState(false);
+  const { options: neighborhoodOptions, addOption: addNeighborhood } = useNeighborhoodOptions(gemach.cityId);
+  const [neighborhoodPickerOpen, setNeighborhoodPickerOpen] = useState(false);
 
   // Re-seed the form whenever a different gemach (or a fresh copy) is opened.
   useEffect(() => {
@@ -98,88 +103,92 @@ export default function GemachEditModal({ gemach, visible, onClose, onSaved, onD
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={s.overlay}>
-        <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
-        <View style={s.sheet}>
-          <View style={s.handle} />
-          <Text style={s.title}>עריכת הגמ"ח שלי</Text>
+    <BottomSheetModal
+      visible={visible}
+      onClose={onClose}
+      title='עריכת הגמ"ח שלי'
+      maxHeight="85%"
+      avoidKeyboard
+    >
+      <ScrollView contentContainerStyle={s.form} keyboardShouldPersistTaps="handled">
+        <Text style={s.label}>שם הגמ"ח *</Text>
+        <TextInput scrollEnabled={false} style={s.input} value={name} onChangeText={setName}
+          placeholderTextColor={Colors.textMuted} textAlign="right" />
 
-          <ScrollView contentContainerStyle={s.form} keyboardShouldPersistTaps="handled">
-            <Text style={s.label}>שם הגמ"ח *</Text>
-            <TextInput scrollEnabled={false} style={s.input} value={name} onChangeText={setName}
+        <Text style={s.label}>קטגוריה</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.catRow}>
+          {CATEGORIES.map(({ key, label, icon }) => {
+            const active = category === key;
+            return (
+              <TouchableOpacity
+                key={key}
+                style={[s.catChip, active && s.catChipActive]}
+                onPress={() => setCategory(key)}
+              >
+                <Ionicons name={icon as any} size={13} color={active ? Colors.white : GEMACH_COLOR} />
+                <Text style={[s.catChipTxt, active && s.catChipTxtActive]}>{label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        <View style={s.rowTwo}>
+          <View style={{ flex: 1 }}>
+            <Text style={s.label}>שם איש קשר</Text>
+            <TextInput scrollEnabled={false} style={s.input} value={contactName} onChangeText={setContactName}
               placeholderTextColor={Colors.textMuted} textAlign="right" />
-
-            <Text style={s.label}>קטגוריה</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.catRow}>
-              {CATEGORIES.map(({ key, label, icon }) => {
-                const active = category === key;
-                return (
-                  <TouchableOpacity
-                    key={key}
-                    style={[s.catChip, active && s.catChipActive]}
-                    onPress={() => setCategory(key)}
-                  >
-                    <Ionicons name={icon as any} size={13} color={active ? Colors.white : GEMACH_COLOR} />
-                    <Text style={[s.catChipTxt, active && s.catChipTxtActive]}>{label}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-
-            <View style={s.rowTwo}>
-              <View style={{ flex: 1 }}>
-                <Text style={s.label}>שם איש קשר</Text>
-                <TextInput scrollEnabled={false} style={s.input} value={contactName} onChangeText={setContactName}
-                  placeholderTextColor={Colors.textMuted} textAlign="right" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={s.label}>טלפון</Text>
-                <TextInput scrollEnabled={false} style={s.input} value={phone} onChangeText={setPhone}
-                  placeholderTextColor={Colors.textMuted} textAlign="right" keyboardType="phone-pad" />
-              </View>
-            </View>
-
-            <Text style={s.label}>שכונה</Text>
-            <TextInput scrollEnabled={false} style={s.input} value={neighborhood} onChangeText={setNeighborhood}
-              placeholderTextColor={Colors.textMuted} textAlign="right" />
-
-            <Text style={s.label}>שעות פעילות</Text>
-            <TimeRangePicker value={hours} onChange={setHours} />
-
-            <Text style={s.label}>תיאור</Text>
-            <TextInput scrollEnabled={false} style={[s.input, s.textarea]} value={description} onChangeText={setDescription}
-              placeholderTextColor={Colors.textMuted} textAlign="right" multiline textAlignVertical="top" />
-
-            <View style={s.activeRow}>
-              <Switch value={isActive} onValueChange={setIsActive} trackColor={{ true: GEMACH_COLOR }} thumbColor={Colors.white} />
-              <Text style={s.activeLabel}>{isActive ? 'פעיל — מוצג ברשימה' : 'לא פעיל — מוסתר מהרשימה'}</Text>
-            </View>
-
-            <TouchableOpacity style={s.saveBtn} onPress={handleSave} disabled={saving}>
-              {saving ? <ActivityIndicator color={Colors.white} /> : <Text style={s.saveBtnTxt}>שמור</Text>}
-            </TouchableOpacity>
-
-            <TouchableOpacity style={s.deleteBtn} onPress={handleDelete}>
-              <Ionicons name="trash-outline" size={16} color={Colors.danger} />
-              <Text style={s.deleteBtnTxt}>מחק גמ"ח</Text>
-            </TouchableOpacity>
-          </ScrollView>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={s.label}>טלפון</Text>
+            <TextInput scrollEnabled={false} style={s.input} value={phone} onChangeText={setPhone}
+              placeholderTextColor={Colors.textMuted} textAlign="right" keyboardType="phone-pad" />
+          </View>
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+
+        <Text style={s.label}>שכונה</Text>
+        <TouchableOpacity style={s.dropdownField} onPress={() => setNeighborhoodPickerOpen(true)} activeOpacity={0.7}>
+          <Text style={neighborhood ? s.dropdownValue : s.dropdownPlaceholder}>
+            {neighborhood || 'בחר שכונה'}
+          </Text>
+          <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
+        </TouchableOpacity>
+
+        <NeighborhoodPickerModal
+          visible={neighborhoodPickerOpen}
+          options={neighborhoodOptions}
+          selected={neighborhood || undefined}
+          canAdd
+          onSelect={(name) => setNeighborhood(name ?? '')}
+          onAddNew={addNeighborhood}
+          onClose={() => setNeighborhoodPickerOpen(false)}
+        />
+
+        <Text style={s.label}>שעות פעילות</Text>
+        <TimeRangePicker value={hours} onChange={setHours} />
+
+        <Text style={s.label}>תיאור</Text>
+        <TextInput scrollEnabled={false} style={[s.input, s.textarea]} value={description} onChangeText={setDescription}
+          placeholderTextColor={Colors.textMuted} textAlign="right" multiline textAlignVertical="top" />
+
+        <View style={s.activeRow}>
+          <Switch value={isActive} onValueChange={setIsActive} trackColor={{ true: GEMACH_COLOR }} thumbColor={Colors.white} />
+          <Text style={s.activeLabel}>{isActive ? 'פעיל — מוצג ברשימה' : 'לא פעיל — מוסתר מהרשימה'}</Text>
+        </View>
+
+        <TouchableOpacity style={s.saveBtn} onPress={handleSave} disabled={saving}>
+          {saving ? <ActivityIndicator color={Colors.white} /> : <Text style={s.saveBtnTxt}>שמור</Text>}
+        </TouchableOpacity>
+
+        <TouchableOpacity style={s.deleteBtn} onPress={handleDelete}>
+          <Ionicons name="trash-outline" size={16} color={Colors.danger} />
+          <Text style={s.deleteBtnTxt}>מחק גמ"ח</Text>
+        </TouchableOpacity>
+  </ScrollView>
+    </BottomSheetModal>
   );
 }
 
 const s = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: Colors.cardBackground,
-    borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    maxHeight: '85%', paddingTop: 10,
-  },
-  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: 8 },
-  title: { fontSize: 17, fontWeight: '800', color: Colors.text, textAlign: 'center', marginBottom: 8 },
 
   form: { padding: Spacing.md, paddingTop: 4, gap: 4 },
   label: { fontSize: 12, fontWeight: '700', color: Colors.textMuted, marginTop: 12, marginBottom: 6 },
@@ -195,6 +204,14 @@ const s = StyleSheet.create({
   rowTwo: { flexDirection: 'row', gap: Spacing.md },
 
   catRow: { gap: 8, paddingVertical: 4 },
+  dropdownField: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: Colors.background,
+    borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border,
+    paddingHorizontal: Spacing.md, paddingVertical: 12,
+  },
+  dropdownValue: { fontSize: 15, color: Colors.text },
+  dropdownPlaceholder: { fontSize: 15, color: Colors.textMuted },
   catChip: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     paddingHorizontal: 12, paddingVertical: 7,

@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
-  Modal, ActivityIndicator, Pressable, TextInput,
+  ActivityIndicator, TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import BottomSheetModal from './BottomSheetModal';
 import { useCities } from '../hooks/useCities';
 import { Colors, Spacing, Radius } from '../utils/theme';
 import { City } from '../types';
@@ -19,7 +19,6 @@ interface Props {
 
 export default function CityPicker({ visible, selectedCityId, onSelect, onClose }: Props) {
   const { cities, loading } = useCities();
-  const { bottom } = useSafeAreaInsets();
   const [query,      setQuery]      = useState('');
   const [detecting,  setDetecting]  = useState(false);
   const [detectHint, setDetectHint] = useState<string | null>(null);
@@ -76,107 +75,90 @@ export default function CityPicker({ visible, selectedCityId, onSelect, onClose 
   }
 
   return (
-    <Modal
+    <BottomSheetModal
       visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={handleClose}
-      statusBarTranslucent
+      onClose={handleClose}
+      title="בחר עיר"
+      avoidKeyboard
     >
-      <Pressable style={s.overlay} onPress={handleClose}>
-        <Pressable style={[s.sheet, { paddingBottom: bottom + 8 }]}>
-          <View style={s.handle} />
-          <Text style={s.title}>בחר עיר</Text>
-
-          {/* Search */}
-          <View style={s.searchRow}>
-            <Ionicons name="search-outline" size={16} color={Colors.textMuted} style={s.searchIcon} />
-            <TextInput scrollEnabled={false}
-              style={s.searchInput}
-              placeholder="חיפוש עיר..."
-              value={query}
-              onChangeText={setQuery}
-              placeholderTextColor={Colors.textMuted}
-              textAlign="right"
-              autoCorrect={false}
-            />
-            {query.length > 0 && (
-              <TouchableOpacity onPress={() => setQuery('')}>
-                <Ionicons name="close-circle" size={16} color={Colors.textMuted} />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Detect location button */}
-          <TouchableOpacity style={s.detectBtn} onPress={detectCity} disabled={detecting || loading}>
-            {detecting
-              ? <ActivityIndicator size="small" color={Colors.primary} />
-              : <Ionicons name="navigate-outline" size={16} color={Colors.primary} />}
-            <Text style={s.detectText}>
-              {detecting ? 'מזהה מיקום...' : 'זהה את מיקומי אוטומטית'}
-            </Text>
+      {/* Search */}
+      <View style={s.searchRow}>
+        <Ionicons name="search-outline" size={16} color={Colors.textMuted} style={s.searchIcon} />
+        <TextInput scrollEnabled={false}
+          style={s.searchInput}
+          placeholder="חיפוש עיר..."
+          value={query}
+          onChangeText={setQuery}
+          placeholderTextColor={Colors.textMuted}
+          textAlign="right"
+          autoCorrect={false}
+        />
+        {query.length > 0 && (
+          <TouchableOpacity onPress={() => setQuery('')}>
+            <Ionicons name="close-circle" size={16} color={Colors.textMuted} />
           </TouchableOpacity>
+        )}
+      </View>
 
-          {detectHint && (
-            <View style={s.hintBox}>
-              <Ionicons name="information-circle-outline" size={15} color={Colors.gold} />
-              <Text style={s.hintText}>{detectHint}</Text>
-            </View>
-          )}
+      {/* Detect location button */}
+      <TouchableOpacity style={s.detectBtn} onPress={detectCity} disabled={detecting || loading}>
+        {detecting
+          ? <ActivityIndicator size="small" color={Colors.primary} />
+          : <Ionicons name="navigate-outline" size={16} color={Colors.primary} />}
+        <Text style={s.detectText}>
+          {detecting ? 'מזהה מיקום...' : 'זהה את מיקומי אוטומטית'}
+        </Text>
+      </TouchableOpacity>
 
-          {loading ? (
-            <ActivityIndicator color={Colors.primary} style={{ marginVertical: 32 }} />
-          ) : filtered.length === 0 ? (
-            <View style={s.empty}>
-              <Ionicons name="location-outline" size={40} color={Colors.textMuted} />
-              <Text style={s.emptyText}>
-                {query ? `לא נמצאה עיר בשם "${query}"` : 'לא נמצאו ערים במערכת'}
-              </Text>
-              {!query && <Text style={s.emptyHint}>פנה למנהל המערכת להוסיף ערים</Text>}
-            </View>
-          ) : (
-            <FlatList
-              data={filtered}
-              keyExtractor={(c) => c.id}
-              keyboardShouldPersistTaps="handled"
-              ItemSeparatorComponent={() => <View style={s.divider} />}
-              renderItem={({ item }) => {
-                const active = item.id === selectedCityId;
-                return (
-                  <TouchableOpacity
-                    style={[s.cityRow, active && s.cityRowActive]}
-                    onPress={() => { onSelect(item); handleClose(); }}
-                    activeOpacity={0.7}
-                  >
-                    <View style={[s.iconCircle, active && s.iconCircleActive]}>
-                      <Ionicons name="location" size={18} color={active ? Colors.white : Colors.primary} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[s.cityName, active && s.cityNameActive]}>{item.name}</Text>
-                      {item.country ? <Text style={s.cityCountry}>{item.country}</Text> : null}
-                    </View>
-                    {active && <Ionicons name="checkmark-circle" size={22} color={Colors.primary} />}
-                  </TouchableOpacity>
-                );
-              }}
-            />
-          )}
-        </Pressable>
-      </Pressable>
-    </Modal>
+      {detectHint && (
+        <View style={s.hintBox}>
+          <Ionicons name="information-circle-outline" size={15} color={Colors.gold} />
+          <Text style={s.hintText}>{detectHint}</Text>
+        </View>
+      )}
+
+      {loading ? (
+        <ActivityIndicator color={Colors.primary} style={{ marginVertical: 32 }} />
+      ) : filtered.length === 0 ? (
+        <View style={s.empty}>
+          <Ionicons name="location-outline" size={40} color={Colors.textMuted} />
+          <Text style={s.emptyText}>
+            {query ? `לא נמצאה עיר בשם "${query}"` : 'לא נמצאו ערים במערכת'}
+          </Text>
+          {!query && <Text style={s.emptyHint}>פנה למנהל המערכת להוסיף ערים</Text>}
+        </View>
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(c) => c.id}
+          keyboardShouldPersistTaps="handled"
+          ItemSeparatorComponent={() => <View style={s.divider} />}
+          renderItem={({ item }) => {
+            const active = item.id === selectedCityId;
+            return (
+              <TouchableOpacity
+                style={[s.cityRow, active && s.cityRowActive]}
+                onPress={() => { onSelect(item); handleClose(); }}
+                activeOpacity={0.7}
+              >
+                <View style={[s.iconCircle, active && s.iconCircleActive]}>
+                  <Ionicons name="location" size={18} color={active ? Colors.white : Colors.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.cityName, active && s.cityNameActive]}>{item.name}</Text>
+                  {item.country ? <Text style={s.cityCountry}>{item.country}</Text> : null}
+                </View>
+                {active && <Ionicons name="checkmark-circle" size={22} color={Colors.primary} />}
+              </TouchableOpacity>
+            );
+          }}
+        />
+      )}
+    </BottomSheetModal>
   );
 }
 
 const s = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: Colors.cardBackground,
-    borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    maxHeight: '75%', paddingTop: 12,
-  },
-  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: 12 },
-  title:  { fontSize: 17, fontWeight: '800', color: Colors.text, textAlign: 'center', marginBottom: 12, paddingHorizontal: Spacing.lg },
-
   searchRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     marginHorizontal: Spacing.lg, marginBottom: 10,

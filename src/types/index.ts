@@ -98,6 +98,20 @@ export interface PrayerTimeSlot {
   offsetMin?: number;    // minutes offset from anchor (positive=after, negative=before), default 0
   proportional?: boolean; // if true, offsetMin is in sha'ot zmaniyot / 60 (halachic minutes)
   days?: number[];
+  /**
+   * Specific dates, each "YYYY-MM-DD". When non-empty this slot happens ONLY on
+   * those civil dates and `days` is ignored.
+   *
+   * Exists because `days` is an open-ended weekly recurrence, and some minyanim
+   * run on a known set of dates instead: the first night of selichot is usually
+   * at a different (later) time than the rest, and "days: [1]" would repeat it
+   * every Sunday until Yom Kippur. A list also lets a gabbai pick, say, four
+   * specific Mondays without committing to every Monday forever.
+   *
+   * Dates are the civil day the minyan is CLOCKED on — a Motzaei Shabbat 00:30
+   * minyan is dated to the Sunday. See utils/selichot.ts.
+   */
+  dates?: string[];
   notes?: string | null;
 }
 
@@ -113,6 +127,19 @@ export interface WeeklySchedule {
   shacharit: PrayerTimeSlot[];
   mincha: PrayerTimeSlot[];
   maariv: PrayerTimeSlot[];
+  /**
+   * Selichot minyanim. Optional — existing synagogue docs predate it, and most
+   * shuls only fill it in for the season.
+   *
+   * Modelled as ordinary weekday slots rather than a separate seasonal
+   * structure because that is what they are: a recurring nightly minyan with a
+   * fixed time or a zmanim anchor (chatzot, before netz) and a `days` pattern
+   * ("Sun–Thu 05:15, Motzaei Shabbat 00:45"). WHEN they are shown is a display
+   * concern — the season depends on nusach (Sephardim from Rosh Chodesh Elul,
+   * Ashkenazim from the Motzaei Shabbat before Rosh Hashana), so it is derived
+   * at read time rather than stored here.
+   */
+  selichot?: PrayerTimeSlot[];
   shiurim?: Shiur[];
   notes?: string;
 }
@@ -156,6 +183,16 @@ export interface Synagogue {
   gabbaiPhone?: string;
   wazeLink?: string;
   navigationNote?: string;
+  /**
+   * Which custom this shul follows for when selichot begin. Stored as the
+   * custom rather than a date so it is re-derived every year — a stored date
+   * would be correct for one season and silently wrong the next.
+   *
+   * Deliberately NOT inferred from `nusach`: that field is free text configured
+   * per city, and "נוסח ספרד" is Chassidic-Ashkenazi, following the ASHKENAZI
+   * start a month after "ספרדי / עדות המזרח". See utils/selichot.ts.
+   */
+  selichotCustom?: 'sephardi' | 'ashkenazi';
   weeklySchedule: WeeklySchedule;
   shabbatSchedule?: ShabbatSchedule;
   specialEvents?: SpecialEvent[];
@@ -449,6 +486,36 @@ export interface EruvReport {
   createdAt: any;
 }
 
+// ── Content reports — users flagging wrong/outdated info on a listing ────────
+
+/** Listing kinds a user can report. Keep in sync with REPORT_TARGETS. */
+export type ReportEntityType = 'synagogue' | 'business' | 'mikveh' | 'event' | 'gemach';
+
+export type ReportReason =
+  | 'wrong_hours'
+  | 'wrong_contact'
+  | 'wrong_location'
+  | 'closed'
+  | 'wrong_details'
+  | 'other';
+
+export interface ContentReport {
+  id: string;
+  cityId: string;
+  entityType: ReportEntityType;
+  entityId: string;
+  /** Denormalised so the admin queue is readable without extra lookups. */
+  entityName: string;
+  reason: ReportReason;
+  details?: string;
+  userId: string;
+  userName?: string;
+  status: 'open' | 'resolved' | 'dismissed';
+  handledBy?: string;
+  handledAt?: any;
+  createdAt: any;
+}
+
 export type AdminStackParamList = {
   AdminHome: undefined;
   ManageSynagogue: { synagogueId: string };
@@ -459,4 +526,5 @@ export type AdminStackParamList = {
   ManageEruv: undefined;
   UserManagement: undefined;
   ManageCities: undefined;
+  ManageReports: undefined;
 };

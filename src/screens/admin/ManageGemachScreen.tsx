@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useCallback, useLayoutEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TextInput,
   TouchableOpacity, Alert, ActivityIndicator, Switch,
@@ -10,12 +10,14 @@ import {
   doc, deleteDoc, updateDoc, addDoc, serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../../services/firebase';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
 import { Gemach, GemachCategory, PendingGemach } from '../../types';
 import TimeRangePicker from '../../components/TimeRangePicker';
+import { useNeighborhoodOptions } from '../../hooks/useNeighborhoodOptions';
+import NeighborhoodPickerModal from '../../components/NeighborhoodPickerModal';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -50,15 +52,31 @@ export default function ManageGemachScreen() {
   const navigation = useNavigation();
 
   const [gemachs,  setGemachs]  = useState<Gemach[]>([]);
+
+  // Deep-link from a content report ("פתח לתיקון") — open the reported gemach's
+  // edit form once the list has loaded. Guarded by a ref so re-renders (or the
+  // user closing the form) don't keep re-opening it.
+  const route = useRoute<any>();
+  const focusId = route.params?.focusId as string | undefined;
+  const focusHandled = useRef(false);
+  // Arriving from a report means the list was never on screen — closing the
+  // form (or saving) should return to the reports queue, not to a list the
+  // manager never asked for.
+  const cameFromReport = useRef(!!focusId);
   const [pending,  setPending]  = useState<PendingGemach[]>([]);
   const [loading,  setLoading]  = useState(true);
-  const [activeTab, setActiveTab] = useState<'gemachs' | 'pending'>('gemachs');
+  // Arriving from the profile badge means they came for the pending queue.
+  const [activeTab, setActiveTab] = useState<'gemachs' | 'pending'>(
+    route.params?.initialTab === 'pending' ? 'pending' : 'gemachs',
+  );
 
   // Form state
   const [formOpen, setFormOpen] = useState(false);
   const [editId,   setEditId]   = useState<string | null>(null);
   const [form,     setForm]     = useState(EMPTY_FORM);
   const [saving,   setSaving]   = useState(false);
+  const { options: neighborhoodOptions, addOption: addNeighborhood } = useNeighborhoodOptions(cityId);
+  const [neighborhoodPickerOpen, setNeighborhoodPickerOpen] = useState(false);
 
   // ── Load ──────────────────────────────────────────────────────────────────
 
@@ -100,6 +118,12 @@ export default function ManageGemachScreen() {
     setFormOpen(true);
   }
 
+  useEffect(() => {
+    if (!focusId || focusHandled.current || gemachs.length === 0) return;
+    const hit = gemachs.find((g) => g.id === focusId);
+    if (hit) { focusHandled.current = true; openEdit(hit); }
+  }, [focusId, gemachs]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function openEdit(g: Gemach) {
     setForm({
       name: g.name,
@@ -118,6 +142,7 @@ export default function ManageGemachScreen() {
     setFormOpen(false);
     setEditId(null);
     setForm(EMPTY_FORM);
+    if (cameFromReport.current) navigation.goBack();
   }
 
   function setField<K extends keyof typeof EMPTY_FORM>(key: K, val: (typeof EMPTY_FORM)[K]) {
@@ -227,6 +252,17 @@ export default function ManageGemachScreen() {
     ]);
   }
 
+  // Hardware back / header back / swipe while the form is open should return to
+  // the list, not pop the screen — unless we arrived here from a report, where
+  // the list was never on screen (see closeForm).
+  useEffect(() => {
+    return navigation.addListener('beforeRemove', (e: any) => {
+      if (!formOpen || cameFromReport.current) return;
+      e.preventDefault();
+      closeForm();
+    });
+  }, [navigation, formOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Nav header button ─────────────────────────────────────────────────────
 
   useLayoutEffect(() => {
@@ -245,118 +281,131 @@ export default function ManageGemachScreen() {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
+  // The edit form takes over the whole screen, matching ManageSynagogue /
+  // ManageMikveh rather than sitting inline above the list.
+  if (formOpen) {
+    return (
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
+        <View style={styles.formCard}>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>שם הגמ"ח *</Text>
+            <TextInput scrollEnabled={false}
+              style={styles.input}
+              value={form.name}
+              onChangeText={(v) => setField('name', v)}
+              placeholder='לדוגמה: גמ"ח בגדי ילדים'
+              placeholderTextColor={Colors.textMuted}
+              textAlign="right"
+            />
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>קטגוריה</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catRow}>
+              {CATEGORIES.map(({ key, label, icon }) => {
+                const active = form.category === key;
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    style={[styles.catChip, active && styles.catChipActive]}
+                    onPress={() => setField('category', key)}
+                  >
+                    <Ionicons name={icon as any} size={13} color={active ? Colors.white : GEMACH_COLOR} />
+                    <Text style={[styles.catChipText, active && styles.catChipTextActive]}>{label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          <View style={styles.rowTwo}>
+            <View style={[styles.section, { flex: 1 }]}>
+              <Text style={styles.sectionLabel}>שם איש קשר</Text>
+              <TextInput scrollEnabled={false}
+                style={styles.input}
+                value={form.contactName}
+                onChangeText={(v) => setField('contactName', v)}
+                placeholder="שם מלא"
+                placeholderTextColor={Colors.textMuted}
+                textAlign="right"
+              />
+            </View>
+            <View style={[styles.section, { flex: 1 }]}>
+              <Text style={styles.sectionLabel}>טלפון</Text>
+              <TextInput scrollEnabled={false}
+                style={styles.input}
+                value={form.phone}
+                onChangeText={(v) => setField('phone', v)}
+                placeholder="050-0000000"
+                placeholderTextColor={Colors.textMuted}
+                textAlign="right"
+                keyboardType="phone-pad"
+              />
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>שכונה</Text>
+            <TouchableOpacity style={styles.dropdownField} onPress={() => setNeighborhoodPickerOpen(true)} activeOpacity={0.7}>
+              <Text style={form.neighborhood ? styles.dropdownValue : styles.dropdownPlaceholder}>
+                {form.neighborhood || 'בחר שכונה'}
+              </Text>
+              <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
+            </TouchableOpacity>
+
+            <NeighborhoodPickerModal
+              visible={neighborhoodPickerOpen}
+              options={neighborhoodOptions}
+              selected={form.neighborhood || undefined}
+              canAdd
+              onSelect={(name) => setField('neighborhood', name ?? '')}
+              onAddNew={addNeighborhood}
+              onClose={() => setNeighborhoodPickerOpen(false)}
+            />
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>שעות פעילות</Text>
+            <TimeRangePicker
+              value={form.hours}
+              onChange={(v) => setField('hours', v)}
+            />
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>תיאור</Text>
+            <TextInput scrollEnabled={false}
+              style={[styles.input, styles.inputMulti]}
+              value={form.description}
+              onChangeText={(v) => setField('description', v)}
+              placeholder={'פרטים נוספים על הגמ"ח...'}
+              placeholderTextColor={Colors.textMuted}
+              textAlign="right"
+              multiline
+              textAlignVertical="top"
+            />
+          </View>
+
+          <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
+            {saving
+              ? <ActivityIndicator color={Colors.white} />
+              : <>
+                  <Ionicons name="checkmark-outline" size={20} color={Colors.white} />
+                  <Text style={styles.saveBtnText}>{editId ? 'עדכן' : 'הוסף גמ"ח'}</Text>
+                </>
+            }
+          </TouchableOpacity>
+        </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
+
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
-
-        {/* ── Form ───────────────────────────────────────────────────────── */}
-        {formOpen && (
-          <View style={styles.formCard}>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>שם הגמ"ח *</Text>
-              <TextInput scrollEnabled={false}
-                style={styles.input}
-                value={form.name}
-                onChangeText={(v) => setField('name', v)}
-                placeholder='לדוגמה: גמ"ח בגדי ילדים'
-                placeholderTextColor={Colors.textMuted}
-                textAlign="right"
-              />
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>קטגוריה</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catRow}>
-                {CATEGORIES.map(({ key, label, icon }) => {
-                  const active = form.category === key;
-                  return (
-                    <TouchableOpacity
-                      key={key}
-                      style={[styles.catChip, active && styles.catChipActive]}
-                      onPress={() => setField('category', key)}
-                    >
-                      <Ionicons name={icon as any} size={13} color={active ? Colors.white : GEMACH_COLOR} />
-                      <Text style={[styles.catChipText, active && styles.catChipTextActive]}>{label}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-
-            <View style={styles.rowTwo}>
-              <View style={[styles.section, { flex: 1 }]}>
-                <Text style={styles.sectionLabel}>שם איש קשר</Text>
-                <TextInput scrollEnabled={false}
-                  style={styles.input}
-                  value={form.contactName}
-                  onChangeText={(v) => setField('contactName', v)}
-                  placeholder="שם מלא"
-                  placeholderTextColor={Colors.textMuted}
-                  textAlign="right"
-                />
-              </View>
-              <View style={[styles.section, { flex: 1 }]}>
-                <Text style={styles.sectionLabel}>טלפון</Text>
-                <TextInput scrollEnabled={false}
-                  style={styles.input}
-                  value={form.phone}
-                  onChangeText={(v) => setField('phone', v)}
-                  placeholder="050-0000000"
-                  placeholderTextColor={Colors.textMuted}
-                  textAlign="right"
-                  keyboardType="phone-pad"
-                />
-              </View>
-            </View>
-
-            <View style={styles.rowTwo}>
-              <View style={[styles.section, { flex: 1 }]}>
-                <Text style={styles.sectionLabel}>שכונה</Text>
-                <TextInput scrollEnabled={false}
-                  style={styles.input}
-                  value={form.neighborhood}
-                  onChangeText={(v) => setField('neighborhood', v)}
-                  placeholder="שם השכונה"
-                  placeholderTextColor={Colors.textMuted}
-                  textAlign="right"
-                />
-              </View>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>שעות פעילות</Text>
-              <TimeRangePicker
-                value={form.hours}
-                onChange={(v) => setField('hours', v)}
-              />
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>תיאור</Text>
-              <TextInput scrollEnabled={false}
-                style={[styles.input, styles.inputMulti]}
-                value={form.description}
-                onChangeText={(v) => setField('description', v)}
-                placeholder={'פרטים נוספים על הגמ"ח...'}
-                placeholderTextColor={Colors.textMuted}
-                textAlign="right"
-                multiline
-                textAlignVertical="top"
-              />
-            </View>
-
-            <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
-              {saving
-                ? <ActivityIndicator color={Colors.white} />
-                : <>
-                    <Ionicons name="checkmark-outline" size={20} color={Colors.white} />
-                    <Text style={styles.saveBtnText}>{editId ? 'עדכן' : 'הוסף גמ"ח'}</Text>
-                  </>
-              }
-            </TouchableOpacity>
-          </View>
-        )}
 
         {/* ── Tab switcher ────────────────────────────────────────────────── */}
         <View style={styles.tabRow}>
@@ -395,7 +444,12 @@ export default function ManageGemachScreen() {
               </View>
             ) : (
               gemachs.map((g) => (
-                <View key={g.id} style={[styles.gemachCard, !g.isActive && styles.gemachCardInactive]}>
+                <TouchableOpacity
+                  key={g.id}
+                  style={[styles.gemachCard, !g.isActive && styles.gemachCardInactive]}
+                  onPress={() => openEdit(g)}
+                  activeOpacity={0.7}
+                >
                   <View style={styles.gemachIconCircle}>
                     <Ionicons
                       name={(CATEGORIES.find((c) => c.key === g.category)?.icon ?? 'gift-outline') as any}
@@ -421,14 +475,11 @@ export default function ManageGemachScreen() {
                       thumbColor={Colors.white}
                       style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
                     />
-                    <TouchableOpacity onPress={() => openEdit(g)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                      <Ionicons name="pencil-outline" size={18} color={Colors.primary} />
-                    </TouchableOpacity>
                     <TouchableOpacity onPress={() => handleDelete(g)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                       <Ionicons name="trash-outline" size={18} color={Colors.danger} />
                     </TouchableOpacity>
                   </View>
-                </View>
+                </TouchableOpacity>
               ))
             )}
           </View>
@@ -507,6 +558,12 @@ const styles = StyleSheet.create({
   section: { marginBottom: Spacing.md },
   rowTwo: { flexDirection: 'row', gap: Spacing.md },
   sectionLabel: { fontSize: 12, fontWeight: '700', color: Colors.textMuted, marginBottom: 6 },
+  dropdownField: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    borderBottomWidth: 1.5, borderBottomColor: Colors.border, paddingVertical: 8,
+  },
+  dropdownValue: { fontSize: 15, color: Colors.text },
+  dropdownPlaceholder: { fontSize: 15, color: Colors.textMuted },
 
   input: {
     fontSize: 15, color: Colors.text,

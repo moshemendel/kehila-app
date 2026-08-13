@@ -288,5 +288,39 @@ service cloud.firestore {
       allow read, update, delete: if isAdminOf(resource.data.cityId);
     }
 
+    // ── Content reports — users flagging wrong info on a public listing ───────
+    // Anyone signed in (including guests, who hold a real anonymous uid) may
+    // file a report, but only carrying their OWN uid, so reports stay
+    // attributable and a client can't forge another user's. Reading and
+    // resolving is admin-only: reports can name a specific place and person,
+    // so they are not public the way the listings themselves are.
+    match /contentReports/{reportId} {
+      // Whoever can fix the reported listing can see and close the report.
+      // managesSynagogue/managesBusiness already fold in isAdminOf, so city and
+      // super admins are covered by every branch.
+      //
+      // NOTE for clients: Firestore rules are not filters. A manager who cannot
+      // read every report in the city must scope their QUERY to the subset this
+      // allows (see services/reports.ts fetchReportsFor), or the whole query
+      // fails with permission-denied rather than returning a filtered list.
+      function managesReported() {
+        return (resource.data.entityType == 'synagogue'
+                 && managesSynagogue(resource.data.entityId, resource.data.cityId))
+            || (resource.data.entityType == 'business'
+                 && managesBusiness(resource.data.entityId, resource.data.cityId))
+            || (resource.data.entityType == 'mikveh'
+                 && hasCityRole('mikveh_manager', resource.data.cityId))
+            || (resource.data.entityType == 'event'
+                 && hasCityRole('event_manager', resource.data.cityId));
+        // 'gemach' has no dedicated manager role — admins only, via the checks below.
+      }
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'open';
+      allow read, update: if isAdminOf(resource.data.cityId) || managesReported();
+      // Deleting destroys the audit trail — admins only, managers just resolve.
+      allow delete: if isAdminOf(resource.data.cityId);
+    }
+
   }
 }

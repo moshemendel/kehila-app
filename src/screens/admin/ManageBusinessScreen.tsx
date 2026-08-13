@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TextInput,
   TouchableOpacity, Alert, ActivityIndicator,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useBusinesses } from '../../hooks/useBusinesses';
 import { useCityId } from '../../hooks/useCityId';
@@ -156,13 +156,29 @@ export default function ManageBusinessScreen() {
   const { businesses, loading } = useBusinesses(cityId);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Business | null>(null);
+  // Deep-link from a content report ("פתח לתיקון") — preselect the reported
+  // item once the list has loaded so the manager lands straight on it.
+  const route = useRoute<any>();
+  const focusId = route.params?.focusId as string | undefined;
+  // Arriving from a report means the list was never on screen — back should
+  // return to the reports queue, not drop the user into a list they never saw.
+  const cameFromReport = useRef(!!focusId);
+  const onBackFromItem = () => {
+    if (cameFromReport.current) navigation.goBack();
+    else setSelected(null);
+  };
+  useEffect(() => {
+    if (!focusId) return;
+    const hit = businesses.find((x: any) => x.id === focusId);
+    if (hit) setSelected(hit);
+  }, [focusId, businesses]);
 
   // Native back (header button, hardware back, swipe gesture) should return to
   // the list first, not pop this whole screen off the stack — beforeRemove is
   // the single event React Navigation fires for all three of those triggers.
   useEffect(() => {
     return navigation.addListener('beforeRemove', (e) => {
-      if (!selected) return;
+      if (!selected || cameFromReport.current) return;
       e.preventDefault();
       setSelected(null);
     });
@@ -202,7 +218,7 @@ export default function ManageBusinessScreen() {
   }
 
   if (selected) {
-    return <EditForm rest={selected} onBack={() => setSelected(null)} />;
+    return <EditForm rest={selected} onBack={onBackFromItem} />;
   }
 
   return (

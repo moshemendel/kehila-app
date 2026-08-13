@@ -6,6 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import { useAuth } from '../../context/AuthContext';
+import { canSeeReports } from '../../services/reports';
+import { useManagerAlerts } from '../../hooks/useManagerAlerts';
 import { useNotifications } from '../../context/NotificationsContext';
 import { useFavorites } from '../../context/FavoritesContext';
 import { logout } from '../../services/auth';
@@ -88,6 +90,7 @@ export default function ProfileScreen() {
   // the management menu on it alone would hide every other role they actually hold.
   const roles = appUser?.roles ?? [role];
   const isManager = roles.some((r) => r !== 'user');
+  const alerts = useManagerAlerts();
   const isAdminRole = roles.some((r) => ['city_admin', 'super_admin', 'dev'].includes(r));
 
   const cityId = useCityId();
@@ -121,9 +124,9 @@ export default function ProfileScreen() {
   }
 
   // Gate every entry into the management area behind a biometric / PIN check.
-  async function openManage(screen: string) {
+  async function openManage(screen: string, params?: Record<string, unknown>) {
     const ok = await requireManagerAuth();
-    if (ok) navigation.navigate(screen);
+    if (ok) navigation.navigate(screen, params);
   }
 
   async function handleLogout() {
@@ -229,7 +232,9 @@ export default function ProfileScreen() {
               )}
               {(roles.includes('event_manager') || isAdminRole) && (
                 <MenuRow icon="megaphone-outline" label="ניהול אירועים והודעות" color={Colors.events}
-                  onPress={() => openManage('ManageEvents')} />
+                  badge={alerts.pendingEvents > 0 ? String(alerts.pendingEvents) : undefined}
+                  onPress={() => openManage('ManageEvents',
+                    alerts.pendingEvents > 0 ? { initialTab: 'pending' } : undefined)} />
               )}
               {(roles.includes('mikveh_manager') || isAdminRole) && (
                 <MenuRow icon="water-outline" label="ניהול מקוואות" color={Colors.mikveh}
@@ -237,11 +242,15 @@ export default function ProfileScreen() {
               )}
               {isAdminRole && (
                 <MenuRow icon="gift-outline" label='ניהול גמ"חים' color="#B06B3A"
-                  onPress={() => openManage('ManageGemach')} />
+                  badge={alerts.pendingGemachs > 0 ? String(alerts.pendingGemachs) : undefined}
+                  onPress={() => openManage('ManageGemach',
+                    alerts.pendingGemachs > 0 ? { initialTab: 'pending' } : undefined)} />
               )}
               {(roles.includes('eruv_manager') || isAdminRole) && (
                 <MenuRow icon="shield-outline" label="ניהול עירוב" color={Colors.gold}
-                  onPress={() => openManage('ManageEruv')} />
+                  badge={alerts.eruvReports > 0 ? String(alerts.eruvReports) : undefined}
+                  onPress={() => openManage('ManageEruv',
+                    alerts.eruvReports > 0 ? { initialTab: 'reports' } : undefined)} />
               )}
               {isAdminRole && (
                 <MenuRow icon="people-outline" label="ניהול משתמשים" color={Colors.danger}
@@ -250,6 +259,11 @@ export default function ProfileScreen() {
               {isAdminRole && (
                 <MenuRow icon="globe-outline" label="ניהול ערים" color={Colors.primary}
                   onPress={() => openManage('ManageCities')} />
+              )}
+              {canSeeReports(appUser) && (
+                <MenuRow icon="flag-outline" label="דיווחים על מידע שגוי" color={Colors.danger}
+                  badge={alerts.reports > 0 ? String(alerts.reports) : undefined}
+                  onPress={() => openManage('ManageReports')} />
               )}
             </View>
           </View>

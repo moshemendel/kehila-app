@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
+import ReportListingButton from '../../components/ReportListingButton';
+import { useNavigateTo } from '../../hooks/useNavigateTo';
 import { Business, KosherCertificate } from '../../types';
 import { getBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../../services/businesses';
 
@@ -50,16 +52,10 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-function openMaps(address: string, lat?: number, lon?: number) {
-  const url = lat && lon
-    ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-  Linking.openURL(url);
-}
-
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function BusinessDetailScreen() {
+  const { go: navigateTo, sheet: navSheet } = useNavigateTo();
   const route           = useRoute<any>();
   const { top, bottom } = useSafeAreaInsets();
 
@@ -123,6 +119,18 @@ export default function BusinessDetailScreen() {
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
+      {/* Floating report control — these screens have no header bar, so it sits
+          over the cover image where a header would be. */}
+      <View style={styles.reportFab} pointerEvents="box-none">
+        <ReportListingButton
+          variant="overlay"
+          cityId={business.cityId}
+          entityType="business"
+          entityId={business.id}
+          entityName={business.name}
+          color={Colors.kosher}
+        />
+      </View>
       {/* Dark status-bar icons on this screen's light background */}
       <StatusBar style="dark" />
 
@@ -132,6 +140,7 @@ export default function BusinessDetailScreen() {
         transparent
         animationType="fade"
         statusBarTranslucent
+        navigationBarTranslucent
         onRequestClose={() => setCertModal(null)}
       >
         <View style={styles.certModalBg}>
@@ -231,7 +240,7 @@ export default function BusinessDetailScreen() {
             {/* Address → maps */}
             <TouchableOpacity
               style={styles.metaRow}
-              onPress={() => openMaps(business.address, business.latitude, business.longitude)}
+              onPress={() => navigateTo({ latitude: business.latitude, longitude: business.longitude, address: business.address })}
               activeOpacity={0.7}
             >
               <Ionicons name="location-outline" size={15} color={Colors.kosher} />
@@ -278,7 +287,7 @@ export default function BusinessDetailScreen() {
               )}
               <TouchableOpacity
                 style={[styles.actionBtn, styles.actionBtnPrimary]}
-                onPress={() => openMaps(business.address, business.latitude, business.longitude)}
+                onPress={() => navigateTo({ latitude: business.latitude, longitude: business.longitude, address: business.address })}
               >
                 <Ionicons name="navigate" size={18} color="#fff" />
                 <Text style={[styles.actionBtnTxt, { color: '#fff' }]}>ניווט</Text>
@@ -384,6 +393,8 @@ export default function BusinessDetailScreen() {
         </View>
 
       </ScrollView>
+
+      {navSheet}
     </View>
   );
 }
@@ -468,6 +479,7 @@ function CertCard({
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  reportFab: { position: 'absolute', top: 44, left: 14, zIndex: 20 },
 
   container: { flex: 1, backgroundColor: Colors.background },
   loader:    { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background, gap: 12 },

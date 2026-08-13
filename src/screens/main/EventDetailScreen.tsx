@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useEventsFeed } from '../../context/EventsContext';
+import ReportListingButton from '../../components/ReportListingButton';
+import { useNavigateTo } from '../../hooks/useNavigateTo';
 import { CommunityEvent, EventCategory } from '../../types';
 import { formatHebrewDate } from '../../utils/hebrewDate';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
@@ -45,28 +47,6 @@ function countdownLabel(iso: string): { text: string; urgent: boolean } {
   return { text: `בעוד ${Math.floor(days / 7)} שבועות`, urgent: false };
 }
 
-async function openNavigation(event: CommunityEvent) {
-  // Prefer coordinates, fall back to address text search
-  const wazeCoords = event.latitude && event.longitude
-    ? `waze://?ll=${event.latitude},${event.longitude}&navigate=yes`
-    : null;
-  const wazeSearch = event.location
-    ? `waze://?q=${encodeURIComponent(event.location)}&navigate=yes`
-    : null;
-  const mapsUrl = event.latitude && event.longitude
-    ? `https://maps.google.com/?q=${event.latitude},${event.longitude}`
-    : event.location
-      ? `https://maps.google.com/?q=${encodeURIComponent(event.location)}`
-      : null;
-
-  const wazeUrl = wazeCoords ?? wazeSearch;
-  if (wazeUrl) {
-    const canWaze = await Linking.canOpenURL('waze://').catch(() => false);
-    if (canWaze) { Linking.openURL(wazeUrl); return; }
-  }
-  if (mapsUrl) { Linking.openURL(mapsUrl); return; }
-}
-
 function hasNavigation(event: CommunityEvent): boolean {
   return !!(event.latitude || event.longitude || event.location);
 }
@@ -74,6 +54,7 @@ function hasNavigation(event: CommunityEvent): boolean {
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function EventDetailScreen() {
+  const { go: navigateTo, sheet: navSheet } = useNavigateTo();
   const { top, bottom } = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route      = useRoute<any>();
@@ -173,6 +154,17 @@ export default function EventDetailScreen() {
             <TouchableOpacity onPress={handleShare} style={styles.headerBtn}>
               <Ionicons name="share-social-outline" size={22} color={Colors.white} />
             </TouchableOpacity>
+            <View style={styles.headerBtn}>
+              <ReportListingButton
+                variant="icon"
+                iconColor={Colors.white}
+                cityId={event.cityId}
+                entityType="event"
+                entityId={event.id}
+                entityName={event.title}
+                color={cfg.color}
+              />
+            </View>
           </View>
         </View>
 
@@ -218,7 +210,7 @@ export default function EventDetailScreen() {
             <View style={styles.locationRow}>
               <Text style={[styles.infoMain, { flex: 1 }]}>{event.location}</Text>
               {hasNavigation(event) && (
-                <TouchableOpacity style={styles.wazeBtn} onPress={() => openNavigation(event)}>
+                <TouchableOpacity style={styles.wazeBtn} onPress={() => navigateTo({ latitude: event.latitude, longitude: event.longitude, address: event.location })}>
                   <Ionicons name="navigate" size={14} color={Colors.white} />
                   <Text style={styles.wazeBtnText}>ניווט</Text>
                 </TouchableOpacity>
@@ -277,6 +269,8 @@ export default function EventDetailScreen() {
           <Text style={styles.dismissBtnText}>הסתר</Text>
         </TouchableOpacity>
       </View>
+
+      {navSheet}
     </View>
   );
 }

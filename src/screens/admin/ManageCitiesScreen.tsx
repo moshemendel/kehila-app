@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput,
-  Alert, ActivityIndicator, Modal, Pressable, ScrollView,
+  Alert, ActivityIndicator, ScrollView,
 } from 'react-native';
+import BottomSheetModal from '../../components/BottomSheetModal';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -99,6 +100,9 @@ export default function ManageCitiesScreen() {
     setPicked(null);
     setAddOpen(true);
   }
+
+  function closeTzPicker() { setTzPickerOpen(false); }
+  function closeAdd() { setAddOpen(false); }
 
   // ── Geocode by name ───────────────────────────────────────────────
   async function handleSearch() {
@@ -257,58 +261,61 @@ export default function ManageCitiesScreen() {
       </TouchableOpacity>
 
       {/* ── Timezone picker ─────────────────────────────────────── */}
-      <Modal visible={tzPickerOpen} transparent animationType="slide" onRequestClose={() => setTzPickerOpen(false)}>
-        <Pressable style={s.overlay} onPress={() => setTzPickerOpen(false)}>
-          <Pressable style={[s.sheet, { paddingBottom: bottom + 16 }]}>
-            <View style={s.handle} />
-            <Text style={s.sheetTitle}>בחר אזור זמן</Text>
-            <View style={s.searchRow}>
-              <TextInput scrollEnabled={false}
-                style={s.searchInput}
-                placeholder='חיפוש (למשל "Jerusalem", "New_York")...'
-                value={tzSearch}
-                onChangeText={setTzSearch}
-                autoCapitalize="none"
-                autoCorrect={false}
-                placeholderTextColor={Colors.textMuted}
-              />
-              {tzSearch.length > 0 && (
-                <TouchableOpacity onPress={() => setTzSearch('')} style={s.tzClearBtn}>
-                  <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
-                </TouchableOpacity>
-              )}
-            </View>
-            <FlatList
-              data={filteredTz}
-              keyExtractor={(item) => item}
-              keyboardShouldPersistTaps="handled"
-              getItemLayout={(_, index) => ({ length: 46, offset: 46 * index, index })}
-              ItemSeparatorComponent={() => <View style={s.tzDivider} />}
-              renderItem={({ item }) => {
-                const active = item === tzOverride;
-                return (
-                  <TouchableOpacity
-                    style={[s.tzRow, active && s.tzRowActive]}
-                    onPress={() => { setTzOverride(item); setTzPickerOpen(false); }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[s.tzLabel, active && s.tzLabelActive]}>{item}</Text>
-                    {active && <Ionicons name="checkmark" size={18} color={Colors.primary} />}
-                  </TouchableOpacity>
-                );
-              }}
-            />
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <BottomSheetModal
+        visible={tzPickerOpen}
+        onClose={closeTzPicker}
+        title="בחר אזור זמן"
+        maxHeight="90%"
+        sheetStyle={s.sheetPad}
+        avoidKeyboard
+      >
+    <View style={s.searchRow}>
+      <TextInput scrollEnabled={false}
+        style={s.searchInput}
+        placeholder='חיפוש (למשל "Jerusalem", "New_York")...'
+        value={tzSearch}
+        onChangeText={setTzSearch}
+        autoCapitalize="none"
+        autoCorrect={false}
+        placeholderTextColor={Colors.textMuted}
+      />
+      {tzSearch.length > 0 && (
+        <TouchableOpacity onPress={() => setTzSearch('')} style={s.tzClearBtn}>
+          <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+        </TouchableOpacity>
+      )}
+    </View>
+    <FlatList
+      data={filteredTz}
+      keyExtractor={(item) => item}
+      keyboardShouldPersistTaps="handled"
+      getItemLayout={(_, index) => ({ length: 46, offset: 46 * index, index })}
+      ItemSeparatorComponent={() => <View style={s.tzDivider} />}
+      renderItem={({ item }) => {
+        const active = item === tzOverride;
+        return (
+          <TouchableOpacity
+            style={[s.tzRow, active && s.tzRowActive]}
+            onPress={() => { setTzOverride(item); setTzPickerOpen(false); }}
+            activeOpacity={0.7}
+          >
+            <Text style={[s.tzLabel, active && s.tzLabelActive]}>{item}</Text>
+            {active && <Ionicons name="checkmark" size={18} color={Colors.primary} />}
+          </TouchableOpacity>
+        );
+      }}
+/>
+      </BottomSheetModal>
 
       {/* ── Add city sheet ───────────────────────────────────────── */}
-      <Modal visible={addOpen} transparent animationType="slide" onRequestClose={() => setAddOpen(false)}>
-        <Pressable style={s.overlay} onPress={() => setAddOpen(false)}>
-          <Pressable style={[s.sheet, { paddingBottom: bottom + 16 }]}>
-            <View style={s.handle} />
-            <Text style={s.sheetTitle}>הוסף עיר</Text>
-
+      <BottomSheetModal
+        visible={addOpen}
+        onClose={closeAdd}
+        title="הוסף עיר"
+        maxHeight="90%"
+        sheetStyle={s.sheetPad}
+        avoidKeyboard
+      >
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
               {/* Search row */}
@@ -384,10 +391,8 @@ export default function ManageCitiesScreen() {
                   : <Text style={s.saveBtnText}>הוסף לרשימת הערים</Text>}
               </TouchableOpacity>
 
-            </ScrollView>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        </ScrollView>
+      </BottomSheetModal>
     </View>
   );
 }
@@ -421,14 +426,7 @@ const s = StyleSheet.create({
     shadowOpacity: 0.2, shadowRadius: 8, elevation: 8,
   },
 
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: Colors.cardBackground,
-    borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    paddingTop: 12, paddingHorizontal: Spacing.lg, maxHeight: '90%',
-  },
-  handle:     { width: 36, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: 14 },
-  sheetTitle: { fontSize: 18, fontWeight: '800', color: Colors.text, textAlign: 'center', marginBottom: 16 },
+  sheetPad: { paddingHorizontal: Spacing.lg },
 
   searchRow:  { flexDirection: 'row', gap: 10, marginBottom: 10 },
   searchInput: {

@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import BottomSheetModal from './BottomSheetModal';
 import { Colors, Radius, Spacing } from '../utils/theme';
 import { useCityId } from '../hooks/useCityId';
 import { useSynagogues } from '../hooks/useSynagogues';
@@ -109,17 +110,14 @@ export default function LocationPicker({
         <Ionicons name="chevron-down" size={14} color={Colors.textMuted} />
       </TouchableOpacity>
 
-      <Modal
+      <BottomSheetModal
         visible={visible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setVisible(false)}
+        onClose={() => setVisible(false)}
+        title="בחר מיקום"
+        dimOpacity={0.45}
+        sheetStyle={lp.sheetPad}
+        avoidKeyboard
       >
-        <View style={lp.overlay}>
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setVisible(false)} />
-          <View style={lp.sheet}>
-            <View style={lp.handle} />
-            <Text style={lp.sheetTitle}>בחר מיקום</Text>
 
             {/* Search row */}
             <View style={lp.searchRow}>
@@ -251,10 +249,8 @@ export default function LocationPicker({
               )}
 
               <View style={{ height: 24 }} />
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+        </ScrollView>
+      </BottomSheetModal>
     </>
   );
 }
@@ -278,23 +274,7 @@ const lp = StyleSheet.create({
   triggerPlaceholder: { color: Colors.textMuted },
   triggerInvalid: { borderBottomColor: Colors.danger, borderBottomWidth: 2 },
 
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
-  sheet: {
-    backgroundColor: Colors.cardBackground,
-    borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    padding: Spacing.lg,
-    paddingBottom: 0,
-    maxHeight: Dimensions.get('window').height * 0.75,
-  },
-  handle: {
-    width: 36, height: 4, borderRadius: 2,
-    backgroundColor: Colors.border,
-    alignSelf: 'center', marginBottom: 12,
-  },
-  sheetTitle: {
-    fontSize: 16, fontWeight: '700', color: Colors.text,
-    textAlign: 'center', marginBottom: 12,
-  },
+  sheetPad: { paddingHorizontal: Spacing.lg, paddingBottom: 0 },
 
   searchRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8,

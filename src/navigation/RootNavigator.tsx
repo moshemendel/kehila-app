@@ -26,6 +26,8 @@ import ManageMikvehScreen     from '../screens/admin/ManageMikvehScreen';
 import ManageEventsScreen     from '../screens/admin/ManageEventsScreen';
 import UserManagementScreen   from '../screens/admin/UserManagementScreen';
 import ManageEruvScreen       from '../screens/admin/ManageEruvScreen';
+import SelichotScreen          from '../screens/main/SelichotScreen';
+import ManageReportsScreen     from '../screens/admin/ManageReportsScreen';
 import ManageCitiesScreen     from '../screens/admin/ManageCitiesScreen';
 import ManageGemachScreen     from '../screens/admin/ManageGemachScreen';
 import ZmanimSettingsScreen   from '../screens/main/ZmanimSettingsScreen';
@@ -189,6 +191,12 @@ export default function RootNavigator() {
         options={{ headerShown: false }}
       />
 
+      <Root.Screen
+        name="Selichot"
+        component={SelichotScreen}
+        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.gold }, title: 'סליחות', contentStyle: stackContentStyle }}
+      />
+
       {/* Admin screens */}
       <Root.Screen
         name="ManageSynagogue"
@@ -234,6 +242,11 @@ export default function RootNavigator() {
         name="ManageCities"
         component={ManageCitiesScreen}
         options={{ ...HEADER, title: 'ניהול ערים', contentStyle: stackContentStyle }}
+      />
+      <Root.Screen
+        name="ManageReports"
+        component={ManageReportsScreen}
+        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.danger }, title: 'דיווחים על מידע שגוי', contentStyle: stackContentStyle }}
       />
       <Root.Screen
         name="ManageGemach"

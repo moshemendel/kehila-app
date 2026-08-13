@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  Modal, ActivityIndicator, ScrollView, Alert,
+  ActivityIndicator, ScrollView, Alert,
 } from 'react-native';
+import BottomSheetModal from './BottomSheetModal';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow } from '../utils/theme';
 
@@ -67,8 +68,6 @@ export default function AddItemModal({
 
   const formContent = (
     <>
-      <Text style={[s.title, { color: accentColor }]}>{title}</Text>
-
       <ScrollView keyboardShouldPersistTaps="handled" style={inline ? undefined : { maxHeight: 420 }}>
         {fields.map((f) => (
           <View key={f.key} style={s.field}>
@@ -126,23 +125,29 @@ export default function AddItemModal({
 
   if (inline) {
     if (!visible) return null;
-    return <View style={s.inlineCard}>{formContent}</View>;
+    return (
+      <View style={s.inlineCard}>
+        <Text style={[s.title, { color: accentColor }]}>{title}</Text>
+        {formContent}
+      </View>
+    );
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <View style={s.overlay}>
-        <View style={s.sheet}>
-          <View style={s.handle} />
-          {formContent}
-        </View>
-      </View>
-    </Modal>
+    <BottomSheetModal
+      visible={visible}
+      onClose={handleClose}
+      closeOnBackdropPress={false}
+      sheetStyle={s.sheetPad}
+    >
+      <Text style={[s.title, { color: accentColor }]}>{title}</Text>
+      {formContent}
+    </BottomSheetModal>
   );
 }
 
 const s = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  sheetPad: { paddingHorizontal: Spacing.lg, gap: Spacing.sm },
   inlineCard: {
     backgroundColor: Colors.cardBackground,
     borderRadius: Radius.lg,
@@ -152,13 +157,6 @@ const s = StyleSheet.create({
     gap: Spacing.sm,
     ...Shadow.card,
   },
-  sheet: {
-    backgroundColor: Colors.cardBackground,
-    borderTopLeftRadius: Radius.lg, borderTopRightRadius: Radius.lg,
-    padding: Spacing.lg, paddingBottom: Spacing.xl, gap: Spacing.sm,
-    ...Shadow.card,
-  },
-  handle: { alignSelf: 'center', width: 44, height: 5, borderRadius: 3, backgroundColor: Colors.border, marginBottom: 6 },
   title:  { fontSize: 18, fontWeight: '800', marginBottom: 4 },
 
   field:  { marginBottom: Spacing.sm },

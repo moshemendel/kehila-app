@@ -11,7 +11,7 @@ import { useEruvStatus, useEruvReports } from '../../hooks/useEruv';
 import { useCityId } from '../../hooks/useCityId';
 import { useCity } from '../../hooks/useCity';
 import { useAuth } from '../../context/AuthContext';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { setEruvStatus, setEruvPolygon, resolveEruvReport, getEruvPolygons } from '../../services/eruv';
 import { sendPushToCity } from '../../services/pushNotifications';
 import { Colors, Spacing, Radius } from '../../utils/theme';
@@ -63,7 +63,13 @@ export default function ManageEruvScreen() {
   const { status, loading } = useEruvStatus(cityId, focused);
   const { reports } = useEruvReports(cityId, focused);
 
-  const [activeTab, setActiveTab] = useState<Tab>('status');
+  // Opening from the profile badge means the user is coming for the reports —
+  // landing them on 'status' shows an empty-looking screen and hides the very
+  // thing the badge was counting.
+  const route = useRoute<any>();
+  const [activeTab, setActiveTab] = useState<Tab>(
+    (route.params?.initialTab as Tab | undefined) ?? 'status',
+  );
 
   // ── Status tab ────────────────────────────────────────────────────
   const [statusValue, setStatusValue] = useState<'valid' | 'invalid'>('valid');

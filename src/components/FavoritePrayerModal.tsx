@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import {
-  Modal, View, Text, TouchableOpacity, StyleSheet,
-  TouchableWithoutFeedback, ScrollView, PanResponder, Animated,
+  View, Text, TouchableOpacity, StyleSheet, ScrollView,
 } from 'react-native';
+import BottomSheetModal from './BottomSheetModal';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius } from '../utils/theme';
 import {
@@ -139,43 +139,9 @@ export default function FavoritePrayerModal({
 }: Props) {
   const [draft, setDraft] = useState<Draft>(() => settingToDraft(null, options));
 
-  // ── Swipe-to-close gesture ────────────────────────────────────────────────────
-  const translateY = useRef(new Animated.Value(0)).current;
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gs) => gs.dy > 4,
-      onPanResponderMove: (_, gs) => {
-        if (gs.dy > 0) translateY.setValue(gs.dy);
-      },
-      onPanResponderRelease: (_, gs) => {
-        if (gs.dy > 80 || gs.vy > 0.5) {
-          Animated.timing(translateY, {
-            toValue: 700,
-            duration: 220,
-            useNativeDriver: true,
-          }).start(() => {
-            translateY.setValue(0);
-            onClose();
-          });
-        } else {
-          Animated.spring(translateY, {
-            toValue: 0,
-            useNativeDriver: true,
-            bounciness: 4,
-          }).start();
-        }
-      },
-    })
-  ).current;
-
-  useEffect(() => {
-    if (visible) {
-      translateY.setValue(0);
-      setDraft(settingToDraft(current, options));
-    }
-  }, [visible]);
+  useLayoutEffect(() => {
+    if (visible) setDraft(settingToDraft(current, options));
+  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -237,133 +203,121 @@ export default function FavoritePrayerModal({
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <Modal
+    <BottomSheetModal
       visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-      statusBarTranslucent
+      onClose={onClose}
+      maxHeight="92%"
+      dimOpacity={0.5}
+      sheetStyle={st.sheetPad}
+      header={
+        <View style={st.titleRow}>
+          <Ionicons name="star" size={20} color={Colors.goldBright} />
+          <Text style={st.title} numberOfLines={2}>{synName}</Text>
+        </View>
+      }
     >
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={st.backdrop} />
-      </TouchableWithoutFeedback>
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
 
-      <View style={st.sheet} pointerEvents="box-none">
-        <Animated.View style={[st.card, { transform: [{ translateY }] }]}>
-          <View style={st.handleArea} {...panResponder.panHandlers}>
-            <View style={st.handle} />
+        {/* ── Mode: כל התפילות והפעילות ── */}
+        <TouchableOpacity
+          style={[st.modeRow, draft.mode === 'all' && st.modeRowActive]}
+          onPress={() => setMode('all')}
+          activeOpacity={0.8}
+        >
+          <RadioDot active={draft.mode === 'all'} />
+          <View style={st.modeText}>
+            <Text style={[st.modeTitle, draft.mode === 'all' && st.modeTitleActive]}>
+              כל התפילות והפעילות
+            </Text>
+            <Text style={st.modeDesc}>תזכורת לכל זמני התפילה והשיעורים</Text>
           </View>
+        </TouchableOpacity>
 
-          {/* Title */}
-          <View style={st.titleRow}>
-            <Ionicons name="star" size={20} color={Colors.goldBright} />
-            <Text style={st.title} numberOfLines={2}>{synName}</Text>
+        {/* ── Mode: בחירה מותאמת ── */}
+        <TouchableOpacity
+          style={[st.modeRow, draft.mode === 'custom' && st.modeRowActive]}
+          onPress={() => setMode('custom')}
+          activeOpacity={0.8}
+        >
+          <RadioDot active={draft.mode === 'custom'} />
+          <View style={st.modeText}>
+            <Text style={[st.modeTitle, draft.mode === 'custom' && st.modeTitleActive]}>
+              בחירה מותאמת אישית
+            </Text>
+            <Text style={st.modeDesc}>בחר שיעורים, תפילות וזמנים ספציפיים</Text>
           </View>
+        </TouchableOpacity>
 
-          <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+        {/* ── Custom selection ── */}
+        {draft.mode === 'custom' && (
+          <View style={st.customSection}>
 
-            {/* ── Mode: כל התפילות והפעילות ── */}
-            <TouchableOpacity
-              style={[st.modeRow, draft.mode === 'all' && st.modeRowActive]}
-              onPress={() => setMode('all')}
-              activeOpacity={0.8}
-            >
-              <RadioDot active={draft.mode === 'all'} />
-              <View style={st.modeText}>
-                <Text style={[st.modeTitle, draft.mode === 'all' && st.modeTitleActive]}>
-                  כל התפילות והפעילות
+            {/* ── כל האירועים (all shiurim shortcut) ── */}
+            {options.shiurim.length > 0 && (
+              <TouchableOpacity
+                style={[st.allEventsRow, draft.allShiurim && st.allEventsRowOn]}
+                onPress={() => toggleAllShiurim(!draft.allShiurim)}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name={draft.allShiurim ? 'checkbox' : 'square-outline'}
+                  size={22}
+                  color={draft.allShiurim ? Colors.white : Colors.textSecondary}
+                />
+                <Text style={[st.allEventsTxt, draft.allShiurim && st.allEventsTxtOn]}>
+                  כל האירועים
                 </Text>
-                <Text style={st.modeDesc}>תזכורת לכל זמני התפילה והשיעורים</Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* ── Mode: בחירה מותאמת ── */}
-            <TouchableOpacity
-              style={[st.modeRow, draft.mode === 'custom' && st.modeRowActive]}
-              onPress={() => setMode('custom')}
-              activeOpacity={0.8}
-            >
-              <RadioDot active={draft.mode === 'custom'} />
-              <View style={st.modeText}>
-                <Text style={[st.modeTitle, draft.mode === 'custom' && st.modeTitleActive]}>
-                  בחירה מותאמת אישית
+                <Text style={[st.allEventsCount, draft.allShiurim && { color: 'rgba(255,255,255,0.75)' }]}>
+                  {options.shiurim.length} שיעורים
                 </Text>
-                <Text style={st.modeDesc}>בחר שיעורים, תפילות וזמנים ספציפיים</Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* ── Custom selection ── */}
-            {draft.mode === 'custom' && (
-              <View style={st.customSection}>
-
-                {/* ── כל האירועים (all shiurim shortcut) ── */}
-                {options.shiurim.length > 0 && (
-                  <TouchableOpacity
-                    style={[st.allEventsRow, draft.allShiurim && st.allEventsRowOn]}
-                    onPress={() => toggleAllShiurim(!draft.allShiurim)}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons
-                      name={draft.allShiurim ? 'checkbox' : 'square-outline'}
-                      size={22}
-                      color={draft.allShiurim ? Colors.white : Colors.textSecondary}
-                    />
-                    <Text style={[st.allEventsTxt, draft.allShiurim && st.allEventsTxtOn]}>
-                      כל האירועים
-                    </Text>
-                    <Text style={[st.allEventsCount, draft.allShiurim && { color: 'rgba(255,255,255,0.75)' }]}>
-                      {options.shiurim.length} שיעורים
-                    </Text>
-                  </TouchableOpacity>
-                )}
-
-                {/* ── שיעורים (individual) — shown when not "all events" ── */}
-                {options.shiurim.length > 0 && !draft.allShiurim && (
-                  <ShiurBlock
-                    shiurim={options.shiurim}
-                    selected={draft.shiurim}
-                    onToggle={toggleShiur}
-                  />
-                )}
-
-                {/* ── Prayer blocks — only shown when the synagogue has defined times ── */}
-                {PRAYERS.filter((p) => options[p.key].length > 0).map((p) => (
-                  <PrayerBlock
-                    key={p.key}
-                    label={p.label}
-                    icon={p.icon}
-                    slots={options[p.key]}
-                    draft={draft[p.key]}
-                    onTogglePrayer={() => togglePrayer(p.key)}
-                    onToggleSlot={(idx) => toggleSlot(p.key, idx)}
-                  />
-                ))}
-              </View>
-            )}
-
-            <View style={{ height: 8 }} />
-          </ScrollView>
-
-          {/* Buttons */}
-          <View style={st.btnRow}>
-            {current !== null && (
-              <TouchableOpacity style={st.removeBtn} onPress={onRemove}>
-                <Ionicons name="star-outline" size={16} color={Colors.danger} />
-                <Text style={st.removeBtnTxt}>הסר</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity
-              style={[st.saveBtn, !anySelected && st.saveBtnOff]}
-              onPress={() => onSave(draftToSetting(draft))}
-              disabled={!anySelected}
-            >
-              <Ionicons name="star" size={16} color={Colors.white} />
-              <Text style={st.saveBtnTxt}>שמור</Text>
-            </TouchableOpacity>
+
+            {/* ── שיעורים (individual) — shown when not "all events" ── */}
+            {options.shiurim.length > 0 && !draft.allShiurim && (
+              <ShiurBlock
+                shiurim={options.shiurim}
+                selected={draft.shiurim}
+                onToggle={toggleShiur}
+              />
+            )}
+
+            {/* ── Prayer blocks — only shown when the synagogue has defined times ── */}
+            {PRAYERS.filter((p) => options[p.key].length > 0).map((p) => (
+              <PrayerBlock
+                key={p.key}
+                label={p.label}
+                icon={p.icon}
+                slots={options[p.key]}
+                draft={draft[p.key]}
+                onTogglePrayer={() => togglePrayer(p.key)}
+                onToggleSlot={(idx) => toggleSlot(p.key, idx)}
+              />
+            ))}
           </View>
-        </Animated.View>
-      </View>
-    </Modal>
+        )}
+
+        <View style={{ height: 8 }} />
+      </ScrollView>
+
+      {/* Buttons */}
+      <View style={st.btnRow}>
+        {current !== null && (
+          <TouchableOpacity style={st.removeBtn} onPress={onRemove}>
+            <Ionicons name="star-outline" size={16} color={Colors.danger} />
+            <Text style={st.removeBtnTxt}>הסר</Text>
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity
+          style={[st.saveBtn, !anySelected && st.saveBtnOff]}
+          onPress={() => onSave(draftToSetting(draft))}
+          disabled={!anySelected}
+        >
+          <Ionicons name="star" size={16} color={Colors.white} />
+          <Text style={st.saveBtnTxt}>שמור</Text>
+        </TouchableOpacity>
+  </View>
+    </BottomSheetModal>
   );
 }
 
@@ -483,20 +437,7 @@ function PrayerBlock({
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const st = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
-  sheet:    { flex: 1, justifyContent: 'flex-end' },
-  card: {
-    backgroundColor: Colors.cardBackground,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: Spacing.lg,
-    paddingTop: 14,
-    paddingBottom: 36,
-    maxHeight: '92%',
-    gap: 12,
-  },
-  handleArea: { alignSelf: 'stretch', alignItems: 'center', paddingVertical: 12 },
-  handle:     { width: 44, height: 5, borderRadius: 3, backgroundColor: Colors.border },
+  sheetPad: { paddingHorizontal: Spacing.lg, paddingBottom: 36, gap: 12 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   title:    { flex: 1, fontSize: 17, fontWeight: '800', color: Colors.text },
 
