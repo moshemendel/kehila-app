@@ -31,6 +31,8 @@ export default function SelichotScreen() {
   const [userLoc, setUserLoc] = useState<{ lat: number; lon: number } | null>(null);
   const [locLoading, setLocLoading] = useState(false);
   const [subFilters, setSubFilters] = useState<Record<string, string[]>>({ nusach: [], neighborhood: [] });
+  /** Which night's list is on screen. Null until the nights load. */
+  const [activeNight, setActiveNight] = useState<string | null>(null);
 
   const requestLocation = useCallback(async () => {
     if (userLoc || locLoading) return;
@@ -97,6 +99,17 @@ export default function SelichotScreen() {
       .filter((n) => n.occurrences.length > 0);
   }, [nights, subFilters, sort]);
 
+  // Default to the soonest night, and fall back to it if the chosen night
+  // disappears (filtered out, or it has simply passed).
+  useEffect(() => {
+    if (visibleNights.length === 0) { setActiveNight(null); return; }
+    if (!activeNight || !visibleNights.some((n) => n.key === activeNight)) {
+      setActiveNight(visibleNights[0].key);
+    }
+  }, [visibleNights, activeNight]);
+
+  const shownNight = visibleNights.find((n) => n.key === activeNight) ?? visibleNights[0] ?? null;
+
   if (loading) {
     return <ActivityIndicator color={Colors.gold} size="large" style={{ marginTop: 60 }} />;
   }
@@ -124,6 +137,36 @@ export default function SelichotScreen() {
         />
       )}
 
+      {visibleNights.length > 1 && (
+        // One day at a time. With every shul publishing, a week of nights
+        // stacked together is hundreds of rows to scroll past.
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={s.dayStripWrap}
+          contentContainerStyle={s.dayStrip}
+        >
+          {visibleNights.map((night) => {
+            const active = night.key === shownNight?.key;
+            return (
+              <TouchableOpacity
+                key={night.key}
+                style={[s.dayTab, active && s.dayTabOn]}
+                onPress={() => setActiveNight(night.key)}
+                activeOpacity={0.8}
+              >
+                <Text style={[s.dayTabTxt, active && s.dayTabTxtOn]} numberOfLines={1}>
+                  {night.label.split(' · ')[0]}
+                </Text>
+                <Text style={[s.dayTabSub, active && s.dayTabTxtOn]}>
+                  {night.label.split(' · ')[1] ?? `${night.occurrences.length} מניינים`}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
+
       <ScrollView contentContainerStyle={[s.content, { paddingBottom: bottom + 32 }]}>
         {visibleNights.length === 0 ? (
           <View style={s.empty}>
@@ -134,14 +177,16 @@ export default function SelichotScreen() {
             </Text>
           </View>
         ) : (
-          visibleNights.map((night) => (
-            <View key={night.key} style={s.nightBlock}>
+          shownNight && (
+            <View key={shownNight.key} style={s.nightBlock}>
               <View style={s.nightHeader}>
-                <Text style={s.nightTitle}>{night.label}</Text>
-                <Text style={s.nightCount}>{night.occurrences.length} מניינים</Text>
+                <Text style={s.nightTitle}>{shownNight.label}</Text>
+                <Text style={s.nightCount}>
+                  {shownNight.occurrences.length === 1 ? 'מניין אחד' : `${shownNight.occurrences.length} מניינים`}
+                </Text>
               </View>
 
-              {night.occurrences.map((o: SelichotOccurrence, i: number) => (
+              {shownNight.occurrences.map((o: SelichotOccurrence, i: number) => (
                 <TouchableOpacity
                   key={`${o.synagogue.id}-${i}`}
                   style={s.row}
@@ -166,7 +211,7 @@ export default function SelichotScreen() {
                 </TouchableOpacity>
               ))}
             </View>
-          ))
+          )
         )}
       </ScrollView>
     </View>
@@ -179,6 +224,19 @@ const s = StyleSheet.create({
 
   sortBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6 },
   sortTxt: { fontSize: 12, fontWeight: '700', color: Colors.gold },
+
+  dayStripWrap: { flexGrow: 0, flexShrink: 0 },
+  dayStrip: { gap: 8, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm },
+  dayTab: {
+    minWidth: 86, alignItems: 'center', paddingVertical: 8, paddingHorizontal: 12,
+    borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.border,
+    backgroundColor: Colors.cardBackground,
+  },
+  dayTabOn:     { backgroundColor: Colors.gold, borderColor: Colors.gold },
+  dayTabTxt:    { fontSize: 13, fontWeight: '800', color: Colors.text },
+  dayTabHeb:    { fontSize: 11.5, fontWeight: '700', color: Colors.gold, marginTop: 2 },
+  dayTabSub:    { fontSize: 10, color: Colors.textMuted, marginTop: 1 },
+  dayTabTxtOn:  { color: Colors.white },
 
   nightBlock: { marginBottom: Spacing.lg },
   nightHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.sm },

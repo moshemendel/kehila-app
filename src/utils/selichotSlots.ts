@@ -1,3 +1,4 @@
+import { JewishCalendar, HebrewDateFormatter } from 'kosher-zmanim';
 import { Synagogue, PrayerTimeSlot } from '../types';
 import { resolveSlotTime, parseTimeToMinutes } from './prayerUtils';
 import {
@@ -24,6 +25,10 @@ export interface SelichotNight {
   key: string;
   /** Human label, e.g. "מוצ״ש · 16/08" or "הלילה". */
   label: string;
+  /** Hebrew date of the minyan itself, e.g. "ג׳ אלול". */
+  hebrewLabel: string;
+  /** Short civil date of the evening, e.g. "15/08". */
+  dateLabel: string;
   occurrences: SelichotOccurrence[];
 }
 
@@ -44,6 +49,15 @@ const addDays = (d: Date, n: number) => { const c = new Date(d); c.setDate(c.get
 const dayNumOf = (d: Date) => (d.getDay() === 6 ? 7 : d.getDay() + 1);
 
 const DAY_LABELS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+
+const hebFmt = new HebrewDateFormatter();
+hebFmt.setHebrewFormat(true);
+
+/** "ג׳ אלול" for the given civil date. */
+function hebrewDayLabel(d: Date): string {
+  const jc = new JewishCalendar(d);
+  return `${hebFmt.formatHebrewNumber(jc.getJewishDayOfMonth())} ${hebFmt.formatMonth(jc)}`;
+}
 
 /**
  * Does this slot happen on `date`?
@@ -147,6 +161,11 @@ export function collectSelichot(
       // wrong night entirely.
       const isEvening = occurrences.some((o) => belongsToPreviousEvening(o.timeMinutes, alot));
 
+      // The Hebrew date follows the MINYAN, not the group key: an evening group
+      // is keyed to the Saturday, but a 00:30 minyan happens after nightfall and
+      // is therefore already the next Hebrew day.
+      const hebrewLabel = hebrewDayLabel(isEvening ? addDays(d, 1) : d);
+
       let label: string;
       if (isEvening) {
         const isTonight = key === todayKey
@@ -158,7 +177,7 @@ export function collectSelichot(
         const isToday = key === todayKey;
         label = isToday ? 'היום' : `יום ${DAY_LABELS[d.getDay()]} · ${dateTxt}`;
       }
-      return { key, label, occurrences };
+      return { key, label, hebrewLabel, dateLabel: dateTxt, occurrences };
     });
 }
 
