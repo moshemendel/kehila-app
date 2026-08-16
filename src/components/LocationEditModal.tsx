@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { Colors, Spacing, Radius } from '../utils/theme';
 import MapPickerModal from './MapPickerModal';
+import { useCityId } from '../hooks/useCityId';
+import { useCity } from '../hooks/useCity';
 
 interface Props {
   visible: boolean;
@@ -23,6 +25,10 @@ interface Props {
 export default function LocationEditModal({
   visible, name, address, latitude, longitude, onSave, onClear, onClose,
 }: Props) {
+  // The city scopes the address lookup and bounds how far a hit may land from
+  // the centre — without it, a bare street name can resolve in another town.
+  const cityId = useCityId();
+  const { city } = useCity(cityId);
   const [lat, setLat]           = useState('');
   const [lon, setLon]           = useState('');
   const [saving,   setSaving]   = useState(false);
@@ -132,7 +138,7 @@ export default function LocationEditModal({
         {/* Option 2 — In-app map */}
         <TouchableOpacity style={s.mapPickerBtn} onPress={() => setMapOpen(true)}>
           <Ionicons name="map" size={18} color={Colors.primary} />
-          <Text style={s.mapPickerText}>בחר מיקום על המפה</Text>
+          <Text style={s.mapPickerText}>איתור כתובת ובחירה על המפה</Text>
           <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
         </TouchableOpacity>
 
@@ -190,6 +196,10 @@ export default function LocationEditModal({
         visible={mapOpen}
         initialLat={!isNaN(parsedLat) ? parsedLat : undefined}
         initialLon={!isNaN(parsedLon) ? parsedLon : undefined}
+        address={address}
+        cityName={city?.name}
+        cityLat={city?.latitude}
+        cityLon={city?.longitude}
         onConfirm={handleMapConfirm}
         onClose={() => setMapOpen(false)}
       />
