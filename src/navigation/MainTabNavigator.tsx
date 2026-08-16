@@ -28,6 +28,18 @@ import PrayerNotificationScheduler          from '../components/PrayerNotificati
 import { useManagerAlerts }                 from '../hooks/useManagerAlerts';
 import { useAppIconBadge }                  from '../hooks/useAppIconBadge';
 import BottomSheetModal                     from '../components/BottomSheetModal';
+import ComingSoonScreen, { ComingSoonBadge } from '../components/ComingSoon';
+import { isComingSoon }                     from '../utils/comingSoon';
+
+/** Stands in for the kashrut tab while the certificate data is being verified. */
+const KashrutComingSoon = () => (
+  <ComingSoonScreen
+    title="כשרות"
+    description={'מסעדות, עסקים ותעודות כשרות מתעדכנים כעת מול הרבנות.\nהמדור ייפתח לאחר אימות כל התעודות.'}
+    icon="restaurant-outline"
+    color={Colors.kosher}
+  />
+);
 
 // ─────────────────────────────────────────────────────────────────
 type TabName = keyof MainTabParamList;
@@ -302,6 +314,9 @@ function KehilaTabBar({ state, navigation }: BottomTabBarProps) {
                         )}
                       </View>
                       <Text style={pp.itemLabel}>{info.label}</Text>
+                      {name === 'Businesses' && isComingSoon('kashrut') && (
+                        <ComingSoonBadge color={info.color} />
+                      )}
                     </TouchableOpacity>
                   );
                 })}
@@ -453,7 +468,7 @@ export default function MainTabNavigator() {
         <Tab.Screen name="Synagogues"  component={SynagoguesScreen} />
         <Tab.Screen name="PrayerTimes" component={PrayerTimesScreen} />
         <Tab.Screen name="Zmanim"      component={ZmanimScreen} />
-        <Tab.Screen name="Businesses" component={BusinessesScreen} />
+        <Tab.Screen name="Businesses" component={isComingSoon('kashrut') ? KashrutComingSoon : BusinessesScreen} />
         <Tab.Screen name="Mikveh"      component={MikvehScreen} />
         <Tab.Screen name="Events"      component={EventsScreen} />
         <Tab.Screen name="Eruv"        component={EruvScreen} />

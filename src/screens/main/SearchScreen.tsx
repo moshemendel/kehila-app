@@ -13,6 +13,7 @@ import { useBusinesses } from '../../hooks/useBusinesses';
 import { useEvents } from '../../hooks/useEvents';
 import { useGemachs } from '../../hooks/useGemachs';
 import { Synagogue, Business, CommunityEvent, Gemach, GemachCategory } from '../../types';
+import { isComingSoon } from '../../utils/comingSoon';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -40,13 +41,15 @@ function hit(query: string, ...fields: (string | undefined | null)[]): boolean {
 
 type FilterCat = 'all' | 'synagogues' | 'businesses' | 'events' | 'gemachs';
 
-const CHIPS: { key: FilterCat; label: string; icon: string; color: string }[] = [
+// Kashrut is dropped from search while it is בקרוב — a hit that opens a
+// placeholder screen is a dead end.
+const CHIPS: { key: FilterCat; label: string; icon: string; color: string }[] = ([
   { key: 'all',         label: 'הכל',      icon: 'apps-outline',       color: Colors.primary  },
   { key: 'synagogues',  label: 'בתי כנסת', icon: 'business-outline',   color: Colors.primary  },
   { key: 'businesses',  label: 'כשרות',    icon: 'restaurant-outline', color: Colors.kosher   },
   { key: 'events',      label: 'אירועים',  icon: 'calendar-outline',   color: Colors.events   },
   { key: 'gemachs',     label: 'גמ"ח',     icon: 'gift-outline',       color: '#B06B3A'       },
-];
+] as const).filter(c => !(c.key === 'businesses' && isComingSoon('kashrut'))) as any;
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
@@ -75,7 +78,7 @@ export default function SearchScreen() {
   }, [q, filter, synagogues]);
 
   const restResults = useMemo(() => {
-    if (!q || !show('businesses')) return [];
+    if (!q || !show('businesses') || isComingSoon('kashrut')) return [];
     return businesses.filter(r =>
       hit(q, r.name, r.neighborhood, r.address, r.description, r.category, ...(r.categories ?? [])));
   }, [q, filter, businesses]);

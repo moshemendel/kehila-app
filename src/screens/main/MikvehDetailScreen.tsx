@@ -15,6 +15,8 @@ import { getMikveh } from '../../services/mikvaot';
 import { hoursTextForDay } from '../../utils/appointmentSlots';
 import { useAuth } from '../../context/AuthContext';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
+import { isComingSoon } from '../../utils/comingSoon';
+import { comingSoonAlert } from '../../components/ComingSoon';
 
 // ─── Layout constants (identical to BusinessDetailScreen) ───────────────────
 
@@ -53,6 +55,16 @@ export default function MikvehDetailScreen() {
   const todayZmanim = useTodayZmanim(mikveh?.cityId ?? '');
 
   function handleBookPress() {
+    // Held back for the pilot: bookings only work once the balaniot are running
+    // the other side of them, otherwise appointments go into a system nobody
+    // reads. The phone number above stays — that's the working route today.
+    if (isComingSoon('mikvehBooking')) {
+      comingSoonAlert(
+        'קביעת תור אונליין',
+        'קביעת תור דרך האפליקציה תיפתח בקרוב.\nבינתיים ניתן לקבוע תור טלפונית מול המקווה.',
+      );
+      return;
+    }
     if (isGuest) {
       Alert.alert(
         'נדרשת התחברות',
@@ -293,13 +305,17 @@ export default function MikvehDetailScreen() {
 
             {/* Online appointment booking button — always visible */}
             <TouchableOpacity
-              style={styles.bookingBtn}
+              style={[styles.bookingBtn, isComingSoon('mikvehBooking') && styles.bookingBtnSoon]}
               onPress={handleBookPress}
               activeOpacity={0.85}
             >
               <Ionicons name="calendar" size={20} color="#fff" />
               <Text style={styles.bookingBtnTxt}>קביעת תור אונליין</Text>
-              <Ionicons name="chevron-back" size={16} color="rgba(255,255,255,0.7)" />
+              {isComingSoon('mikvehBooking') ? (
+                <View style={styles.bookingSoonTag}><Text style={styles.bookingSoonTxt}>בקרוב</Text></View>
+              ) : (
+                <Ionicons name="chevron-back" size={16} color="rgba(255,255,255,0.7)" />
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -519,6 +535,12 @@ const styles = StyleSheet.create({
   actionBtnPrimary: { backgroundColor: Colors.mikveh, borderColor: Colors.mikveh },
   actionBtnTxt:     { fontSize: 14, fontWeight: '700', color: Colors.mikveh },
 
+  bookingBtnSoon: { opacity: 0.55 },
+  bookingSoonTag: {
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)',
+    borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 1,
+  },
+  bookingSoonTxt: { fontSize: 10, fontWeight: '800', color: '#fff' },
   bookingBtn: {
     flexDirection:   'row',
     alignItems:      'center',

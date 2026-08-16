@@ -9,6 +9,8 @@ import { MainTabParamList } from '../../types';
 import { useEvents } from '../../hooks/useEvents';
 import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
+import { isComingSoon } from '../../utils/comingSoon';
+import { ComingSoonBadge } from '../../components/ComingSoon';
 
 type Nav = BottomTabNavigationProp<MainTabParamList>;
 
@@ -68,7 +70,9 @@ export default function MoreScreen() {
               )}
             </View>
             <Text style={styles.cardLabel}>{item.label}</Text>
-            <Text style={styles.cardSub}>{item.sublabel}</Text>
+            {item.tab === 'Businesses' && isComingSoon('kashrut')
+              ? <ComingSoonBadge color={item.color} style={{ marginTop: 4 }} />
+              : <Text style={styles.cardSub}>{item.sublabel}</Text>}
           </TouchableOpacity>
         ))}
       </View>
