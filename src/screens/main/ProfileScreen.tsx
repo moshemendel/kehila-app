@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Switch,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Switch, Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +12,7 @@ import { useNotifications } from '../../context/NotificationsContext';
 import { useFavorites } from '../../context/FavoritesContext';
 import { logout } from '../../services/auth';
 import EmailVerificationBanner from '../../components/EmailVerificationBanner';
+import { PRIVACY_POLICY_URL, ABOUT_URL, SUPPORT_URL } from '../../utils/links';
 import { requireManagerAuth, lockManagerArea } from '../../utils/managerAuth';
 import { useCityId } from '../../hooks/useCityId';
 import { useCity } from '../../hooks/useCity';
@@ -73,6 +74,21 @@ function MenuRow({ icon, label, onPress, color = Colors.text, badge }: MenuRowPr
 
 const MINUTES_OPTIONS = [5, 10, 15, 20, 30];
 const PRAYER_LABELS_HE: Record<string, string> = { shacharit: 'שחרית', mincha: 'מנחה', maariv: 'ערבית' };
+
+/**
+ * Open an external link, saying so plainly if it can't be opened.
+ *
+ * Silent failure is the wrong default here: the privacy policy in particular is
+ * something a user may be actively looking for, and a tap that does nothing is
+ * indistinguishable from the dead rows this replaced.
+ */
+async function openLink(url: string) {
+  try {
+    await Linking.openURL(url);
+  } catch {
+    Alert.alert('לא ניתן לפתוח את הקישור', url);
+  }
+}
 
 export default function ProfileScreen() {
   const { appUser, firebaseUser, isDemo, isGuest, exitDemo, switchCity, updateHomeCity } = useAuth();
@@ -409,14 +425,28 @@ export default function ProfileScreen() {
           onClose={() => setHomeCityPickerOpen(false)}
         />
 
-        {/* About */}
-        <View style={styles.section}>
-          <View style={styles.card}>
-            <MenuRow icon="information-circle-outline" label="אודות קהילה" onPress={() => {}} />
-            <MenuRow icon="help-circle-outline" label="עזרה ותמיכה" onPress={() => {}} />
-            <MenuRow icon="shield-outline" label="מדיניות פרטיות" onPress={() => {}} />
+        {/* About — each row appears only once its URL is configured in
+            utils/links.ts. These were previously onPress={() => {}}: buttons
+            that looked live and did nothing. If none is set the whole card is
+            omitted rather than left empty. */}
+        {(ABOUT_URL || SUPPORT_URL || PRIVACY_POLICY_URL) ? (
+          <View style={styles.section}>
+            <View style={styles.card}>
+              {!!ABOUT_URL && (
+                <MenuRow icon="information-circle-outline" label="אודות קהילה"
+                  onPress={() => openLink(ABOUT_URL)} />
+              )}
+              {!!SUPPORT_URL && (
+                <MenuRow icon="help-circle-outline" label="עזרה ותמיכה"
+                  onPress={() => openLink(SUPPORT_URL)} />
+              )}
+              {!!PRIVACY_POLICY_URL && (
+                <MenuRow icon="shield-outline" label="מדיניות פרטיות"
+                  onPress={() => openLink(PRIVACY_POLICY_URL)} />
+              )}
+            </View>
           </View>
-        </View>
+        ) : null}
 
         {/* Logout — only for signed-in / demo users */}
         {!isGuest && (
