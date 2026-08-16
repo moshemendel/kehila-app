@@ -99,7 +99,7 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.warning + '55',
     borderRadius: Radius.md,
     padding: Spacing.md,
-    marginHorizontal: Spacing.md, marginBottom: Spacing.md,
+    marginHorizontal: Spacing.md, marginTop: Spacing.md, marginBottom: Spacing.md,
   },
   wrapCompact: { marginHorizontal: 0 },
   title: { fontSize: 14, fontWeight: '800', color: Colors.text },

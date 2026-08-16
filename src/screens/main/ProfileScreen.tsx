@@ -165,10 +165,10 @@ export default function ProfileScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
       {/* Also here, not just Home — this is where someone lands when they go
-          looking for their account details. */}
-      <View style={{ marginTop: Spacing.md }}>
-        <EmailVerificationBanner />
-      </View>
+          looking for their account details. No wrapper View: the banner renders
+          null when the address is already verified, and a wrapper carrying
+          margin would leave a white band above the header for every such user. */}
+      <EmailVerificationBanner />
 
       {/* Demo mode banner */}
       {isDemo && (

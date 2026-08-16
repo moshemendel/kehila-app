@@ -12,11 +12,26 @@ import { Colors, Spacing, Radius } from '../utils/theme';
  * has quietly disappeared, and nobody reports it as broken.
  */
 
-/** Small pill for a row, tile or card that leads to a held-back feature. */
-export function ComingSoonBadge({ color = Colors.gold, style }: { color?: string; style?: any }) {
+/**
+ * Small pill for a row, tile or card that leads to a held-back feature.
+ *
+ * `filled` is the compact form: solid rather than outlined, and small enough to
+ * sit ON an icon instead of under it. The outlined form adds a whole line to
+ * whatever it's in, which is fine in a list row and far too much in the Home
+ * quick-links strip, where it pushed every tile taller.
+ */
+export function ComingSoonBadge({
+  color = Colors.gold, style, filled = false,
+}: { color?: string; style?: any; filled?: boolean }) {
   return (
-    <View style={[s.badge, { borderColor: color }, style]}>
-      <Text style={[s.badgeTxt, { color }]}>בקרוב</Text>
+    <View
+      style={[
+        filled ? s.badgeFilled : s.badge,
+        filled ? { backgroundColor: color } : { borderColor: color },
+        style,
+      ]}
+    >
+      <Text style={[filled ? s.badgeTxtFilled : s.badgeTxt, !filled && { color }]}>בקרוב</Text>
     </View>
   );
 }
@@ -91,4 +106,11 @@ const s = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 2,
   },
   badgeTxt: { fontSize: 10, fontWeight: '800' },
+
+  badgeFilled: {
+    borderRadius: Radius.full,
+    paddingHorizontal: 6, paddingVertical: 1,
+    borderWidth: 1.5, borderColor: Colors.cardBackground,
+  },
+  badgeTxtFilled: { fontSize: 8.5, fontWeight: '800', color: Colors.white },
 });

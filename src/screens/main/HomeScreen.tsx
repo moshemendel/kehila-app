@@ -479,9 +479,16 @@ export default function HomeScreen() {
                     <Text style={styles.quickBadgeTxt}>{profileAlert ? '!' : badgeCount}</Text>
                   </View>
                 )}
+                {/* Straddles the bottom edge of the icon so it costs the row no
+                    height — the outlined pill under the label made every tile
+                    taller, for one item out of nine. */}
+                {soon && (
+                  <View style={styles.quickSoonWrap} pointerEvents="none">
+                    <ComingSoonBadge color={color} filled />
+                  </View>
+                )}
               </View>
               <Text style={styles.quickItemLabel} numberOfLines={2}>{label}</Text>
-              {soon && <ComingSoonBadge color={color} />}
             </TouchableOpacity>
           );
         })}
@@ -1037,6 +1044,10 @@ const styles = StyleSheet.create({
     color: Colors.text,
     textAlign: 'center',
     lineHeight: 14,
+  },
+  quickSoonWrap: {
+    position: 'absolute', left: -8, right: -8, bottom: -6,
+    alignItems: 'center',
   },
   quickBadge: {
     position: 'absolute',
