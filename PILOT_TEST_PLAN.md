@@ -223,6 +223,8 @@ Covers the appointment-privacy mirror, the deterministic-id double-booking lock,
 
 ## 19. Content reports (דיווח על מידע שגוי)
 
+<!-- note:SERVER-SIDE%20GATE%20VERIFIED%202026-08-16%20against%20the%20deployed%20rule%2C%20by%20creating%20a%20report%20over%20the%20Firestore%20REST%20API%20as%20three%20identities%3A%20guest%2Fanonymous%20-%3E%20403%20PERMISSION_DENIED%3B%20registered%20but%20email%20unverified%20-%3E%20403%20PERMISSION_DENIED%3B%20registered%20and%20verified%20-%3E%20200%20created.%20The%20third%20case%20is%20the%20one%20that%20matters%3A%20had%20the%20email_verified%20claim%20been%20missing%20from%20the%20token%2C%20reporting%20would%20have%20broken%20for%20everyone.%20Test%20data%20was%20cleaned%20up%20(report%20deleted%2C%20both%20throwaway%20auth%20users%20deleted%2C%20follow-up%20query%20for%20entityId%3DRULE-TEST%20returns%20zero).%20STILL%20UNVERIFIED%3A%20the%20on-device%20MESSAGES.%20The%20rule%20proves%20the%20write%20is%20refused%3B%20it%20does%20not%20prove%20the%20app%20says%20'%D7%A0%D7%93%D7%A8%D7%A9%D7%AA%20%D7%94%D7%AA%D7%97%D7%91%D7%A8%D7%95%D7%AA'%20%2F%20'%D7%A0%D7%93%D7%A8%D7%A9%20%D7%90%D7%99%D7%9E%D7%95%D7%AA%20%D7%90%D7%99%D7%9E%D7%99%D7%99%D7%9C'%20rather%20than%20letting%20someone%20write%20a%20report%20and%20lose%20it%20to%20permission-denied%20on%20send. -->
+
 - [ ] Report button appears on synagogue, mikveh, business/restaurant and gemach detail screens
 - [ ] Sheet opens, reason chips select, free-text details type, keyboard doesn't cover the send button
 - [ ] Sending shows a confirmation and the sheet closes
