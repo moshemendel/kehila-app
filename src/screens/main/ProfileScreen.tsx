@@ -11,6 +11,7 @@ import { useManagerAlerts } from '../../hooks/useManagerAlerts';
 import { useNotifications } from '../../context/NotificationsContext';
 import { useFavorites } from '../../context/FavoritesContext';
 import { logout } from '../../services/auth';
+import EmailVerificationBanner from '../../components/EmailVerificationBanner';
 import { requireManagerAuth, lockManagerArea } from '../../utils/managerAuth';
 import { useCityId } from '../../hooks/useCityId';
 import { useCity } from '../../hooks/useCity';
@@ -163,6 +164,12 @@ export default function ProfileScreen() {
       <View style={{ height: top, backgroundColor: Colors.primary }} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+      {/* Also here, not just Home — this is where someone lands when they go
+          looking for their account details. */}
+      <View style={{ marginTop: Spacing.md }}>
+        <EmailVerificationBanner />
+      </View>
+
       {/* Demo mode banner */}
       {isDemo && (
         <View style={styles.demoBanner}>

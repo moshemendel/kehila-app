@@ -45,6 +45,9 @@ import { getJewishDayInfo, getUpcomingFast, getUpcomingYomTov } from '../../util
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { MainTabParamList }  from '../../types';
 import { calcZmanim, minToStr } from '../../utils/zmanim';
+import { isComingSoon } from '../../utils/comingSoon';
+import { ComingSoonBadge } from '../../components/ComingSoon';
+import EmailVerificationBanner from '../../components/EmailVerificationBanner';
 
 // ─────────────────────────────────────────────────────────────────
 type Nav = BottomTabNavigationProp<MainTabParamList>;
@@ -447,9 +450,10 @@ export default function HomeScreen() {
         style={styles.quickRowWrap}
       >
         {QUICK_LINKS.map(({ icon, customIcon, label, tab, color }) => {
+          const soon = tab === 'Businesses' && isComingSoon('kashrut');
           const badgeCount =
             tab === 'Events'      ? unreadCount  :
-            tab === 'Businesses' ? kashrutCount  : 0;
+            tab === 'Businesses' ? (soon ? 0 : kashrutCount) : 0;
           // Profile shows "!" rather than a count — it stands for "something in
           // the management screens needs you", not a number of unread things.
           const profileAlert = tab === 'Profile' && managerAlerts.total > 0;
@@ -477,6 +481,7 @@ export default function HomeScreen() {
                 )}
               </View>
               <Text style={styles.quickItemLabel} numberOfLines={2}>{label}</Text>
+              {soon && <ComingSoonBadge color={color} />}
             </TouchableOpacity>
           );
         })}
@@ -484,6 +489,10 @@ export default function HomeScreen() {
 
       {/* ── Main content ─────────────────────────────────────────── */}
       <View style={styles.content}>
+
+        {/* Above everything else — an unverified address means no password
+            recovery, and the user needs to know that before they need it. */}
+        <EmailVerificationBanner compact />
 
         {/* ── Prayer countdown card ────────────────────────── */}
         {!synLoad && nextPrayer && earliestSyn ? (
@@ -515,7 +524,10 @@ export default function HomeScreen() {
         ) : null}
 
         {/* ── Kashrut updates banner — stays until all dismissed ── */}
-        {kashrutTotal > 0 && (
+        {/* Hidden while kashrut is בקרוב: the banner links into the feed, and a
+            kashrut alert with no way to see which business it concerns is worse
+            than no alert at all. */}
+        {kashrutTotal > 0 && !isComingSoon('kashrut') && (
           <TouchableOpacity
             style={[
               styles.kashrutBanner,

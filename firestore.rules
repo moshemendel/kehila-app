@@ -314,7 +314,13 @@ service cloud.firestore {
                  && hasCityRole('event_manager', resource.data.cityId));
         // 'gemach' has no dedicated manager role — admins only, via the checks below.
       }
+      // Reporting is the one write a member of the public makes that lands in a
+      // manager's queue, so it costs a confirmed address. This is the real gate;
+      // the check in ReportListingButton only saves the user a round-trip.
+      // Note this also excludes guests — an anonymous token carries no
+      // email_verified claim, and an anonymous report can't be followed up on.
       allow create: if isSignedIn()
+        && request.auth.token.email_verified == true
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.status == 'open';
       allow read, update: if isAdminOf(resource.data.cityId) || managesReported();

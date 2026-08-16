@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ReportContentModal from './ReportContentModal';
 import { ReportEntityType } from '../types';
 import { Colors, Spacing } from '../utils/theme';
+import { useAuth } from '../context/AuthContext';
 
 interface Props {
   cityId: string;
@@ -36,12 +37,37 @@ export default function ReportListingButton({
   iconColor = Colors.textMuted,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const { needsEmailVerification, isGuest } = useAuth();
+
+  // The one place an unverified account can put text in front of a manager, so
+  // it's the one place worth gating. Everything else here is read-only.
+  const openReport = () => {
+    if (isGuest) {
+      // The rules reject anonymous reports outright — say so here rather than
+      // let the user write one and lose it to permission-denied on send.
+      Alert.alert(
+        'נדרשת התחברות',
+        'כדי לדווח על מידע שגוי יש להתחבר עם חשבון, כדי שנוכל לחזור אליך במידת הצורך.',
+        [{ text: 'הבנתי' }],
+      );
+      return;
+    }
+    if (needsEmailVerification) {
+      Alert.alert(
+        'נדרש אימות אימייל',
+        'כדי לדווח על מידע שגוי יש לאמת את כתובת האימייל. הקישור נשלח אליך בהרשמה — ניתן לשלוח שוב ממסך הפרופיל.',
+        [{ text: 'הבנתי' }],
+      );
+      return;
+    }
+    setOpen(true);
+  };
 
   return (
     <>
       {variant === 'icon' ? (
         <TouchableOpacity
-          onPress={() => setOpen(true)}
+          onPress={openReport}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityLabel="דיווח על מידע שגוי"
         >
@@ -50,14 +76,14 @@ export default function ReportListingButton({
       ) : variant === 'overlay' ? (
         <TouchableOpacity
           style={s.overlayBtn}
-          onPress={() => setOpen(true)}
+          onPress={openReport}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityLabel="דיווח על מידע שגוי"
         >
           <Ionicons name="flag-outline" size={17} color="#fff" />
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity style={s.btn} onPress={() => setOpen(true)} activeOpacity={0.7}>
+        <TouchableOpacity style={s.btn} onPress={openReport} activeOpacity={0.7}>
           <Ionicons name="flag-outline" size={14} color={Colors.textMuted} />
           <Text style={s.txt}>דיווח על מידע שגוי</Text>
         </TouchableOpacity>

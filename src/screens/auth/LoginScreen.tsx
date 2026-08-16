@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import { GoogleSignin, isSuccessResponse, isErrorWithCode, statusCodes } from '@react-native-google-signin/google-signin';
-import { loginWithEmail, signInWithGoogleCredential } from '../../services/auth';
+import { loginWithEmail, signInWithGoogleCredential, resetPassword } from '../../services/auth';
 import { useAuth } from '../../context/AuthContext';
 import { Colors, Spacing, Radius } from '../../utils/theme';
 import { AuthStackParamList } from '../../types';
@@ -37,7 +37,37 @@ export default function LoginScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [guestInfoVisible, setGuestInfoVisible] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const { bottom } = useSafeAreaInsets();
+
+  async function handleForgotPassword() {
+    const target = email.trim();
+    if (!target) {
+      Alert.alert('שכחתי סיסמה', 'יש להזין את כתובת האימייל בשדה למעלה, ואז ללחוץ שוב.');
+      return;
+    }
+    setResetting(true);
+    try {
+      await resetPassword(target);
+    } catch (e: any) {
+      // Anything other than a malformed address is reported as success on
+      // purpose — "no such user" would let anyone test which addresses are
+      // registered in the community.
+      if (e?.code === 'auth/invalid-email') {
+        Alert.alert('שגיאה', 'כתובת אימייל לא תקינה');
+        setResetting(false);
+        return;
+      }
+    } finally {
+      setResetting(false);
+    }
+    Alert.alert(
+      'נשלח מייל לאיפוס',
+      `אם קיים חשבון עבור ${target}, נשלח אליו קישור לבחירת סיסמה חדשה.
+
+הקישור תקף לשעה. בדוק/י גם בתיקיית הספאם.`,
+    );
+  }
 
   async function handleGooglePress() {
     setGoogleLoading(true);
@@ -138,9 +168,22 @@ export default function LoginScreen({ navigation }: Props) {
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPass}
+                  keyboardType="ascii-capable"
+                  autoCapitalize="none"
+                  autoComplete="current-password"
                   textAlign="right"
                 />
               </View>
+              <TouchableOpacity
+                onPress={handleForgotPassword}
+                disabled={resetting}
+                style={styles.forgotLink}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={styles.forgotTxt}>
+                  {resetting ? 'שולח…' : 'שכחתי סיסמה'}
+                </Text>
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity style={styles.loginBtn} onPress={handleLogin} disabled={loading}>
@@ -260,6 +303,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   input: { flex: 1, fontSize: 15, color: Colors.text },
+  forgotLink: { alignSelf: 'flex-start', marginTop: 6 },
+  forgotTxt:  { fontSize: 12.5, fontWeight: '600', color: Colors.primaryLight },
   loginBtn: {
     backgroundColor: Colors.primary,
     borderRadius: Radius.sm,

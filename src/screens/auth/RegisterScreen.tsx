@@ -13,6 +13,8 @@ import { useAuth } from '../../context/AuthContext';
 import { Colors, Spacing, Radius } from '../../utils/theme';
 import { AuthStackParamList, City } from '../../types';
 import CityPicker from '../../components/CityPicker';
+import PasswordStrength from '../../components/PasswordStrength';
+import { checkPassword, MIN_LENGTH } from '../../utils/passwordPolicy';
 
 type Props = { navigation: NativeStackNavigationProp<AuthStackParamList, 'Register'> };
 
@@ -27,6 +29,13 @@ export default function RegisterScreen({ navigation }: Props) {
   const [selectedCity,   setSelectedCity]   = useState<City | null>(null);
   const [cityPickerOpen, setCityPickerOpen] = useState(false);
   const [detectingCity,  setDetectingCity]  = useState(false);
+
+  // Checked against the name/email too, so a password built out of the account
+  // it protects is refused.
+  const pwCheck = React.useMemo(
+    () => checkPassword(password, { name, email }),
+    [password, name, email],
+  );
 
   async function detectCity() {
     setDetectingCity(true);
@@ -73,8 +82,14 @@ export default function RegisterScreen({ navigation }: Props) {
       Alert.alert('שגיאה', 'הסיסמאות אינן תואמות');
       return;
     }
-    if (password.length < 6) {
-      Alert.alert('שגיאה', 'הסיסמה חייבת להכיל לפחות 6 תווים');
+    if (!pwCheck.ok) {
+      // The checklist under the field already says which rule failed; name the
+      // first unmet one anyway for anyone who submitted without looking down.
+      const missing = pwCheck.rules.find((r) => !r.met);
+      Alert.alert(
+        'הסיסמה אינה עומדת בדרישות',
+        pwCheck.error ?? `חסר: ${missing?.label ?? 'אחד מהתנאים'}`,
+      );
       return;
     }
     setLoading(true);
@@ -87,6 +102,13 @@ export default function RegisterScreen({ navigation }: Props) {
       // explicitly — refreshUser()'s own firebaseUser closure here would still
       // be this screen's pre-registration (guest) identity.
       await refreshUser(user);
+      // registerWithEmail already sent the link; this is the only moment the
+      // user is definitely looking, so say it here as well as in the banner.
+      Alert.alert(
+        'ברוך הבא!',
+        `שלחנו קישור אימות ל-${email.trim()}.
+יש לאשר את הכתובת כדי שנוכל לשחזר עבורך סיסמה במקרה הצורך.`,
+      );
     } catch (e: any) {
       const msg: Record<string, string> = {
         'auth/email-already-in-use': 'כתובת האימייל כבר רשומה במערכת',
@@ -184,20 +206,31 @@ export default function RegisterScreen({ navigation }: Props) {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>סיסמה</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[
+                styles.inputWrapper,
+                password.length > 0 && !pwCheck.ok && styles.inputError,
+              ]}>
                 <TouchableOpacity onPress={() => setShowPass((p) => !p)}>
                   <Ionicons name={showPass ? 'eye-outline' : 'eye-off-outline'} size={18} color={Colors.textSecondary} />
                 </TouchableOpacity>
                 <TextInput scrollEnabled={false}
                   style={styles.input}
-                  placeholder="לפחות 6 תווים"
+                  placeholder={`לפחות ${MIN_LENGTH} תווים`}
                   placeholderTextColor={Colors.textMuted}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPass}
+                  keyboardType="ascii-capable"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="new-password"
+                  textContentType="newPassword"
                   textAlign="right"
                 />
               </View>
+              {/* Rules appear once typing starts — an empty field with a red
+                  checklist under it reads as an error before any mistake. */}
+              <PasswordStrength check={pwCheck} visible={password.length > 0} />
             </View>
 
             <View style={styles.inputGroup}>
@@ -211,9 +244,17 @@ export default function RegisterScreen({ navigation }: Props) {
                   value={confirmPass}
                   onChangeText={setConfirmPass}
                   secureTextEntry={!showPass}
+                  keyboardType="ascii-capable"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="new-password"
+                  textContentType="newPassword"
                   textAlign="right"
                 />
               </View>
+              {!!confirmPass && confirmPass !== password && (
+                <Text style={styles.mismatchTxt}>הסיסמאות אינן תואמות</Text>
+              )}
             </View>
 
             <TouchableOpacity style={styles.registerBtn} onPress={handleRegister} disabled={loading}>
@@ -253,6 +294,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   inputError: { borderColor: Colors.danger },
+  mismatchTxt: { fontSize: 12, color: Colors.danger, marginTop: 4 },
   input: { flex: 1, fontSize: 15, color: Colors.text },
   registerBtn: {
     backgroundColor: Colors.primary,
