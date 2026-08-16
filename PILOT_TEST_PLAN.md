@@ -120,6 +120,8 @@ Run `npm run test-plan` and open **http://localhost:4850** for an interactive ch
 
 ## 12. Push notifications
 
+<!-- note:VERIFIED%20end-to-end%202026-08-16%20on%20a%20real%20device%3A%20Expo%20ticket%20ok%2C%20getReceipts%20ok%2C%20and%20dumpsys%20notification%20showed%20the%20record%20posted%20by%20the%20app%20on%20the%20'default'%20channel%20via%20FCM.%20So%20EAS%20holds%20working%20FCM%20V1%20credentials%20%E2%80%94%20the%20legacy-FCM-shutdown%20concern%20does%20not%20apply.%20Method%20for%20re-testing%20without%20spamming%20every%20registered%20device%3A%20read%20the%20device's%20Expo%20token%20from%20Firestore%20pushTokens%2F%3CdeviceId%3E%20(deviceId%20is%20in%20AsyncStorage%20under%20kehila_device_id_v1)%2C%20POST%20that%20one%20token%20to%20exp.host%2F--%2Fapi%2Fv2%2Fpush%2Fsend%2C%20then%20POST%20the%20ticket%20id%20to%20%2F--%2Fapi%2Fv2%2Fpush%2FgetReceipts.%20A%20ticket%20of%20'ok'%20only%20means%20Expo%20QUEUED%20it%3B%20only%20the%20receipt%20proves%20FCM%20accepted%20it%2C%20and%20that%20is%20where%20InvalidCredentials%20or%20MismatchSenderId%20would%20appear. -->
+
 For each, confirm the notification **actually arrives on a physical device with the app backgrounded or closed** — not just that Firestore gets written to:
 
 - [x] Eruv status change → push received
