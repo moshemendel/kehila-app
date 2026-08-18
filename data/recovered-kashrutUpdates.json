@@ -1,0 +1,298 @@
+[
+  {
+    "name": "projects/kehila-app-386ab/databases/(default)/documents/kashrutUpdates/H32HMdjD8DI65NLkr0jy",
+    "fields": {
+      "expiresAt": {
+        "timestampValue": "2026-08-27T08:08:11.384Z"
+      },
+      "cityId": {
+        "stringValue": "city-1"
+      },
+      "businessId": {
+        "stringValue": "7IoGhIQv3cLKDWFmHT6Y"
+      },
+      "businessName": {
+        "stringValue": "אדי פלוס"
+      },
+      "direction": {
+        "stringValue": "up"
+      },
+      "certType": {
+        "stringValue": "local_rabbanut"
+      },
+      "tags": {
+        "arrayValue": {
+          "values": [
+            {
+              "stringValue": "הופעלה"
+            }
+          ]
+        }
+      },
+      "createdAt": {
+        "timestampValue": "2026-07-28T08:08:11.342Z"
+      }
+    },
+    "createTime": "2026-07-28T08:08:11.360690Z",
+    "updateTime": "2026-07-28T08:08:11.360690Z"
+  },
+  {
+    "name": "projects/kehila-app-386ab/databases/(default)/documents/kashrutUpdates/Jcpe4fgfz8ysJBGrGZdc",
+    "fields": {
+      "expiresAt": {
+        "timestampValue": "2026-08-27T07:03:54.908Z"
+      },
+      "cityId": {
+        "stringValue": "city-1"
+      },
+      "businessId": {
+        "stringValue": "CQlGMStH6c1pphwEtYPP"
+      },
+      "businessName": {
+        "stringValue": "קצפת"
+      },
+      "direction": {
+        "stringValue": "up"
+      },
+      "certType": {
+        "stringValue": "local_rabbanut"
+      },
+      "tags": {
+        "arrayValue": {
+          "values": [
+            {
+              "stringValue": "מהדרין"
+            }
+          ]
+        }
+      },
+      "createdAt": {
+        "timestampValue": "2026-07-28T07:03:54.818Z"
+      }
+    },
+    "createTime": "2026-07-28T07:03:54.835635Z",
+    "updateTime": "2026-07-28T07:03:54.835635Z"
+  },
+  {
+    "name": "projects/kehila-app-386ab/databases/(default)/documents/kashrutUpdates/JqdrtVK5u0Dt0kDTfdOh",
+    "fields": {
+      "expiresAt": {
+        "timestampValue": "2026-08-14T12:08:36.348Z"
+      },
+      "cityId": {
+        "stringValue": "city-1"
+      },
+      "businessId": {
+        "stringValue": "7IoGhIQv3cLKDWFmHT6Y"
+      },
+      "businessName": {
+        "stringValue": "אדי פלוס"
+      },
+      "direction": {
+        "stringValue": "up"
+      },
+      "certType": {
+        "stringValue": "local_rabbanut"
+      },
+      "tags": {
+        "arrayValue": {
+          "values": [
+            {
+              "stringValue": "הופעלה"
+            }
+          ]
+        }
+      },
+      "createdAt": {
+        "timestampValue": "2026-07-15T12:08:36.835Z"
+      }
+    },
+    "createTime": "2026-07-15T12:08:36.849840Z",
+    "updateTime": "2026-07-15T12:08:36.849840Z"
+  },
+  {
+    "name": "projects/kehila-app-386ab/databases/(default)/documents/kashrutUpdates/a9ViZ8az6U0UVhlPPoct",
+    "fields": {
+      "expiresAt": {
+        "timestampValue": "2026-08-27T07:04:33.192Z"
+      },
+      "cityId": {
+        "stringValue": "city-1"
+      },
+      "businessId": {
+        "stringValue": "CQlGMStH6c1pphwEtYPP"
+      },
+      "businessName": {
+        "stringValue": "קצפת"
+      },
+      "direction": {
+        "stringValue": "down"
+      },
+      "certType": {
+        "stringValue": "local_rabbanut"
+      },
+      "tags": {
+        "arrayValue": {
+          "values": [
+            {
+              "stringValue": "רגיל"
+            }
+          ]
+        }
+      },
+      "createdAt": {
+        "timestampValue": "2026-07-28T07:04:33.106Z"
+      }
+    },
+    "createTime": "2026-07-28T07:04:33.181999Z",
+    "updateTime": "2026-07-28T07:04:33.181999Z"
+  },
+  {
+    "name": "projects/kehila-app-386ab/databases/(default)/documents/kashrutUpdates/jyuzsmoLsj1zackl3GJC",
+    "fields": {
+      "expiresAt": {
+        "timestampValue": "2026-08-27T07:30:15.123Z"
+      },
+      "cityId": {
+        "stringValue": "city-1"
+      },
+      "businessId": {
+        "stringValue": "7IoGhIQv3cLKDWFmHT6Y"
+      },
+      "businessName": {
+        "stringValue": "אדי פלוס"
+      },
+      "direction": {
+        "stringValue": "up"
+      },
+      "certType": {
+        "stringValue": "local_rabbanut"
+      },
+      "tags": {
+        "arrayValue": {
+          "values": [
+            {
+              "stringValue": "הופעלה"
+            }
+          ]
+        }
+      },
+      "createdAt": {
+        "timestampValue": "2026-07-28T07:30:15.055Z"
+      }
+    },
+    "createTime": "2026-07-28T07:30:15.081127Z",
+    "updateTime": "2026-07-28T07:30:15.081127Z"
+  },
+  {
+    "name": "projects/kehila-app-386ab/databases/(default)/documents/kashrutUpdates/p0zmZWW8cPtE0L1uWXey",
+    "fields": {
+      "expiresAt": {
+        "timestampValue": "2026-08-27T08:07:18.211Z"
+      },
+      "cityId": {
+        "stringValue": "city-1"
+      },
+      "businessId": {
+        "stringValue": "7IoGhIQv3cLKDWFmHT6Y"
+      },
+      "businessName": {
+        "stringValue": "אדי פלוס"
+      },
+      "direction": {
+        "stringValue": "down"
+      },
+      "certType": {
+        "stringValue": "local_rabbanut"
+      },
+      "tags": {
+        "arrayValue": {
+          "values": [
+            {
+              "stringValue": "הושבתה"
+            }
+          ]
+        }
+      },
+      "createdAt": {
+        "timestampValue": "2026-07-28T08:07:18.164Z"
+      }
+    },
+    "createTime": "2026-07-28T08:07:18.176687Z",
+    "updateTime": "2026-07-28T08:07:18.176687Z"
+  },
+  {
+    "name": "projects/kehila-app-386ab/databases/(default)/documents/kashrutUpdates/xPaBAnCPghg6psyMBaF0",
+    "fields": {
+      "expiresAt": {
+        "timestampValue": "2026-08-27T07:07:39.338Z"
+      },
+      "cityId": {
+        "stringValue": "city-1"
+      },
+      "businessId": {
+        "stringValue": "7IoGhIQv3cLKDWFmHT6Y"
+      },
+      "businessName": {
+        "stringValue": "אדי פלוס"
+      },
+      "direction": {
+        "stringValue": "down"
+      },
+      "certType": {
+        "stringValue": "local_rabbanut"
+      },
+      "tags": {
+        "arrayValue": {
+          "values": [
+            {
+              "stringValue": "הושבתה"
+            }
+          ]
+        }
+      },
+      "createdAt": {
+        "timestampValue": "2026-07-28T07:07:40.213Z"
+      }
+    },
+    "createTime": "2026-07-28T07:07:40.230402Z",
+    "updateTime": "2026-07-28T07:07:40.230402Z"
+  },
+  {
+    "name": "projects/kehila-app-386ab/databases/(default)/documents/kashrutUpdates/xlVBYrcB6G6ON9VKotuw",
+    "fields": {
+      "expiresAt": {
+        "timestampValue": "2026-08-14T12:07:58.661Z"
+      },
+      "cityId": {
+        "stringValue": "city-1"
+      },
+      "businessId": {
+        "stringValue": "7IoGhIQv3cLKDWFmHT6Y"
+      },
+      "businessName": {
+        "stringValue": "אדי פלוס"
+      },
+      "direction": {
+        "stringValue": "down"
+      },
+      "certType": {
+        "stringValue": "local_rabbanut"
+      },
+      "tags": {
+        "arrayValue": {
+          "values": [
+            {
+              "stringValue": "הושבתה"
+            }
+          ]
+        }
+      },
+      "createdAt": {
+        "timestampValue": "2026-07-15T12:07:59.167Z"
+      }
+    },
+    "createTime": "2026-07-15T12:07:59.202933Z",
+    "updateTime": "2026-07-15T12:07:59.202933Z"
+  }
+]

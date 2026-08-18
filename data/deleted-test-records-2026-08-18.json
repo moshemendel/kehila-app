@@ -1,0 +1,76 @@
+[
+  {
+    "collection": "gemachs",
+    "id": "TnSMPkAFSiFahWROVzWQ",
+    "data": {
+      "cityId": "city-1",
+      "name": "א",
+      "category": "clothing",
+      "contactName": "א",
+      "phone": "3",
+      "neighborhood": null,
+      "description": null,
+      "hours": null,
+      "createdBy": "nAXRK8JxxIciSfacQVdMlHGw9VY2",
+      "createdAt": {
+        "_seconds": 1782034625,
+        "_nanoseconds": 546000000
+      },
+      "isActive": true
+    }
+  },
+  {
+    "collection": "pending_gemachs",
+    "id": "SzFdbUWkYL71XqAtcTDG",
+    "data": {
+      "cityId": "city-1",
+      "name": "א",
+      "category": "clothing",
+      "contactName": "א",
+      "phone": "3",
+      "neighborhood": null,
+      "description": null,
+      "hours": null,
+      "submittedBy": "nAXRK8JxxIciSfacQVdMlHGw9VY2",
+      "submittedByName": "משה מנדלוביץ",
+      "submittedAt": {
+        "_seconds": 1782031486,
+        "_nanoseconds": 828000000
+      },
+      "status": "approved"
+    }
+  },
+  {
+    "collection": "pending_gemachs",
+    "id": "cB4tDZopcBt8d0MHCvHa",
+    "data": {
+      "cityId": "city-1",
+      "name": "א",
+      "category": "clothing",
+      "contactName": "א",
+      "phone": "3",
+      "neighborhood": null,
+      "description": null,
+      "hours": null,
+      "submittedBy": "9QCVz3EwRIaNc6zZxr20nrzeNyj2",
+      "submittedByName": "משה2 מנדל",
+      "submittedAt": {
+        "_seconds": 1782031661,
+        "_nanoseconds": 11000000
+      },
+      "status": "rejected"
+    }
+  },
+  {
+    "collection": "cities",
+    "id": "new-york",
+    "data": {
+      "name": "New York",
+      "country": "ארצות הברית",
+      "timezone": "America/New_York",
+      "latitude": 40.7127753,
+      "longitude": -74.0059728,
+      "elevation": 25
+    }
+  }
+]
