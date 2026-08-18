@@ -53,3 +53,10 @@ pglite-debug.log
 # generated native folders
 /ios
 /android
+
+# python bytecode from the promo-video scripts
+__pycache__/
+*.pyc
+
+# firebase deploy cache
+.firebase/
