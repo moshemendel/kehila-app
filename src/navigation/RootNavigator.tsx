@@ -33,6 +33,7 @@ import ManageGemachScreen     from '../screens/admin/ManageGemachScreen';
 import ZmanimSettingsScreen   from '../screens/main/ZmanimSettingsScreen';
 import GemachSubmitScreen     from '../screens/main/GemachSubmitScreen';
 import { Colors } from '../utils/theme';
+import { SHOW_DEV_TOOLS } from '../utils/devTools';
 
 const Root = createNativeStackNavigator();
 
@@ -84,7 +85,7 @@ export default function RootNavigator() {
   // There was previously no way to test "does the lock screen engage/look
   // right" without waiting for an actual real candle-lighting moment (or
   // fiddling with the device's system clock) — this forces it on for
-  // preview, same __DEV__ gating as the bypass button below.
+  // preview, same dev-only gating as the bypass button below.
   const [devForceLock, setDevForceLock] = useState(false);
   const isLocked = (lock.locked || devForceLock) && !devBypass;
 
@@ -105,7 +106,7 @@ export default function RootNavigator() {
   }
 
   // Hard lock for everyone on Shabbat / Yom Tov. The bypass is only ever wired
-  // in development builds (__DEV__) — in production there is no way in.
+  // in development builds — in production there is no way in. See devTools.ts.
   if (isLocked) {
     return (
       <ShabbatClosedScreen
@@ -113,7 +114,7 @@ export default function RootNavigator() {
         kind={lock.kind}
         parasha={lock.parasha}
         reopenAt={lock.reopenAt}
-        onDevBypass={__DEV__ ? () => setDevBypass(true) : undefined}
+        onDevBypass={SHOW_DEV_TOOLS ? () => setDevBypass(true) : undefined}
       />
     );
   }
@@ -125,7 +126,7 @@ export default function RootNavigator() {
   return (
     <>
     <CityGpsPrompt />
-    {__DEV__ && (
+    {SHOW_DEV_TOOLS && (
       <TouchableOpacity
         style={styles.devLockBtn}
         onPress={() => setDevForceLock(true)}
@@ -275,7 +276,7 @@ export default function RootNavigator() {
 const styles = StyleSheet.create({
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background },
   // __DEV__-only — lets a developer preview the Shabbat lock screen without
-  // waiting for a real candle-lighting moment. Never renders outside __DEV__.
+  // waiting for a real candle-lighting moment. Never renders in a real build.
   devLockBtn: {
     position: 'absolute', top: 50, left: 8, zIndex: 999,
     width: 32, height: 32, borderRadius: 16,

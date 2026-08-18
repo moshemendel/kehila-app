@@ -12,6 +12,7 @@ import { GoogleSignin, isSuccessResponse, isErrorWithCode, statusCodes } from '@
 import { loginWithEmail, signInWithGoogleCredential, resetPassword } from '../../services/auth';
 import { useAuth } from '../../context/AuthContext';
 import { Colors, Spacing, Radius } from '../../utils/theme';
+import { SHOW_DEV_TOOLS } from '../../utils/devTools';
 import { AuthStackParamList } from '../../types';
 import GuestInfoModal from '../../components/GuestInfoModal';
 
@@ -224,7 +225,7 @@ export default function LoginScreen({ navigation }: Props) {
               </Text>
             </TouchableOpacity>
 
-            {__DEV__ && (
+            {SHOW_DEV_TOOLS && (
               <>
                 <View style={styles.demoDivider}>
                   <View style={styles.dividerLine} />
