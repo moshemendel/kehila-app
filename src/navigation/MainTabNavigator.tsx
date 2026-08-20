@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity,
-  Modal, Animated, Dimensions, Pressable,
+  View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions,
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { BottomTabBarProps }   from '@react-navigation/bottom-tabs';
@@ -23,9 +22,24 @@ import SearchScreen      from '../screens/main/SearchScreen';
 
 import { Colors, Spacing, Radius, Shadow } from '../utils/theme';
 import { MainTabParamList }                 from '../types';
-import { useEvents }                        from '../hooks/useEvents';
+import { useEventsFeed }                    from '../context/EventsContext';
 import { useCityId }                        from '../hooks/useCityId';
 import PrayerNotificationScheduler          from '../components/PrayerNotificationScheduler';
+import { useManagerAlerts }                 from '../hooks/useManagerAlerts';
+import { useAppIconBadge }                  from '../hooks/useAppIconBadge';
+import BottomSheetModal                     from '../components/BottomSheetModal';
+import ComingSoonScreen, { ComingSoonBadge } from '../components/ComingSoon';
+import { isComingSoon }                     from '../utils/comingSoon';
+
+/** Stands in for the kashrut tab while the certificate data is being verified. */
+const KashrutComingSoon = () => (
+  <ComingSoonScreen
+    title="כשרות"
+    description={'מסעדות, עסקים ותעודות כשרות מתעדכנים כעת מול הרבנות.\nהמדור ייפתח לאחר אימות כל התעודות.'}
+    icon="restaurant-outline"
+    color={Colors.kosher}
+  />
+);
 
 // ─────────────────────────────────────────────────────────────────
 type TabName = keyof MainTabParamList;
@@ -60,8 +74,8 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 
 // ─── Single tab button ──────────────────────────────────────────
 function TabBtn({
-  name, active, onPress,
-}: { name: TabName; active: boolean; onPress: () => void }) {
+  name, active, onPress, badge,
+}: { name: TabName; active: boolean; onPress: () => void; badge?: string }) {
   const { icon, iconActive, label, color } = TAB_INFO[name];
   return (
     <TouchableOpacity style={btn.wrap} onPress={onPress} activeOpacity={0.7}>
@@ -71,6 +85,9 @@ function TabBtn({
         size={24}
         color={active ? color : Colors.textMuted}
       />
+      {!!badge && (
+        <View style={btn.badge}><Text style={btn.badgeTxt}>{badge}</Text></View>
+      )}
       <Text style={[btn.label, active && { color }]} numberOfLines={1}>
         {label}
       </Text>
@@ -81,6 +98,13 @@ const btn = StyleSheet.create({
   wrap:      { flex: 1, alignItems: 'center', justifyContent: 'flex-start', gap: 3, paddingTop: 8 },
   label:     { fontSize: 10, fontWeight: '600', color: Colors.textMuted, textAlign: 'center' },
   indicator: { position: 'absolute', top: 0, width: 24, height: 3, borderRadius: 2 },
+  badge: {
+    position: 'absolute', top: 4, right: '28%',
+    backgroundColor: Colors.danger, borderRadius: 8,
+    minWidth: 16, height: 16,
+    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3,
+  },
+  badgeTxt: { fontSize: 10, color: '#fff', fontWeight: '800' },
 });
 
 // ─── Edit modal ─────────────────────────────────────────────────
@@ -105,55 +129,46 @@ function EditModal({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <Pressable style={ed.backdrop} onPress={onClose}>
-        <Pressable style={ed.sheet} onPress={e => e.stopPropagation()}>
-          <View style={ed.handle} />
-          <Text style={ed.title}>התאמה אישית</Text>
-          <Text style={ed.subtitle}>בחר 4 כפתורים לסרגל ({sel.length}/4)</Text>
+    <BottomSheetModal visible={visible} onClose={onClose} title="התאמה אישית" sheetStyle={ed.sheetPad}>
+      <Text style={ed.subtitle}>בחר 4 כפתורים לסרגל ({sel.length}/4)</Text>
 
-          <View style={ed.grid}>
-            {ALL_TABS.map(name => {
-              const info   = TAB_INFO[name];
-              const inBar  = sel.includes(name);
-              const locked = name === 'Home';
-              return (
-                <TouchableOpacity
-                  key={name}
-                  style={[ed.item, inBar && ed.itemOn]}
-                  onPress={() => toggle(name)}
-                  activeOpacity={locked ? 1 : 0.7}
-                >
-                  {locked && (
-                    <Ionicons name="lock-closed" size={9} color={Colors.textMuted} style={ed.lock} />
-                  )}
-                  <View style={[ed.itemIcon, { backgroundColor: inBar ? info.color : Colors.background }]}>
-                    <Ionicons name={info.iconActive as any} size={22}
-                      color={inBar ? Colors.white : Colors.textMuted} />
-                  </View>
-                  <Text style={[ed.itemLabel, inBar && ed.itemLabelOn]}>{info.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+      <View style={ed.grid}>
+        {ALL_TABS.map(name => {
+          const info   = TAB_INFO[name];
+          const inBar  = sel.includes(name);
+          const locked = name === 'Home';
+          return (
+            <TouchableOpacity
+              key={name}
+              style={[ed.item, inBar && ed.itemOn]}
+              onPress={() => toggle(name)}
+              activeOpacity={locked ? 1 : 0.7}
+            >
+              {locked && (
+                <Ionicons name="lock-closed" size={9} color={Colors.textMuted} style={ed.lock} />
+              )}
+              <View style={[ed.itemIcon, { backgroundColor: inBar ? info.color : Colors.background }]}>
+                <Ionicons name={info.iconActive as any} size={22}
+                  color={inBar ? Colors.white : Colors.textMuted} />
+              </View>
+              <Text style={[ed.itemLabel, inBar && ed.itemLabelOn]}>{info.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
-          <TouchableOpacity
-            style={[ed.saveBtn, sel.length !== 4 && ed.saveBtnOff]}
-            onPress={() => sel.length === 4 && onSave(sel as [TabName,TabName,TabName,TabName])}
-            activeOpacity={sel.length === 4 ? 0.8 : 1}
-          >
-            <Text style={ed.saveTxt}>שמור</Text>
-          </TouchableOpacity>
-        </Pressable>
-      </Pressable>
-    </Modal>
+      <TouchableOpacity
+        style={[ed.saveBtn, sel.length !== 4 && ed.saveBtnOff]}
+        onPress={() => sel.length === 4 && onSave(sel as [TabName,TabName,TabName,TabName])}
+        activeOpacity={sel.length === 4 ? 0.8 : 1}
+      >
+        <Text style={ed.saveTxt}>שמור</Text>
+      </TouchableOpacity>
+    </BottomSheetModal>
   );
 }
 const ed = StyleSheet.create({
-  backdrop:     { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
-  sheet:        { backgroundColor: Colors.cardBackground, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 12, paddingHorizontal: Spacing.lg, paddingBottom: 44 },
-  handle:       { width: 40, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: 16 },
-  title:        { fontSize: 20, fontWeight: '800', color: Colors.text, textAlign: 'center', marginBottom: 4 },
+  sheetPad:     { paddingHorizontal: Spacing.lg, paddingBottom: 44 },
   subtitle:     { fontSize: 13, color: Colors.textSecondary, textAlign: 'center', marginBottom: 20 },
   grid:         { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginBottom: 24 },
   item:         { width: '21%', alignItems: 'center', gap: 6, paddingVertical: 10, borderRadius: Radius.md, borderWidth: 2, borderColor: 'transparent' },
@@ -170,9 +185,26 @@ const ed = StyleSheet.create({
 // ─── Custom tab bar ─────────────────────────────────────────────
 function KehilaTabBar({ state, navigation }: BottomTabBarProps) {
   const { bottom }    = useSafeAreaInsets();
-  const cityId        = useCityId();
-  const { events }    = useEvents(cityId);
-  const alertCount    = events.filter(e => e.isAlert).length;
+  // Unread, not total: `events.filter(e => e.isAlert)` never shrinks, so the
+  // badge sat there permanently once any alert event existed. useEventsFeed is
+  // the same source the Home quick-links use, so the two now agree and the
+  // badge clears as the user reads them.
+  const { events, isRead } = useEventsFeed();
+  const alertCount    = events.filter(e => e.isAlert && !isRead(e.id)).length;
+  // "!" on Profile whenever something in the management screens needs action —
+  // the badge replaces push notifications, which need a Cloud Function.
+  const managerAlerts = useManagerAlerts();
+  const needsAttention = managerAlerts.total > 0;
+  // Same count on the OS app icon. Set locally (no push needed), so it reflects
+  // what was true the last time the app was open — see useAppIconBadge.
+  useAppIconBadge(managerAlerts.total);
+
+  // What a given tab's badge shows when it sits in the bar.
+  const badgeFor = (name: TabName): string | undefined => {
+    if (name === 'Profile' && needsAttention) return '!';
+    if (name === 'Events' && alertCount > 0) return String(alertCount);
+    return undefined;
+  };
 
   const [barTabs, setBarTabs] = useState<[TabName,TabName,TabName,TabName]>(DEFAULT_BAR);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -209,6 +241,10 @@ function KehilaTabBar({ state, navigation }: BottomTabBarProps) {
   if (currentRoute === 'Home') return null;
 
   const moreTabs  = ALL_TABS.filter(n => !(barTabs as string[]).includes(n));
+  // Only badge "עוד" for things that are actually inside it — otherwise the
+  // user opens the popup looking for the count and finds nothing.
+  const hiddenEventAlerts  = moreTabs.includes('Events') ? alertCount : 0;
+  const hiddenProfileAlert = moreTabs.includes('Profile') && needsAttention;
   const leftTabs  = barTabs.slice(0, 2) as TabName[];
   const rightTabs = barTabs.slice(2, 4) as TabName[];
 
@@ -266,16 +302,21 @@ function KehilaTabBar({ state, navigation }: BottomTabBarProps) {
               <View style={pp.grid}>
                 {moreTabs.map(name => {
                   const info = TAB_INFO[name];
-                  const hasBadge = name === 'Events' && alertCount > 0;
+                  const isProfileAlert = name === 'Profile' && needsAttention;
+                  const hasBadge = (name === 'Events' && alertCount > 0) || isProfileAlert;
+                  const badgeTxt = isProfileAlert ? '!' : String(alertCount);
                   return (
                     <TouchableOpacity key={name} style={pp.item} onPress={() => go(name)} activeOpacity={0.75}>
                       <View style={[pp.itemIcon, { backgroundColor: info.color + '1C' }]}>
                         <Ionicons name={info.iconActive as any} size={24} color={info.color} />
                         {hasBadge && (
-                          <View style={pp.badge}><Text style={pp.badgeTxt}>{alertCount}</Text></View>
+                          <View style={pp.badge}><Text style={pp.badgeTxt}>{badgeTxt}</Text></View>
                         )}
                       </View>
                       <Text style={pp.itemLabel}>{info.label}</Text>
+                      {name === 'Businesses' && isComingSoon('kashrut') && (
+                        <ComingSoonBadge color={info.color} />
+                      )}
                     </TouchableOpacity>
                   );
                 })}
@@ -297,7 +338,8 @@ function KehilaTabBar({ state, navigation }: BottomTabBarProps) {
 
         {/* ── Left 2 tab slots ── */}
         {leftTabs.map(name => (
-          <TabBtn key={name} name={name} active={currentRoute === name} onPress={() => go(name)} />
+          <TabBtn key={name} name={name} active={currentRoute === name} onPress={() => go(name)}
+            badge={badgeFor(name)} />
         ))}
 
         {/* ── Center: More button ── */}
@@ -311,14 +353,19 @@ function KehilaTabBar({ state, navigation }: BottomTabBarProps) {
             />
           </View>
           <Text style={[btn.label, moreOpen && { color: Colors.primary }]}>עוד</Text>
-          {alertCount > 0 && !moreOpen && (
-            <View style={tb.moreBadge}><Text style={tb.moreBadgeTxt}>{alertCount}</Text></View>
+          {!moreOpen && (hiddenEventAlerts > 0 || hiddenProfileAlert) && (
+            <View style={tb.moreBadge}>
+              <Text style={tb.moreBadgeTxt}>
+                {hiddenEventAlerts > 0 ? hiddenEventAlerts : '!'}
+              </Text>
+            </View>
           )}
         </TouchableOpacity>
 
         {/* ── Right 2 tab slots ── */}
         {rightTabs.map(name => (
-          <TabBtn key={name} name={name} active={currentRoute === name} onPress={() => go(name)} />
+          <TabBtn key={name} name={name} active={currentRoute === name} onPress={() => go(name)}
+            badge={badgeFor(name)} />
         ))}
       </View>
 
@@ -421,7 +468,7 @@ export default function MainTabNavigator() {
         <Tab.Screen name="Synagogues"  component={SynagoguesScreen} />
         <Tab.Screen name="PrayerTimes" component={PrayerTimesScreen} />
         <Tab.Screen name="Zmanim"      component={ZmanimScreen} />
-        <Tab.Screen name="Businesses" component={BusinessesScreen} />
+        <Tab.Screen name="Businesses" component={isComingSoon('kashrut') ? KashrutComingSoon : BusinessesScreen} />
         <Tab.Screen name="Mikveh"      component={MikvehScreen} />
         <Tab.Screen name="Events"      component={EventsScreen} />
         <Tab.Screen name="Eruv"        component={EruvScreen} />

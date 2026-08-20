@@ -39,6 +39,9 @@ GoogleService-Info.plist
 serviceAccount.json
 
 # local env files
+# .env itself matters: app.config.js reads GOOGLE_MAPS_API_KEY from it for local
+# builds, so it holds a real API key. `.env*.local` alone does NOT match it.
+.env
 .env*.local
 
 # stray debug output
@@ -50,3 +53,10 @@ pglite-debug.log
 # generated native folders
 /ios
 /android
+
+# python bytecode from the promo-video scripts
+__pycache__/
+*.pyc
+
+# firebase deploy cache
+.firebase/

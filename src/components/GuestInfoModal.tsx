@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import BottomSheetModal from './BottomSheetModal';
 import { Colors, Spacing, Radius } from '../utils/theme';
 
 interface Props {
@@ -31,53 +31,43 @@ function StatusIcon({ ok }: { ok: boolean }) {
 }
 
 export default function GuestInfoModal({ visible, onClose }: Props) {
-  const { bottom } = useSafeAreaInsets();
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <Pressable style={s.overlay} onPress={onClose}>
-        <Pressable style={[s.sheet, { paddingBottom: bottom + 16 }]}>
-          <View style={s.handle} />
-          <Text style={s.title}>אורח לעומת משתמש רשום</Text>
-          <Text style={s.subtitle}>
-            כאורח/ת ניתן לגלוש בכל התוכן באפליקציה ללא צורך בהרשמה. הרשמה עם חשבון פותחת עוד כמה יכולות:
-          </Text>
+    <BottomSheetModal
+      visible={visible}
+      onClose={onClose}
+      title="אורח לעומת משתמש רשום"
+      maxHeight="85%"
+    >
+      <Text style={s.subtitle}>
+        כאורח/ת ניתן לגלוש בכל התוכן באפליקציה ללא צורך בהרשמה. הרשמה עם חשבון פותחת עוד כמה יכולות:
+      </Text>
 
-          <ScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false}>
-            {/* Column headers */}
-            <View style={s.headerRow}>
-              <View style={{ flex: 1 }} />
-              <Text style={s.colHeader}>אורח</Text>
-              <Text style={s.colHeader}>רשום</Text>
-            </View>
+      <ScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false}>
+        {/* Column headers */}
+        <View style={s.headerRow}>
+          <View style={{ flex: 1 }} />
+          <Text style={s.colHeader}>אורח</Text>
+          <Text style={s.colHeader}>רשום</Text>
+        </View>
 
-            {ROWS.map((row) => (
-              <View key={row.label} style={s.row}>
-                <Text style={s.rowLabel}>{row.label}</Text>
-                <View style={s.colCell}><StatusIcon ok={row.guest} /></View>
-                <View style={s.colCell}><StatusIcon ok={row.registered} /></View>
-              </View>
-            ))}
-          </ScrollView>
+        {ROWS.map((row) => (
+          <View key={row.label} style={s.row}>
+            <Text style={s.rowLabel}>{row.label}</Text>
+            <View style={s.colCell}><StatusIcon ok={row.guest} /></View>
+            <View style={s.colCell}><StatusIcon ok={row.registered} /></View>
+          </View>
+        ))}
+      </ScrollView>
 
-          <TouchableOpacity style={s.closeBtn} onPress={onClose}>
-            <Text style={s.closeBtnText}>הבנתי</Text>
-          </TouchableOpacity>
-        </Pressable>
-      </Pressable>
-    </Modal>
+      <TouchableOpacity style={s.closeBtn} onPress={onClose}>
+        <Text style={s.closeBtnText}>הבנתי</Text>
+      </TouchableOpacity>
+    </BottomSheetModal>
   );
 }
 
 const s = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: Colors.cardBackground,
-    borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    paddingTop: 12, paddingHorizontal: Spacing.lg,
-  },
-  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: 'center', marginBottom: 12 },
-  title: { fontSize: 18, fontWeight: '800', color: Colors.text, textAlign: 'center', marginBottom: 8 },
   subtitle: { fontSize: 13, color: Colors.textSecondary, textAlign: 'center', lineHeight: 19, marginBottom: Spacing.md },
 
   headerRow: { flexDirection: 'row', alignItems: 'center', paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: Colors.border, marginBottom: 4 },

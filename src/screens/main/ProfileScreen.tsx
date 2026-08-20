@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Switch,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Switch, Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import { useAuth } from '../../context/AuthContext';
+import { canSeeReports } from '../../services/reports';
+import { useManagerAlerts } from '../../hooks/useManagerAlerts';
 import { useNotifications } from '../../context/NotificationsContext';
 import { useFavorites } from '../../context/FavoritesContext';
 import { logout } from '../../services/auth';
+import EmailVerificationBanner from '../../components/EmailVerificationBanner';
+import { PRIVACY_POLICY_URL, ABOUT_URL, SUPPORT_URL } from '../../utils/links';
 import { requireManagerAuth, lockManagerArea } from '../../utils/managerAuth';
 import { useCityId } from '../../hooks/useCityId';
 import { useCity } from '../../hooks/useCity';
@@ -71,6 +75,21 @@ function MenuRow({ icon, label, onPress, color = Colors.text, badge }: MenuRowPr
 const MINUTES_OPTIONS = [5, 10, 15, 20, 30];
 const PRAYER_LABELS_HE: Record<string, string> = { shacharit: 'שחרית', mincha: 'מנחה', maariv: 'ערבית' };
 
+/**
+ * Open an external link, saying so plainly if it can't be opened.
+ *
+ * Silent failure is the wrong default here: the privacy policy in particular is
+ * something a user may be actively looking for, and a tap that does nothing is
+ * indistinguishable from the dead rows this replaced.
+ */
+async function openLink(url: string) {
+  try {
+    await Linking.openURL(url);
+  } catch {
+    Alert.alert('לא ניתן לפתוח את הקישור', url);
+  }
+}
+
 export default function ProfileScreen() {
   const { appUser, firebaseUser, isDemo, isGuest, exitDemo, switchCity, updateHomeCity } = useAuth();
   const navigation = useNavigation<any>();
@@ -88,6 +107,7 @@ export default function ProfileScreen() {
   // the management menu on it alone would hide every other role they actually hold.
   const roles = appUser?.roles ?? [role];
   const isManager = roles.some((r) => r !== 'user');
+  const alerts = useManagerAlerts();
   const isAdminRole = roles.some((r) => ['city_admin', 'super_admin', 'dev'].includes(r));
 
   const cityId = useCityId();
@@ -121,9 +141,9 @@ export default function ProfileScreen() {
   }
 
   // Gate every entry into the management area behind a biometric / PIN check.
-  async function openManage(screen: string) {
+  async function openManage(screen: string, params?: Record<string, unknown>) {
     const ok = await requireManagerAuth();
-    if (ok) navigation.navigate(screen);
+    if (ok) navigation.navigate(screen, params);
   }
 
   async function handleLogout() {
@@ -160,6 +180,12 @@ export default function ProfileScreen() {
       <View style={{ height: top, backgroundColor: Colors.primary }} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+      {/* Also here, not just Home — this is where someone lands when they go
+          looking for their account details. No wrapper View: the banner renders
+          null when the address is already verified, and a wrapper carrying
+          margin would leave a white band above the header for every such user. */}
+      <EmailVerificationBanner />
+
       {/* Demo mode banner */}
       {isDemo && (
         <View style={styles.demoBanner}>
@@ -229,7 +255,9 @@ export default function ProfileScreen() {
               )}
               {(roles.includes('event_manager') || isAdminRole) && (
                 <MenuRow icon="megaphone-outline" label="ניהול אירועים והודעות" color={Colors.events}
-                  onPress={() => openManage('ManageEvents')} />
+                  badge={alerts.pendingEvents > 0 ? String(alerts.pendingEvents) : undefined}
+                  onPress={() => openManage('ManageEvents',
+                    alerts.pendingEvents > 0 ? { initialTab: 'pending' } : undefined)} />
               )}
               {(roles.includes('mikveh_manager') || isAdminRole) && (
                 <MenuRow icon="water-outline" label="ניהול מקוואות" color={Colors.mikveh}
@@ -237,11 +265,15 @@ export default function ProfileScreen() {
               )}
               {isAdminRole && (
                 <MenuRow icon="gift-outline" label='ניהול גמ"חים' color="#B06B3A"
-                  onPress={() => openManage('ManageGemach')} />
+                  badge={alerts.pendingGemachs > 0 ? String(alerts.pendingGemachs) : undefined}
+                  onPress={() => openManage('ManageGemach',
+                    alerts.pendingGemachs > 0 ? { initialTab: 'pending' } : undefined)} />
               )}
               {(roles.includes('eruv_manager') || isAdminRole) && (
                 <MenuRow icon="shield-outline" label="ניהול עירוב" color={Colors.gold}
-                  onPress={() => openManage('ManageEruv')} />
+                  badge={alerts.eruvReports > 0 ? String(alerts.eruvReports) : undefined}
+                  onPress={() => openManage('ManageEruv',
+                    alerts.eruvReports > 0 ? { initialTab: 'reports' } : undefined)} />
               )}
               {isAdminRole && (
                 <MenuRow icon="people-outline" label="ניהול משתמשים" color={Colors.danger}
@@ -250,6 +282,11 @@ export default function ProfileScreen() {
               {isAdminRole && (
                 <MenuRow icon="globe-outline" label="ניהול ערים" color={Colors.primary}
                   onPress={() => openManage('ManageCities')} />
+              )}
+              {canSeeReports(appUser) && (
+                <MenuRow icon="flag-outline" label="דיווחים על מידע שגוי" color={Colors.danger}
+                  badge={alerts.reports > 0 ? String(alerts.reports) : undefined}
+                  onPress={() => openManage('ManageReports')} />
               )}
             </View>
           </View>
@@ -388,14 +425,28 @@ export default function ProfileScreen() {
           onClose={() => setHomeCityPickerOpen(false)}
         />
 
-        {/* About */}
-        <View style={styles.section}>
-          <View style={styles.card}>
-            <MenuRow icon="information-circle-outline" label="אודות קהילה" onPress={() => {}} />
-            <MenuRow icon="help-circle-outline" label="עזרה ותמיכה" onPress={() => {}} />
-            <MenuRow icon="shield-outline" label="מדיניות פרטיות" onPress={() => {}} />
+        {/* About — each row appears only once its URL is configured in
+            utils/links.ts. These were previously onPress={() => {}}: buttons
+            that looked live and did nothing. If none is set the whole card is
+            omitted rather than left empty. */}
+        {(ABOUT_URL || SUPPORT_URL || PRIVACY_POLICY_URL) ? (
+          <View style={styles.section}>
+            <View style={styles.card}>
+              {!!ABOUT_URL && (
+                <MenuRow icon="information-circle-outline" label="אודות קהילה"
+                  onPress={() => openLink(ABOUT_URL)} />
+              )}
+              {!!SUPPORT_URL && (
+                <MenuRow icon="help-circle-outline" label="עזרה ותמיכה"
+                  onPress={() => openLink(SUPPORT_URL)} />
+              )}
+              {!!PRIVACY_POLICY_URL && (
+                <MenuRow icon="shield-outline" label="מדיניות פרטיות"
+                  onPress={() => openLink(PRIVACY_POLICY_URL)} />
+              )}
+            </View>
           </View>
-        </View>
+        ) : null}
 
         {/* Logout — only for signed-in / demo users */}
         {!isGuest && (

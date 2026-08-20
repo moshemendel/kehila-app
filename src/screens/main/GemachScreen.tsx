@@ -17,6 +17,7 @@ import { useCity } from '../../hooks/useCity';
 import { useAuth } from '../../context/AuthContext';
 import { Gemach, GemachCategory } from '../../types';
 import GemachEditModal from '../../components/GemachEditModal';
+import ReportListingButton from '../../components/ReportListingButton';
 
 const GEMACH_COLOR = '#B06B3A';
 
@@ -57,10 +58,19 @@ function GemachCard({ item, isOwn, onEdit }: { item: Gemach; isOwn: boolean; onE
           {!!item.neighborhood && (
             <Text style={s.neighborhood}>📍 {item.neighborhood}</Text>
           )}
-          {isOwn && (
+          {isOwn ? (
             <TouchableOpacity onPress={onEdit} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
               <Ionicons name="pencil-outline" size={16} color={Colors.textSecondary} />
             </TouchableOpacity>
+          ) : (
+            <ReportListingButton
+              variant="icon"
+              cityId={item.cityId}
+              entityType="gemach"
+              entityId={item.id}
+              entityName={item.name}
+              color={GEMACH_COLOR}
+            />
           )}
         </View>
       </View>

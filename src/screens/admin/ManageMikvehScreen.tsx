@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TextInput,
   TouchableOpacity, Alert, ActivityIndicator,
@@ -11,11 +11,13 @@ import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
 import { updateMikveh, addMikveh, deleteMikveh, newMikvehId } from '../../services/mikvaot';
 import { Mikveh } from '../../types';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import LocationEditModal from '../../components/LocationEditModal';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
 import AddItemModal from '../../components/AddItemModal';
 import HoursScheduleEditor from '../../components/HoursScheduleEditor';
+import { useNeighborhoodOptions } from '../../hooks/useNeighborhoodOptions';
+import NeighborhoodPickerModal from '../../components/NeighborhoodPickerModal';
 
 const TYPE_OPTIONS: { key: Mikveh['type']; label: string }[] = [
   { key: 'women', label: '👩 נשים' },
@@ -26,9 +28,14 @@ const TYPE_OPTIONS: { key: Mikveh['type']; label: string }[] = [
 // ─── Edit form ─────────────────────────────────────────────────────────────────
 function EditForm({ mikveh, onBack }: { mikveh: Mikveh; onBack: () => void }) {
   const navigation = useNavigation<any>();
+  const { appUser } = useAuth();
+  const roles = appUser?.roles ?? (appUser?.role ? [appUser.role] : []);
+  const isAdmin = roles.some((r) => ['city_admin', 'super_admin', 'dev', 'mikveh_manager'].includes(r));
   const [form, setForm] = useState<Mikveh>({ ...mikveh });
   const [saving, setSaving] = useState(false);
   const [editingLoc, setEditingLoc] = useState(false);
+  const { options: neighborhoodOptions, addOption: addNeighborhood } = useNeighborhoodOptions(mikveh.cityId);
+  const [neighborhoodPickerOpen, setNeighborhoodPickerOpen] = useState(false);
 
   function set(key: keyof Mikveh, value: any) {
     setForm((p) => ({ ...p, [key]: value }));
@@ -54,7 +61,7 @@ function EditForm({ mikveh, onBack }: { mikveh: Mikveh; onBack: () => void }) {
           <View style={s.section}>
             <Text style={s.sectionTitle}>פרטים כלליים</Text>
             <View style={s.card}>
-              {([['name','שם המקווה'],['address','כתובת'],['phone','טלפון'],['neighborhood','שכונה']] as [keyof Mikveh, string][]).map(([key, label]) => (
+              {([['name','שם המקווה'],['address','כתובת'],['phone','טלפון']] as [keyof Mikveh, string][]).map(([key, label]) => (
                 <View key={key} style={s.fieldRow}>
                   <Text style={s.fieldLabel}>{label}</Text>
                   <TextInput scrollEnabled={false} style={s.fieldInput} value={(form[key] as string) ?? ''}
@@ -74,6 +81,31 @@ function EditForm({ mikveh, onBack }: { mikveh: Mikveh; onBack: () => void }) {
               </View>
             </View>
           </View>
+
+          {/* ── Neighborhood — picked from the city's list, not free text, so it
+               stays consistent across synagogues/mikvaot instead of drifting
+               ("רמת אשכול" vs "רמת אשכול ב'" vs typos) ── */}
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>שכונה</Text>
+            <View style={s.card}>
+              <TouchableOpacity style={s.dropdownField} onPress={() => setNeighborhoodPickerOpen(true)} activeOpacity={0.7}>
+                <Text style={form.neighborhood ? s.dropdownValue : s.dropdownPlaceholder}>
+                  {form.neighborhood ?? 'בחר שכונה'}
+                </Text>
+                <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <NeighborhoodPickerModal
+            visible={neighborhoodPickerOpen}
+            options={neighborhoodOptions}
+            selected={form.neighborhood}
+            canAdd={isAdmin}
+            onSelect={(name) => set('neighborhood', name)}
+            onAddNew={addNeighborhood}
+            onClose={() => setNeighborhoodPickerOpen(false)}
+          />
 
           {/* ── Images ── */}
           <View style={s.section}>
@@ -212,6 +244,22 @@ export default function ManageMikvehScreen() {
   const { mikvaot, loading } = useMikvaot(cityId);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Mikveh | null>(null);
+  // Deep-link from a content report ("פתח לתיקון") — preselect the reported
+  // item once the list has loaded so the manager lands straight on it.
+  const route = useRoute<any>();
+  const focusId = route.params?.focusId as string | undefined;
+  // Arriving from a report means the list was never on screen — back should
+  // return to the reports queue, not drop the user into a list they never saw.
+  const cameFromReport = useRef(!!focusId);
+  const onBackFromItem = () => {
+    if (cameFromReport.current) navigation.goBack();
+    else setSelected(null);
+  };
+  useEffect(() => {
+    if (!focusId) return;
+    const hit = mikvaot.find((x: any) => x.id === focusId);
+    if (hit) setSelected(hit);
+  }, [focusId, mikvaot]);
   const [adding, setAdding] = useState(false);
   const [creating, setCreating] = useState(false);
 
@@ -304,13 +352,13 @@ export default function ManageMikvehScreen() {
   // the single event React Navigation fires for all three of those triggers.
   useEffect(() => {
     return navigation.addListener('beforeRemove', (e: any) => {
-      if (!selected) return;
+      if (!selected || cameFromReport.current) return;
       e.preventDefault();
       setSelected(null);
     });
   }, [navigation, selected]);
 
-  if (selected) return <EditForm mikveh={selected} onBack={() => setSelected(null)} />;
+  if (selected) return <EditForm mikveh={selected} onBack={onBackFromItem} />;
 
   return (
     <View style={s.container}>
@@ -412,6 +460,9 @@ const s = StyleSheet.create({
   typeChipOn:   { backgroundColor: Colors.mikveh, borderColor: Colors.mikveh },
   typeChipTxt:  { fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
   typeChipTxtOn:{ color: Colors.white },
+  dropdownField: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 },
+  dropdownValue: { fontSize: 15, color: Colors.text },
+  dropdownPlaceholder: { fontSize: 15, color: Colors.textMuted },
   toggleRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.border },
   toggleLabel:  { fontSize: 14, fontWeight: '600', color: Colors.text },
   toggle:       { width: 44, height: 24, borderRadius: 12, backgroundColor: Colors.border, justifyContent: 'center', paddingHorizontal: 2 },

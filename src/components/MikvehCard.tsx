@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow } from '../utils/theme';
+import { useNavigateTo } from '../hooks/useNavigateTo';
 import { Mikveh, DayKey } from '../types';
 import { updateMikveh } from '../services/mikvaot';
 import { hoursTextForDay } from '../utils/appointmentSlots';
@@ -27,14 +28,8 @@ function getTodayHours(mikveh: Mikveh, zmanim: ReturnType<typeof useTodayZmanim>
   return hoursTextForDay(mikveh.hoursSchedule, today, zmanim);
 }
 
-function openMaps(address: string, lat?: number, lon?: number) {
-  const url = lat && lon
-    ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-  Linking.openURL(url);
-}
-
 export default function MikvehCard({ mikveh, distLabel, canManage, onPress, cardStyle }: Props) {
+  const { go: navigateTo, sheet: navSheet } = useNavigateTo();
   const todayZmanim = useTodayZmanim(mikveh.cityId);
   const todayHours = getTodayHours(mikveh, todayZmanim);
   const [editingLoc, setEditingLoc] = useState(false);
@@ -78,7 +73,7 @@ export default function MikvehCard({ mikveh, distLabel, canManage, onPress, card
               <Text style={styles.callText}>{mikveh.phone}</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.mapsBtn} onPress={() => openMaps(mikveh.address, mikveh.latitude, mikveh.longitude)}>
+          <TouchableOpacity style={styles.mapsBtn} onPress={() => navigateTo({ latitude: mikveh.latitude, longitude: mikveh.longitude, address: mikveh.address })}>
             <Ionicons name="map-outline" size={16} color="#1A73E8" />
             <Text style={styles.mapsText}>ניווט</Text>
           </TouchableOpacity>
@@ -101,6 +96,7 @@ export default function MikvehCard({ mikveh, distLabel, canManage, onPress, card
         onClear={() => updateMikveh(mikveh.id, { latitude: undefined, longitude: undefined })}
         onClose={() => setEditingLoc(false)}
       />
+      {navSheet}
     </>
   );
 }

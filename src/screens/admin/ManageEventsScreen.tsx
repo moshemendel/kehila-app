@@ -9,7 +9,7 @@ import TimePicker from '../../components/TimePicker';
 import LocationPicker from '../../components/LocationPicker';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useEvents } from '../../hooks/useEvents';
 import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
@@ -69,7 +69,11 @@ export default function ManageEventsScreen() {
 
   const [creating, setCreating] = useState(false);
   const [saving,   setSaving]   = useState(false);
-  const [activeTab, setActiveTab] = useState<'events' | 'pending' | 'expired'>('events');
+  // Arriving from the profile badge means they came for the pending queue.
+  const route = useRoute<any>();
+  const [activeTab, setActiveTab] = useState<'events' | 'pending' | 'expired'>(
+    route.params?.initialTab === 'pending' ? 'pending' : 'events',
+  );
   const [pending,   setPending]   = useState<PendingCommunityEvent[]>([]);
 
   // useEvents only drops events past their Firestore TTL (expiresAt — a grace window

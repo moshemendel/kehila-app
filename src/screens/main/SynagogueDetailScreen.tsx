@@ -1,16 +1,19 @@
 import React from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Linking, Platform, Image, ActivityIndicator,
+  Linking, Image, ActivityIndicator,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigateTo } from '../../hooks/useNavigateTo';
+import ReportListingButton from '../../components/ReportListingButton';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { PrayerTimeSlot, Shiur, Synagogue, SynagogueAnnouncement } from '../../types';
 import { getSynagogue } from '../../services/synagogues';
 import { useCityId } from '../../hooks/useCityId';
+import { shouldShowSelichot, daysUntilSelichot } from '../../utils/selichot';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
 import { ZmanimResult } from '../../utils/zmanim';
 import { useFavorites } from '../../context/FavoritesContext';
@@ -66,20 +69,15 @@ function synAddress(syn: Synagogue): string {
   return syn.address.he ?? syn.address.en ?? '';
 }
 
-function openWaze(lat: number, lon: number) {
-  Linking.openURL(`waze://?ll=${lat},${lon}&navigate=yes`).catch(() =>
-    Linking.openURL(`https://waze.com/ul?ll=${lat},${lon}&navigate=yes`)
-  );
-}
-
-function openGoogleMaps(lat: number, lon: number, name: string) {
-  const encoded = encodeURIComponent(name);
-  const url = Platform.OS === 'ios'
-    ? `maps:0,0?q=${encoded}@${lat},${lon}`
-    : `geo:0,0?q=${lat},${lon}(${encoded})`;
-  Linking.openURL(url).catch(() =>
-    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`)
-  );
+/** "16/08 (מוצ״ש)" — dated selichot nights, named the way people refer to them.
+ *  An after-midnight slot is called for the evening it follows. */
+function formatSelichotDates(dates: string[]): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return [...dates].sort().map((iso) => {
+    const d = new Date(`${iso}T12:00:00`);
+    if (Number.isNaN(d.getTime())) return iso;
+    return `${p(d.getDate())}/${p(d.getMonth() + 1)}`;
+  }).join(', ');
 }
 
 // ─── Sub-components ────────────────────────────────────────────────────────────
@@ -208,6 +206,7 @@ function ShiurRow({ sh }: { sh: Shiur }) {
 // ─── Main screen ───────────────────────────────────────────────────────────────
 export default function SynagogueDetailScreen() {
   const route               = useRoute<any>();
+  const navigation          = useNavigation<any>();
   const { top, bottom }     = useSafeAreaInsets();
 
   // Support two navigation patterns:
@@ -219,6 +218,7 @@ export default function SynagogueDetailScreen() {
   const todayZmanim         = useTodayZmanim(cityId);
   const { isFavorite, getFavoriteSetting, setFavorite, removeFavorite } = useFavorites();
   const [modalVisible, setModalVisible] = React.useState(false);
+  const { go: navigateTo, sheet: navSheet } = useNavigateTo();
 
   React.useEffect(() => {
     if (syn) { setLoading(false); return; }
@@ -277,10 +277,29 @@ export default function SynagogueDetailScreen() {
   // ── syn is guaranteed non-null from here ──────────────────────────────────
   const fav      = isFavorite(syn.id);
   const hasNav   = !!(syn.latitude && syn.longitude);
+  const navTarget = { latitude: syn.latitude, longitude: syn.longitude, address: synAddress(syn), wazeLink: syn.wazeLink };
 
   const nusachValues = Array.isArray(syn.nusach) ? syn.nusach.filter(Boolean) : (syn.nusach ? [syn.nusach as unknown as string] : []);
   const primaryNusach = nusachValues[0] ?? '';
   const nusachColor = NUSACH_COLORS[primaryNusach] ?? Colors.primary;
+
+  // Report affordance lives in the stack header — visible the moment something
+  // looks wrong, without scrolling to the bottom of a long listing.
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <ReportListingButton
+          variant="icon"
+          iconColor={Colors.white}
+          cityId={syn.cityId}
+          entityType="synagogue"
+          entityId={syn.id}
+          entityName={syn.name}
+          color={nusachColor}
+        />
+      ),
+    });
+  }, [navigation, syn.id, syn.cityId, syn.name, nusachColor]);
   const nusachLabel = nusachValues.join(' / ');
   const nusachEmoji = NUSACH_EMOJIS[primaryNusach] ?? '🕍';
 
@@ -396,7 +415,7 @@ export default function SynagogueDetailScreen() {
             {!!synAddress(syn) && (
               <TouchableOpacity
                 style={st.metaRow}
-                onPress={hasNav ? () => openGoogleMaps(syn.latitude!, syn.longitude!, syn.name) : undefined}
+                onPress={hasNav ? () => navigateTo(navTarget) : undefined}
                 activeOpacity={hasNav ? 0.7 : 1}
               >
                 <Ionicons name="location-outline" size={15} color={nusachColor} />
@@ -435,21 +454,10 @@ export default function SynagogueDetailScreen() {
                 {(hasNav || !!syn.wazeLink) && (
                   <TouchableOpacity
                     style={[st.actionBtn, st.actionBtnPrimary, { backgroundColor: nusachColor, borderColor: nusachColor }]}
-                    onPress={() => syn.wazeLink
-                      ? Linking.openURL(syn.wazeLink)
-                      : openWaze(syn.latitude!, syn.longitude!)}
+                    onPress={() => navigateTo(navTarget)}
                   >
                     <Ionicons name="navigate" size={18} color="#fff" />
                     <Text style={[st.actionBtnTxt, { color: '#fff' }]}>ניווט</Text>
-                  </TouchableOpacity>
-                )}
-                {hasNav && (
-                  <TouchableOpacity
-                    style={[st.actionBtn, { borderColor: nusachColor, backgroundColor: nusachColor + '0D' }]}
-                    onPress={() => openGoogleMaps(syn.latitude!, syn.longitude!, syn.name)}
-                  >
-                    <Ionicons name="map" size={18} color={nusachColor} />
-                    <Text style={[st.actionBtnTxt, { color: nusachColor }]}>מפות</Text>
                   </TouchableOpacity>
                 )}
                 {hasPhone && (
@@ -570,6 +578,39 @@ export default function SynagogueDetailScreen() {
           </View>
         </View>
 
+        {/* ── Selichot — seasonal, shown from a week before this shul starts ── */}
+        {(syn.weeklySchedule?.selichot ?? []).length > 0 && shouldShowSelichot(syn) && (() => {
+          const daysAway = daysUntilSelichot(syn);
+          return (
+            <View style={st.section}>
+              <View style={st.sectionHdr}>
+                <Ionicons name="moon-outline" size={18} color={Colors.gold} />
+                <Text style={st.sectionTitle}>סליחות</Text>
+                {daysAway > 0 && (
+                  <Text style={st.selichotCountdown}>
+                    {daysAway === 1 ? 'מתחילות מחר' : `בעוד ${daysAway} ימים`}
+                  </Text>
+                )}
+              </View>
+              <View style={st.sectionCard}>
+                {(syn.weeklySchedule.selichot ?? []).map((slot, i) => (
+                  <View key={i} style={st.weekSlotRow}>
+                    <Text style={[st.weekSlotTime, { color: Colors.gold }]}>
+                      {getSlotLabel(slot, todayZmanim)}
+                    </Text>
+                    <Text style={st.weekSlotDays}>
+                      {slot.dates?.length
+                        ? formatSelichotDates(slot.dates)
+                        : formatDays(slot.days ?? [])}
+                    </Text>
+                    {!!slot.notes && <Text style={st.weekSlotNote}>{slot.notes}</Text>}
+                  </View>
+                ))}
+              </View>
+            </View>
+          );
+        })()}
+
         {/* ── Synagogue announcements / events ─────────────────────────────── */}
         {(syn.synagogueEvents ?? []).length > 0 && (() => {
           const sorted = [...(syn.synagogueEvents ?? [])]
@@ -617,6 +658,8 @@ export default function SynagogueDetailScreen() {
         onRemove={() => { removeFavorite(syn.id); setModalVisible(false); }}
         onClose={() => setModalVisible(false)}
       />
+
+      {navSheet}
     </View>
   );
 }
@@ -760,6 +803,7 @@ const st = StyleSheet.create({
   section:     { marginHorizontal: Spacing.md, marginBottom: Spacing.lg },
   sectionHdr:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: Spacing.sm },
   sectionTitle:{ fontSize: 16, fontWeight: '700', color: Colors.text, flex: 1,  },
+  selichotCountdown: { fontSize: 12, fontWeight: '700', color: Colors.gold },
 
   // Inner section card (same visual as business hoursCard / certCard container)
   sectionCard: {

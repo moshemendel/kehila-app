@@ -15,6 +15,7 @@ import { useCityId } from '../../hooks/useCityId';
 import { GemachCategory } from '../../types';
 import type { City } from '../../types';
 import TimeRangePicker from '../../components/TimeRangePicker';
+import NeighborhoodPickerModal from '../../components/NeighborhoodPickerModal';
 
 const GEMACH_COLOR = '#B06B3A';
 
@@ -45,6 +46,7 @@ export default function GemachSubmitScreen() {
   const [hours,       setHours]       = useState('');
   const [saving,      setSaving]      = useState(false);
   const [neighborhoods, setNeighborhoods] = useState<string[]>([]);
+  const [neighborhoodPickerOpen, setNeighborhoodPickerOpen] = useState(false);
 
   useEffect(() => {
     if (!cityId) return;
@@ -161,23 +163,22 @@ export default function GemachSubmitScreen() {
         {neighborhoods.length > 0 && (
           <>
             <Text style={s.label}>שכונה</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.categoryChips}>
-              <TouchableOpacity
-                style={[s.catChip, !neighborhood && s.catChipActive]}
-                onPress={() => setNeighborhood('')}
-              >
-                <Text style={[s.catChipTxt, !neighborhood && s.catChipTxtActive]}>לא רלוונטי</Text>
-              </TouchableOpacity>
-              {neighborhoods.map(n => (
-                <TouchableOpacity
-                  key={n}
-                  style={[s.catChip, neighborhood === n && s.catChipActive]}
-                  onPress={() => setNeighborhood(n)}
-                >
-                  <Text style={[s.catChipTxt, neighborhood === n && s.catChipTxtActive]}>{n}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            <TouchableOpacity style={s.dropdownField} onPress={() => setNeighborhoodPickerOpen(true)} activeOpacity={0.7}>
+              <Text style={neighborhood ? s.dropdownValue : s.dropdownPlaceholder}>
+                {neighborhood || 'לא רלוונטי'}
+              </Text>
+              <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
+            </TouchableOpacity>
+
+            <NeighborhoodPickerModal
+              visible={neighborhoodPickerOpen}
+              options={neighborhoods}
+              selected={neighborhood || undefined}
+              canAdd={false}
+              onSelect={(n) => setNeighborhood(n ?? '')}
+              onAddNew={async () => false}
+              onClose={() => setNeighborhoodPickerOpen(false)}
+            />
           </>
         )}
 
@@ -231,6 +232,14 @@ const s = StyleSheet.create({
     fontSize: 15, color: Colors.text,
   },
   textarea: { height: 90, paddingTop: 12 },
+  dropdownField: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: Colors.cardBackground,
+    borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border,
+    paddingHorizontal: Spacing.md, paddingVertical: 12,
+  },
+  dropdownValue: { fontSize: 15, color: Colors.text },
+  dropdownPlaceholder: { fontSize: 15, color: Colors.textMuted },
 
   categoryChips: { gap: 8, paddingBottom: 4 },
   catChip: {

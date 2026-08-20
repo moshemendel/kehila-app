@@ -7,12 +7,15 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import BottomSheetModal from '../../components/BottomSheetModal';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useSynagogues } from '../../hooks/useSynagogues';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
 import { useNusachOptions } from '../../hooks/useNusachOptions';
+import { useNeighborhoodOptions } from '../../hooks/useNeighborhoodOptions';
+import NeighborhoodPickerModal from '../../components/NeighborhoodPickerModal';
 import { updateSynagogue, addSynagogue, deleteSynagogue } from '../../services/synagogues';
 import { submitPendingEvent } from '../../services/pendingEvents';
 import { Synagogue, PrayerTimeSlot, ZmanimAnchor, Shiur, EventCategory, SynagogueAnnouncement } from '../../types';
@@ -20,6 +23,8 @@ import LocationEditModal from '../../components/LocationEditModal';
 import AddItemModal from '../../components/AddItemModal';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
 import TimePicker from '../../components/TimePicker';
+import MultiDateCalendar from '../../components/MultiDateCalendar';
+import { synagogueSelichotStart } from '../../utils/selichot';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -35,12 +40,21 @@ const DAYS_ALL = [
 ];
 
 const PRAYER_TYPES = [
-  { key: 'shacharit' as const, label: 'שחרית', color: Colors.shacharit },
-  { key: 'mincha'    as const, label: 'מנחה',  color: Colors.primary },
+  { key: 'shacharit' as const, label: 'שחרית',  color: Colors.shacharit },
+  { key: 'mincha'    as const, label: 'מנחה',   color: Colors.primary },
   { key: 'maariv'   as const, label: 'ערבית',  color: Colors.maariv },
+  { key: 'selichot' as const, label: 'סליחות', color: Colors.gold },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** "16/08" — short civil date for the editor's notes. */
+function formatDayMonth(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}`;
+}
+
+
 function isValidTime(t: string): boolean {
   const [hPart = '', mPart = ''] = t.split(':');
   const h = parseInt(hPart, 10);
@@ -85,15 +99,17 @@ function formatSlotLabel(slot: PrayerTimeSlot): string {
 const EMPTY_WEEKDAY_SLOT: PrayerTimeSlot = { time: '', days: [1, 2, 3, 4, 5, 6] };
 const EMPTY_SHABBAT_SLOT: PrayerTimeSlot = { time: '' };
 
-type PrayerKey = 'shacharit' | 'mincha' | 'maariv';
+type PrayerKey = 'shacharit' | 'mincha' | 'maariv' | 'selichot';
 
-function SlotEditModal({ visible, slot, prayerType: initialType, showTypeSelector = false, typeOptions, hideDays = false, isNew, onSave, onDelete, onClose }: {
+function SlotEditModal({ visible, slot, prayerType: initialType, showTypeSelector = false, typeOptions, hideDays = false, isNew, selichotCustom, onSave, onDelete, onClose }: {
   visible: boolean;
   slot: PrayerTimeSlot;
   prayerType: string;
   showTypeSelector?: boolean;
   typeOptions?: { key: string; label: string; color: string }[];
   hideDays?: boolean;
+  /** This shul's selichot custom, so the note can state the actual start date. */
+  selichotCustom?: 'sephardi' | 'ashkenazi';
   isNew: boolean;
   onSave: (s: PrayerTimeSlot, type: string) => void;
   onDelete: () => void;
@@ -106,6 +122,9 @@ function SlotEditModal({ visible, slot, prayerType: initialType, showTypeSelecto
   const [draftOffset,       setDraftOffset]       = useState<number>(slot.offsetMin ?? 0);
   const [draftProportional, setDraftProportional] = useState<boolean>(slot.proportional ?? false);
   const [anchorOpen,        setAnchorOpen]        = useState(false);
+  // One-off slots (e.g. the first night of selichot, which runs later than the
+  // rest of the season) — a weekly `days` pattern would repeat them all season.
+  const [isDated,           setIsDated]           = useState<boolean>(!!slot.dates?.length);
   const resolvedTypeOptions = typeOptions ?? PRAYER_TYPES;
 
   useEffect(() => {
@@ -116,6 +135,7 @@ function SlotEditModal({ visible, slot, prayerType: initialType, showTypeSelecto
       setDraftAnchor(slot.anchor);
       setDraftOffset(slot.offsetMin ?? 0);
       setDraftProportional(slot.proportional ?? false);
+      setIsDated(!!slot.dates?.length);
     }
   }, [visible]);
 
@@ -127,13 +147,24 @@ function SlotEditModal({ visible, slot, prayerType: initialType, showTypeSelecto
     setDraft({ ...draft, days: next });
   }
 
+  /** A slot is either a weekly pattern or a list of dates — never both. */
+  function withRecurrence(sl: PrayerTimeSlot): PrayerTimeSlot {
+    return isDated
+      ? { ...sl, days: undefined, dates: sl.dates ?? [] }
+      : { ...sl, dates: undefined };
+  }
+
   function handleSave() {
+    if (isDated && !(draft.dates ?? []).length) {
+      Alert.alert('שגיאה', 'יש לבחור לפחות תאריך אחד');
+      return;
+    }
     if (isRelative) {
       if (!draftAnchor) {
         Alert.alert('שגיאה', 'יש לבחור עוגן זמן');
         return;
       }
-      onSave({ ...draft, time: '', anchor: draftAnchor, offsetMin: draftOffset, proportional: draftProportional || undefined }, draftType);
+      onSave(withRecurrence({ ...draft, time: '', anchor: draftAnchor, offsetMin: draftOffset, proportional: draftProportional || undefined }), draftType);
       onClose();
       return;
     }
@@ -143,7 +174,7 @@ function SlotEditModal({ visible, slot, prayerType: initialType, showTypeSelecto
     }
     const [h, mPart] = draft.time.split(':');
     const normalized = `${h.padStart(2, '0')}:${mPart}`;
-    onSave({ ...draft, time: normalized, anchor: undefined, offsetMin: undefined }, draftType);
+    onSave(withRecurrence({ ...draft, time: normalized, anchor: undefined, offsetMin: undefined }), draftType);
     onClose();
   }
 
@@ -155,16 +186,23 @@ function SlotEditModal({ visible, slot, prayerType: initialType, showTypeSelecto
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={sm.overlay}>
-        <View style={sm.sheet}>
-          {/* Header */}
-          <View style={sm.header}>
-            <Text style={sm.title}>{isNew ? 'הוסף זמן תפילה' : 'עריכת זמן'}</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={22} color={Colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
+    <BottomSheetModal
+      visible={visible}
+      onClose={onClose}
+      dimOpacity={0.45}
+      sheetStyle={sm.sheetPad}
+      avoidKeyboard
+      header={
+        <View style={sm.header}>
+          <Text style={sm.title}>{isNew ? 'הוסף זמן תפילה' : 'עריכת זמן'}</Text>
+          
+          <TouchableOpacity onPress={onClose}>
+            <Ionicons name="close" size={22} color={Colors.textSecondary} />
+          </TouchableOpacity>
+          
+        </View>
+      }
+    >
 
           <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
@@ -186,9 +224,33 @@ function SlotEditModal({ visible, slot, prayerType: initialType, showTypeSelecto
                   );
                 })}
               </View>
+              {/* Selichot are seasonal, unlike the other types — say so here, or
+                  a gabbai saves times, sees nothing in the app, and assumes the
+                  save failed. */}
+              {draftType === 'selichot' && (() => {
+                // State the real date, not just "in season" — a gabbai who picks
+                // the Ashkenazi custom in mid-Elul otherwise enters times, sees
+                // nothing for three weeks, and assumes it is broken.
+                const start = synagogueSelichotStart({ selichotCustom });
+                return (
+                  <View style={sm.seasonNote}>
+                    <Ionicons name="information-circle-outline" size={15} color={Colors.gold} />
+                    <Text style={sm.seasonNoteTxt}>
+                      {start
+                        ? `מניין הסליחות יוצג למתפללים החל מ-${formatDayMonth(start)} (לפי מנהג ${
+                            selichotCustom === 'ashkenazi' ? 'אשכנז' : 'ספרד'
+                          }) ועד ערב יום כיפור, ולא בשבתות ובראש השנה.`
+                        : 'מניין הסליחות יוצג למתפללים רק בתקופת הסליחות, ולא בשבתות ובראש השנה.'}
+                    </Text>
+                  </View>
+                );
+              })()}
             </>
           )}
-
+                                  <Text style={sm.hint}>
+                    לתפילה שאחרי חצות — בחר את התאריך של הבוקר
+                    שאחריה (למשל מוצ״ש 00:30 = יום ראשון).
+                  </Text>
           {/* Mode toggle — fixed vs relative */}
           <View style={sm.modeRow}>
             <TouchableOpacity
@@ -301,20 +363,52 @@ function SlotEditModal({ visible, slot, prayerType: initialType, showTypeSelecto
             </>
           )}
 
-          {/* Day chips — hidden for Shabbat slots */}
+          {/* Recurrence — same segmented control as the time mode above, so the
+              choice reads as a real mode switch rather than a stray toggle. */}
           {!hideDays && (
             <>
-              <Text style={sm.label}>ימים</Text>
-              <View style={sm.daysRow}>
-                {DAYS.map(({ num, label }) => {
-                  const active = (draft.days ?? []).includes(num);
-                  return (
-                    <TouchableOpacity key={num} style={[sm.dayChip, active && sm.dayChipOn]} onPress={() => toggleDay(num)}>
-                      <Text style={[sm.dayChipTxt, active && sm.dayChipTxtOn]}>{label}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
+              <Text style={sm.label}>מתי מתקיים</Text>
+              <View style={sm.modeRow}>
+                <TouchableOpacity
+                  style={[sm.modeBtn, !isDated && sm.modeBtnActive]}
+                  onPress={() => setIsDated(false)}
+                >
+                  <Text style={[sm.modeBtnTxt, !isDated && sm.modeBtnTxtActive]}>כל שבוע</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[sm.modeBtn, isDated && sm.modeBtnActive]}
+                  onPress={() => setIsDated(true)}
+                >
+                  <Text style={[sm.modeBtnTxt, isDated && sm.modeBtnTxtActive]}>תאריכים מסוימים</Text>
+                </TouchableOpacity>
               </View>
+
+              {isDated ? (
+                <>
+                  <Text style={sm.hint}>
+                    המניין יתקיים רק בתאריכים שנבחרו.
+                  </Text>
+                  <MultiDateCalendar
+                    value={draft.dates ?? []}
+                    onChange={(dates) => setDraft({ ...draft, dates })}
+                    color={Colors.primary}
+                  />
+                </>
+              ) : (
+                <>
+                  <Text style={sm.label}>ימים</Text>
+                  <View style={sm.daysRow}>
+                    {DAYS.map(({ num, label }) => {
+                      const active = (draft.days ?? []).includes(num);
+                      return (
+                        <TouchableOpacity key={num} style={[sm.dayChip, active && sm.dayChipOn]} onPress={() => toggleDay(num)}>
+                          <Text style={[sm.dayChipTxt, active && sm.dayChipTxtOn]}>{label}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </>
+              )}
             </>
           )}
 
@@ -350,18 +444,32 @@ function SlotEditModal({ visible, slot, prayerType: initialType, showTypeSelecto
               <Text style={sm.saveTxt}>שמור</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
+    </BottomSheetModal>
   );
+}
+
+/** "16/08 (א׳)", or "16/08 (א׳) +3" once several dates are picked — the first
+ *  date plus a count, so the card stays one line but still says how many. */
+function formatDateList(dates: string[]): string {
+  const sorted = [...dates].sort();
+  const first = new Date(sorted[0] + 'T12:00:00');
+  if (Number.isNaN(first.getTime())) return sorted[0] ?? '';
+  const dayLetters = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+  const p = (n: number) => String(n).padStart(2, '0');
+  const head = `${p(first.getDate())}/${p(first.getMonth() + 1)} (${dayLetters[first.getDay()]}׳)`;
+  return sorted.length > 1 ? `${head} +${sorted.length - 1}` : head;
 }
 
 // ─── Compact slot card ────────────────────────────────────────────────────────
 function SlotCard({ slot, onPress }: { slot: PrayerTimeSlot; onPress: () => void }) {
   const days = slot.days ?? [];
-  const daysLabel = days.length === 0 || days.length === 6
-    ? 'א–ו'
-    : days.map((d) => DAYS.find((day) => day.num === d)?.label ?? '').join(' ');
+  // A one-off shows its date instead of a weekly pattern, so a gabbai can see
+  // at a glance which slot is the single special night.
+  const daysLabel = slot.dates?.length
+    ? formatDateList(slot.dates)
+    : days.length === 0 || days.length === 6
+      ? 'א–ו'
+      : days.map((d) => DAYS.find((day) => day.num === d)?.label ?? '').join(' ');
 
   return (
     <TouchableOpacity style={sm.slotCard} onPress={onPress} activeOpacity={0.75}>
@@ -434,14 +542,19 @@ function ShiurEditModal({ visible, shiur, isNew, onSave, onDelete, onClose }: {
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={sm.overlay}>
-        <View style={sm.sheet}>
-          {/* Header */}
-          <View style={sm.header}>
-            <Text style={sm.title}>{isNew ? 'הוסף שיעור' : 'עריכת שיעור'}</Text>
-            <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color={Colors.textSecondary} /></TouchableOpacity>
-          </View>
+    <BottomSheetModal
+      visible={visible}
+      onClose={onClose}
+      dimOpacity={0.45}
+      sheetStyle={sm.sheetPad}
+      avoidKeyboard
+      header={
+        <View style={sm.header}>
+          <Text style={sm.title}>{isNew ? 'הוסף שיעור' : 'עריכת שיעור'}</Text>
+          <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color={Colors.textSecondary} /></TouchableOpacity>
+        </View>
+      }
+    >
 
           <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
@@ -517,18 +630,18 @@ function ShiurEditModal({ visible, shiur, isNew, onSave, onDelete, onClose }: {
               <Text style={sm.saveTxt}>שמור</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
+    </BottomSheetModal>
   );
 }
 
 // ─── Prayer type block ────────────────────────────────────────────────────────
-function PrayerBlock({ label, color, prayerKey, slots, onChange, hideDays = false }: {
+function PrayerBlock({ label, color, prayerKey, slots, onChange, hideDays = false, selichotCustom }: {
   label: string; color: string; prayerKey: string;
   slots: PrayerTimeSlot[];
   onChange: (slots: PrayerTimeSlot[]) => void;
   hideDays?: boolean;
+  /** This shul's selichot custom, so the editor can state the actual start date. */
+  selichotCustom?: 'sephardi' | 'ashkenazi';
 }) {
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
 
@@ -550,6 +663,7 @@ function PrayerBlock({ label, color, prayerKey, slots, onChange, hideDays = fals
           slot={slots[editingIdx]}
           prayerType={prayerKey}
           hideDays={hideDays}
+          selichotCustom={selichotCustom}
           isNew={false}
           onSave={(updated) => {
             onChange(slots.map((sl, j) => (j === editingIdx ? updated : sl)));
@@ -647,14 +761,20 @@ function SubmitEventModal({ visible, onSave, onClose }: {
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={sm.overlay}>
-        <ScrollView style={sm.sheet} contentContainerStyle={{ gap: 4, paddingBottom: 24 + bottom }} keyboardShouldPersistTaps="handled">
-          {/* Header */}
-          <View style={sm.header}>
-            <Text style={sm.title}>הוספת אירוע לבית הכנסת</Text>
-            <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color={Colors.textSecondary} /></TouchableOpacity>
-          </View>
+    <BottomSheetModal
+      visible={visible}
+      onClose={onClose}
+      dimOpacity={0.45}
+      sheetStyle={sm.sheetPad}
+      avoidKeyboard
+      header={
+        <View style={sm.header}>
+          <Text style={sm.title}>הוספת אירוע לבית הכנסת</Text>
+          <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color={Colors.textSecondary} /></TouchableOpacity>
+        </View>
+      }
+    >
+      <ScrollView contentContainerStyle={{ gap: 4, paddingBottom: 24 + bottom }} keyboardShouldPersistTaps="handled">
 
           {/* Title */}
           <Text style={sm.label}>כותרת *</Text>
@@ -767,9 +887,8 @@ function SubmitEventModal({ visible, onSave, onClose }: {
                    <Text style={sm.saveTxt}>{submitForApproval ? 'הוסף ושלח לאישור' : 'הוסף לבית הכנסת'}</Text></>}
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Modal>
+      </ScrollView>
+    </BottomSheetModal>
   );
 }
 
@@ -805,6 +924,8 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
   const { options: nusachOptions, addOption: addNusach, labelFor: nusachLabel } = useNusachOptions(syn.cityId);
   const [showAddNusach, setShowAddNusach] = useState(false);
   const [newNusachText, setNewNusachText] = useState('');
+  const { options: neighborhoodOptions, addOption: addNeighborhood } = useNeighborhoodOptions(syn.cityId);
+  const [neighborhoodPickerOpen, setNeighborhoodPickerOpen] = useState(false);
 
   const toArr = (v: unknown): string[] =>
     Array.isArray(v) ? v as string[] : (v ? [v as string] : []);
@@ -862,7 +983,7 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
     setForm((p) => ({ ...p, [key]: value }));
   }
 
-  function setSlots(type: 'shacharit' | 'mincha' | 'maariv', slots: PrayerTimeSlot[]) {
+  function setSlots(type: PrayerKey, slots: PrayerTimeSlot[]) {
     setForm((p) => ({
       ...p,
       weeklySchedule: { ...p.weeklySchedule, [type]: slots },
@@ -914,9 +1035,33 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
           <View style={s.card}>
             <Field label="שם" value={form.name} onChangeText={(v) => set('name', v)} />
             <Field label="כתובת" value={form.address?.he ?? ''} onChangeText={(v) => set('address', { ...form.address, he: v })} />
-            <Field label="שכונה" value={form.neighborhood ?? ''} onChangeText={(v) => set('neighborhood', v)} />
           </View>
         </View>
+
+        {/* ── Neighborhood — picked from the city's list, not free text, so it
+             stays consistent across synagogues/mikvaot instead of drifting
+             ("רמת אשכול" vs "רמת אשכול ב'" vs typos) ── */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>שכונה</Text>
+          <View style={s.card}>
+            <TouchableOpacity style={s.dropdownField} onPress={() => setNeighborhoodPickerOpen(true)} activeOpacity={0.7}>
+              <Text style={form.neighborhood ? s.dropdownValue : s.dropdownPlaceholder}>
+                {form.neighborhood ?? 'בחר שכונה'}
+              </Text>
+              <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <NeighborhoodPickerModal
+          visible={neighborhoodPickerOpen}
+          options={neighborhoodOptions}
+          selected={form.neighborhood}
+          canAdd={isAdmin}
+          onSelect={(name) => set('neighborhood', name)}
+          onAddNew={addNeighborhood}
+          onClose={() => setNeighborhoodPickerOpen(false)}
+        />
 
         {/* ── Images ── */}
         <View style={s.section}>
@@ -1036,8 +1181,50 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
                 prayerKey={key}
                 slots={form.weeklySchedule[key] ?? []}
                 onChange={(slots) => setSlots(key, slots)}
+                selichotCustom={form.selichotCustom}
               />
             ))}
+
+            {/* Only meaningful once selichot times exist — otherwise it is a
+                setting for a minyan the shul doesn't run. */}
+            {(form.weeklySchedule.selichot ?? []).length > 0 && (
+              <View style={s.selichotStart}>
+                <Text style={s.selichotStartLabel}>מתי מתחילים סליחות</Text>
+                <Text style={s.selichotStartHint}>
+                  קובע ממתי הסליחות יופיעו למתפללים. המנהג מחושב מחדש בכל שנה.
+                </Text>
+                {(() => {
+                  // Immediate feedback on the choice — the whole point of failure
+                  // last time was a custom picked without seeing its consequence.
+                  const start = synagogueSelichotStart({ selichotCustom: form.selichotCustom });
+                  return start ? (
+                    <Text style={s.selichotStartResult}>
+                      יוצג למתפללים החל מ-{formatDayMonth(start)}
+                    </Text>
+                  ) : null;
+                })()}
+
+                <View style={s.customRow}>
+                  {[
+                    { key: 'sephardi'  as const, label: 'מר״ח אלול', sub: 'ספרדים / עדות המזרח' },
+                    { key: 'ashkenazi' as const, label: 'מוצ״ש שלפני ר״ה', sub: 'אשכנזים' },
+                  ].map(({ key, label, sub }) => {
+                    const active = form.selichotCustom === key;
+                    return (
+                      <TouchableOpacity
+                        key={key}
+                        style={[s.customChip, active && s.customChipOn]}
+                        onPress={() => set('selichotCustom', key)}
+                      >
+                        <Text style={[s.customChipTxt, active && s.customChipTxtOn]}>{label}</Text>
+                        <Text style={[s.customChipSub, active && s.customChipTxtOn]}>{sub}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+              </View>
+            )}
             <TouchableOpacity style={s.addSlotBtn} onPress={() => setAddSlotOpen(true)}>
               <Ionicons name="add-circle-outline" size={18} color={Colors.primary} />
               <Text style={[s.addSlotTxt, { color: Colors.primary }]}>הוסף זמן תפילה</Text>
@@ -1051,6 +1238,7 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
           prayerType="shacharit"
           showTypeSelector
           isNew
+          selichotCustom={form.selichotCustom}
           onSave={(slot, type) => setSlots(type as PrayerKey, [...(form.weeklySchedule[type as PrayerKey] ?? []), slot])}
           onDelete={() => {}}
           onClose={() => setAddSlotOpen(false)}
@@ -1251,6 +1439,18 @@ export default function ManageSynagogueScreen() {
   const { synagogues, loading } = useSynagogues(cityId);
   const [search,   setSearch]   = useState('');
   const [selected, setSelected] = useState<Synagogue | null>(null);
+  // Deep-link from a content report ("פתח לתיקון") — preselect the reported
+  // item once the list has loaded so the manager lands straight on it.
+  const route = useRoute<any>();
+  const focusId = route.params?.focusId as string | undefined;
+  // Arriving from a report means the list was never on screen — back should
+  // return to the reports queue, not drop the user into a list they never saw.
+  const cameFromReport = useRef(!!focusId);
+  useEffect(() => {
+    if (!focusId) return;
+    const hit = synagogues.find((x: any) => x.id === focusId);
+    if (hit) setSelected(hit);
+  }, [focusId, synagogues]);
   const [adding,   setAdding]   = useState(false);
   const [creating, setCreating] = useState(false);
   const isAdmin = ['city_admin', 'super_admin', 'dev'].includes(appUser?.role ?? '');
@@ -1321,7 +1521,7 @@ export default function ManageSynagogueScreen() {
   // the single event React Navigation fires for all three of those triggers.
   useEffect(() => {
     return navigation.addListener('beforeRemove', (e) => {
-      if (!selected) return;
+      if (!selected || cameFromReport.current) return;
       e.preventDefault();
       setSelected(null);
     });
@@ -1331,7 +1531,10 @@ export default function ManageSynagogueScreen() {
     return (
       <EditForm
         syn={selected}
-        onBack={() => setSelected(null)}
+        onBack={() => {
+          if (cameFromReport.current) navigation.goBack();
+          else setSelected(null);
+        }}
         isDemo={isDemo}
         userId={appUser?.uid ?? ''}
         userName={appUser?.displayName ?? ''}
@@ -1416,6 +1619,24 @@ export default function ManageSynagogueScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
+  selichotStart: {
+    marginTop: Spacing.md, paddingTop: Spacing.md,
+    borderTopWidth: 1, borderTopColor: Colors.border, gap: 6,
+  },
+  selichotStartLabel: { fontSize: 14, fontWeight: '800', color: Colors.text },
+  selichotStartHint:  { fontSize: 11, color: Colors.textMuted, lineHeight: 16 },
+  selichotStartResult:{ fontSize: 12.5, fontWeight: '800', color: Colors.gold },
+  customRow:  { flexDirection: 'row', gap: 8, marginTop: 4 },
+  customChip: {
+    flex: 1, paddingVertical: 9, paddingHorizontal: 8, alignItems: 'center',
+    borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  customChipOn:    { backgroundColor: Colors.gold, borderColor: Colors.gold },
+  customChipTxt:   { fontSize: 12.5, fontWeight: '700', color: Colors.text },
+  customChipSub:   { fontSize: 10, color: Colors.textMuted, marginTop: 2 },
+  customChipTxtOn: { color: Colors.white },
+
   container:    { flex: 1, backgroundColor: Colors.background },
   searchBar:    { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: Colors.cardBackground, margin: Spacing.md, borderRadius: Radius.md, paddingHorizontal: Spacing.md, paddingVertical: 10, borderWidth: 1, borderColor: Colors.border },
   searchInput:  { flex: 1, fontSize: 15, color: Colors.text },
@@ -1449,6 +1670,10 @@ const s = StyleSheet.create({
   nusachChipTxt:{ fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
   nusachChipTxtOn: { color: Colors.white },
 
+  dropdownField: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 },
+  dropdownValue: { fontSize: 15, color: Colors.text },
+  dropdownPlaceholder: { fontSize: 15, color: Colors.textMuted },
+
   prayerBlock:  { paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: Colors.border, borderLeftWidth: 3, paddingLeft: 8, marginBottom: 4 },
   prayerBlockLabel: { fontSize: 13, fontWeight: '800', marginBottom: 6 },
   addSlotBtn:   { flexDirection: 'row', alignItems: 'center', gap: 4, paddingTop: 6 },
@@ -1467,8 +1692,19 @@ const s = StyleSheet.create({
 
 // ─── Slot modal styles ────────────────────────────────────────────────────────
 const sm = StyleSheet.create({
-  overlay:      { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
-  sheet:        { backgroundColor: Colors.cardBackground, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: Spacing.lg, paddingBottom: 36, gap: 6, maxHeight: '75%', flexShrink: 1 },
+  seasonNote: {
+    flexDirection: 'row', gap: 6, alignItems: 'flex-start',
+    backgroundColor: Colors.gold + '12', borderRadius: Radius.sm,
+    borderWidth: 1, borderColor: Colors.gold + '35',
+    padding: 8, marginTop: 8,
+  },
+  seasonNoteTxt: { flex: 1, fontSize: 11.5, color: Colors.text, lineHeight: 16 },
+
+  oneOffRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: Spacing.sm },
+
+  hint: { fontSize: 11, color: Colors.textMuted, marginTop: 6, lineHeight: 16 },
+
+  sheetPad:     { paddingHorizontal: Spacing.lg, paddingBottom: 36, gap: 6 },
   header:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   title:        { fontSize: 18, fontWeight: '800', color: Colors.text },
   label:        { fontSize: 12, fontWeight: '700', color: Colors.textSecondary, marginTop: 8 },
@@ -1483,7 +1719,7 @@ const sm = StyleSheet.create({
   dayChipTxt:   { fontSize: 14, fontWeight: '700', color: Colors.textMuted },
   dayChipTxtOn: { color: Colors.white },
   noteInput:    { borderWidth: 1.5, borderColor: Colors.border, borderRadius: Radius.md, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: Colors.text, minHeight: 80, textAlignVertical: 'top', marginTop: 4 },
-  actions:      { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
+  actions:      { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, marginBottom: 14 },
   deleteBtn:    { flexDirection: 'row', alignItems: 'center', gap: 4 },
   deleteTxt:    { fontSize: 13, color: Colors.danger, fontWeight: '600' },
   cancelBtn:    { paddingHorizontal: 16, paddingVertical: 10 },
@@ -1497,7 +1733,7 @@ const sm = StyleSheet.create({
   typeChipTxt:  { fontSize: 14, fontWeight: '700', color: Colors.textMuted },
 
   // Fixed / relative mode toggle
-  modeRow:      { flexDirection: 'row', borderRadius: Radius.full, borderWidth: 1.5, borderColor: Colors.primary, overflow: 'hidden', marginTop: 8 },
+  modeRow:      { flexDirection: 'row', borderRadius: Radius.full, borderWidth: 1.5, borderColor: Colors.primary, overflow: 'hidden', marginTop: 8, marginBottom: 4 },
   modeBtn:      { flex: 1, paddingVertical: 9, alignItems: 'center' },
   modeBtnActive:{ backgroundColor: Colors.primary },
   modeBtnTxt:   { fontSize: 13, fontWeight: '700', color: Colors.primary },

@@ -14,6 +14,8 @@ import { useZmanimSettings } from '../../context/ZmanimSettingsContext';
 import { useCity } from '../../hooks/useCity';
 import { useCityId } from '../../hooks/useCityId';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { isComingSoon } from '../../utils/comingSoon';
+import { comingSoonAlert } from '../../components/ComingSoon';
 
 const DEFAULT_LAT = 31.7767;
 const DEFAULT_LON = 35.2988;
@@ -86,6 +88,7 @@ export default function ZmanimScreen() {
   const cityId = useCityId();
   const { top }  = useSafeAreaInsets();
   const { city } = useCity(cityId);
+  const methodLocked = isComingSoon('zmanimSettings');
 
   const [zmanim,        setZmanim]        = useState<ZmanimResult | null>(null);
   const [locationName,  setLocName]       = useState(DEFAULT_LOC);
@@ -183,9 +186,26 @@ export default function ZmanimScreen() {
             <Text style={s.locName}>📍 {locationName}</Text>
           </View>
 
-          <TouchableOpacity style={s.methodBadge} onPress={() => navigation.navigate('ZmanimSettings' as never)} activeOpacity={0.75}>
+          {/* While the method is locked the badge still names the opinion in use —
+              people need to know WHICH shita they are reading, they just can't
+              change it yet. */}
+          <TouchableOpacity
+            style={s.methodBadge}
+            onPress={() => (methodLocked
+              ? comingSoonAlert(
+                  'שינוי שיטת הזמנים',
+                  'בשלב הפיילוט הזמנים מחושבים לפי שיטה אחידה לכל העיר.\nבחירת שיטה אישית תיפתח בקרוב.',
+                )
+              : navigation.navigate('ZmanimSettings' as never))}
+            activeOpacity={0.75}
+          >
             <Text style={s.methodBadgeLabel}>{curPreset ? curPreset.label : 'הגדרות זמנים'}</Text>
-            <Text style={s.methodBadgePosek}>{curPreset ? curPreset.posek : 'מותאם אישית · לחץ לשינוי'}</Text>
+            <Text style={s.methodBadgePosek}>
+              {methodLocked
+                ? (curPreset ? curPreset.posek : 'מותאם אישית')
+                : (curPreset ? curPreset.posek : 'מותאם אישית · לחץ לשינוי')}
+            </Text>
+            {methodLocked && <Text style={s.methodBadgeSoon}>שינוי שיטה · בקרוב</Text>}
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -276,6 +296,7 @@ const s = StyleSheet.create({
   },
   methodBadgeLabel: { fontSize: 13, fontWeight: '800', color: Colors.white, textAlign: 'center' },
   methodBadgePosek: { fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 3, textAlign: 'center' },
+  methodBadgeSoon:  { fontSize: 9.5, fontWeight: '700', color: 'rgba(255,255,255,0.45)', marginTop: 4, textAlign: 'center' },
 
   // List
   list: { padding: Spacing.sm, gap: 6, paddingBottom: 32 },

@@ -25,6 +25,8 @@ import GemachIcon from '../../assets/icons/Gemach.png';
 
 import { useAuth }           from '../../context/AuthContext';
 import { useCityId }         from '../../hooks/useCityId';
+import { useManagerAlerts } from '../../hooks/useManagerAlerts';
+import { collectSelichot } from '../../utils/selichotSlots';
 import { useCity }           from '../../hooks/useCity';
 import { useSynagogues }     from '../../hooks/useSynagogues';
 import { useEventsFeed }     from '../../context/EventsContext';
@@ -43,6 +45,9 @@ import { getJewishDayInfo, getUpcomingFast, getUpcomingYomTov } from '../../util
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { MainTabParamList }  from '../../types';
 import { calcZmanim, minToStr } from '../../utils/zmanim';
+import { isComingSoon } from '../../utils/comingSoon';
+import { ComingSoonBadge } from '../../components/ComingSoon';
+import EmailVerificationBanner from '../../components/EmailVerificationBanner';
 
 // ─────────────────────────────────────────────────────────────────
 type Nav = BottomTabNavigationProp<MainTabParamList>;
@@ -92,6 +97,7 @@ function fmtCountdown(diffMin: number): string {
 
 // ─────────────────────────────────────────────────────────────────
 export default function HomeScreen() {
+  const managerAlerts = useManagerAlerts();
   useAnalyticsTrack('home');
   const { appUser, refreshUser }  = useAuth();
   const navigation   = useNavigation<Nav>();
@@ -102,6 +108,15 @@ export default function HomeScreen() {
   const { synagogues, loading: synLoad }  = useSynagogues(cityId);
   const { events, unreadCount, isRead }    = useEventsFeed();
   const todayZmanim                        = useTodayZmanim(cityId);
+
+  // ── Selichot ────────────────────────────────────────────────────────────────
+  // Only appears in season AND only when shuls have actually published times —
+  // an empty card during Elul would be worse than no card.
+  const selichotNights = useMemo(
+    () => collectSelichot(synagogues, todayZmanim, null),
+    [synagogues, todayZmanim],
+  );
+  const nextSelichot = selichotNights[0] ?? null;
   const { settings: zmanimSettings }       = useZmanimSettings();
   // Forces the date-derived widgets below (Shabbat/Yom Tov/fast/Hebrew-date cards)
   // to recompute when the app returns to the foreground — otherwise each one's
@@ -435,12 +450,17 @@ export default function HomeScreen() {
         style={styles.quickRowWrap}
       >
         {QUICK_LINKS.map(({ icon, customIcon, label, tab, color }) => {
+          const soon = tab === 'Businesses' && isComingSoon('kashrut');
           const badgeCount =
             tab === 'Events'      ? unreadCount  :
-            tab === 'Businesses' ? kashrutCount  : 0;
+            tab === 'Businesses' ? (soon ? 0 : kashrutCount) : 0;
+          // Profile shows "!" rather than a count — it stands for "something in
+          // the management screens needs you", not a number of unread things.
+          const profileAlert = tab === 'Profile' && managerAlerts.total > 0;
           const badgeRed =
             (tab === 'Events'     && unreadAlerts.length > 0) ||
-            (tab === 'Businesses' && hasDowngrade);
+            (tab === 'Businesses' && hasDowngrade) ||
+            profileAlert;
           return (
             <TouchableOpacity
               key={tab}
@@ -454,9 +474,17 @@ export default function HomeScreen() {
                 ) : (
                   <Ionicons name={icon as any} size={24} color={color} />
                 )}
-                {badgeCount > 0 && (
+                {(badgeCount > 0 || profileAlert) && (
                   <View style={[styles.quickBadge, badgeRed && { backgroundColor: Colors.danger }]}>
-                    <Text style={styles.quickBadgeTxt}>{badgeCount}</Text>
+                    <Text style={styles.quickBadgeTxt}>{profileAlert ? '!' : badgeCount}</Text>
+                  </View>
+                )}
+                {/* Straddles the bottom edge of the icon so it costs the row no
+                    height — the outlined pill under the label made every tile
+                    taller, for one item out of nine. */}
+                {soon && (
+                  <View style={styles.quickSoonWrap} pointerEvents="none">
+                    <ComingSoonBadge color={color} filled />
                   </View>
                 )}
               </View>
@@ -468,6 +496,10 @@ export default function HomeScreen() {
 
       {/* ── Main content ─────────────────────────────────────────── */}
       <View style={styles.content}>
+
+        {/* Above everything else — an unverified address means no password
+            recovery, and the user needs to know that before they need it. */}
+        <EmailVerificationBanner compact />
 
         {/* ── Prayer countdown card ────────────────────────── */}
         {!synLoad && nextPrayer && earliestSyn ? (
@@ -499,7 +531,10 @@ export default function HomeScreen() {
         ) : null}
 
         {/* ── Kashrut updates banner — stays until all dismissed ── */}
-        {kashrutTotal > 0 && (
+        {/* Hidden while kashrut is בקרוב: the banner links into the feed, and a
+            kashrut alert with no way to see which business it concerns is worse
+            than no alert at all. */}
+        {kashrutTotal > 0 && !isComingSoon('kashrut') && (
           <TouchableOpacity
             style={[
               styles.kashrutBanner,
@@ -677,6 +712,27 @@ export default function HomeScreen() {
         )}
 
         {/* ── Fast day widget ──────────────────────────────── */}
+        {!!nextSelichot && (
+          <TouchableOpacity
+            style={styles.selichotCard}
+            onPress={() => (navigation as any).navigate('Selichot')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.selichotLeft}>
+              <Text style={styles.selichotEmoji}>🌙</Text>
+            </View>
+            <View style={styles.selichotBody}>
+              <Text style={styles.selichotHeading}>סליחות · {nextSelichot.label}</Text>
+              <Text style={styles.selichotSub}>
+                {nextSelichot.occurrences.length === 1
+                  ? `מניין אחד · ${nextSelichot.occurrences[0].synagogue.name}`
+                  : `${nextSelichot.occurrences.length} מניינים · המוקדם ${nextSelichot.occurrences[0].time}`}
+              </Text>
+            </View>
+            <Ionicons name="chevron-back" size={18} color={Colors.gold} style={{ marginLeft: 12 }} />
+          </TouchableOpacity>
+        )}
+
         {showFastCard && fastInfo && (
           <TouchableOpacity
             style={styles.fastCard}
@@ -870,6 +926,29 @@ const styles = StyleSheet.create({
   shabbatCountdown:  { fontSize: 13, color: Colors.gold, fontWeight: '700', textAlign: 'center', marginTop: -4, marginBottom: 8 },
 
   // ── Fast day widget ───────────────────────────────────────────
+  selichotCard: {
+    backgroundColor: Colors.cardBackground,
+    borderRadius: Radius.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.gold + '50',
+    ...Shadow.card,
+  },
+  selichotLeft: {
+    width: 68,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.gold + '18',
+  },
+  selichotEmoji:   { fontSize: 24 },
+  selichotBody:    { flex: 1, paddingVertical: 14, paddingHorizontal: 16 },
+  selichotHeading: { fontSize: 15, fontWeight: '800', color: Colors.text },
+  selichotSub:     { fontSize: 12.5, color: Colors.textSecondary, marginTop: 3 },
+
   fastCard: {
     backgroundColor: Colors.cardBackground,
     borderRadius: Radius.lg,
@@ -965,6 +1044,10 @@ const styles = StyleSheet.create({
     color: Colors.text,
     textAlign: 'center',
     lineHeight: 14,
+  },
+  quickSoonWrap: {
+    position: 'absolute', left: -8, right: -8, bottom: -6,
+    alignItems: 'center',
   },
   quickBadge: {
     position: 'absolute',

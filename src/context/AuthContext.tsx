@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
 import { auth } from '../services/firebase';
-import { getUserDoc } from '../services/auth';
+import { getUserDoc, reloadAuthUser } from '../services/auth';
 import { updateUserCity, updateUserHomeCity } from '../services/users';
 import { getGuestCityId, setGuestCityId } from '../services/guestCity';
 import { initAnalytics, clearAnalytics } from '../services/analytics';
@@ -24,6 +24,12 @@ interface AuthContextValue {
   loading: boolean;
   isDemo: boolean;
   isGuest: boolean; // signed in anonymously — can receive eruv push, no account
+  /** True once the address on the account has been confirmed. Google sign-ins arrive verified. */
+  emailVerified: boolean;
+  /** A real (non-guest, non-demo) account whose address is still unconfirmed. */
+  needsEmailVerification: boolean;
+  /** Re-read auth state from the server — `emailVerified` is cached in the ID token. */
+  refreshAuthState: () => Promise<boolean>;
   guestCityId: string | null; // a guest's locally-persisted city override, if any
   loginAsDemo: () => void;
   exitDemo: () => void;
@@ -38,6 +44,9 @@ const AuthContext = createContext<AuthContextValue>({
   loading: true,
   isDemo: false,
   isGuest: false,
+  emailVerified: false,
+  needsEmailVerification: false,
+  refreshAuthState: async () => false,
   guestCityId: null,
   loginAsDemo: () => {},
   exitDemo: () => {},
@@ -52,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isDemo, setIsDemo] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
   const [guestCityId, setGuestCityIdState] = useState<string | null>(null);
 
   // The onAuthStateChanged effect below registers its listener once ([] deps)
@@ -102,6 +112,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (target) await loadAppUser(target);
   }
 
+  /**
+   * Ask the server whether the address has been confirmed since last we looked.
+   *
+   * Returns the fresh value rather than relying on the state update, so a caller
+   * can act on the answer in the same tick ("still not verified — try again").
+   */
+  async function refreshAuthState(): Promise<boolean> {
+    try {
+      const fresh = await reloadAuthUser();
+      const verified = fresh?.emailVerified ?? false;
+      setEmailVerified(verified);
+      return verified;
+    } catch {
+      return emailVerified;
+    }
+  }
+
   async function switchCity(cityId: string) {
     if (isDemo) {
       // Demo mode: just update local state
@@ -139,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       unsub = onAuthStateChanged(auth, async (user) => {
         setFirebaseUser(user);
+        setEmailVerified(user?.emailVerified ?? false);
         if (!user) {
           if (!isDemoRef.current) { setAppUser(null); setIsGuest(false); }
           // Sign in anonymously so guests can receive eruv push notifications
@@ -162,7 +190,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ firebaseUser, appUser, loading, isDemo, isGuest, guestCityId, loginAsDemo, exitDemo, refreshUser, switchCity, updateHomeCity }}
+      value={{
+        firebaseUser, appUser, loading, isDemo, isGuest, guestCityId,
+        emailVerified,
+        // Guests have no address to confirm, and demo mode isn't a real account.
+        needsEmailVerification: !!firebaseUser && !firebaseUser.isAnonymous && !isDemo && !emailVerified,
+        refreshAuthState,
+        loginAsDemo, exitDemo, refreshUser, switchCity, updateHomeCity,
+      }}
     >
       {children}
     </AuthContext.Provider>

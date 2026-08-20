@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow } from '../utils/theme';
+import { useNavigateTo } from '../hooks/useNavigateTo';
 import { Business } from '../types';
 import { updateBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../services/businesses';
 import LocationEditModal from './LocationEditModal';
@@ -25,14 +26,8 @@ function getTodayHours(business: Business): string {
   return business.openingHours[today] ?? '—';
 }
 
-function openMaps(address: string, lat?: number, lon?: number) {
-  const url = lat && lon
-    ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-  Linking.openURL(url);
-}
-
 export default function BusinessCard({ business, distLabel, canManage, onPress, cardStyle }: Props) {
+  const { go: navigateTo, sheet: navSheet } = useNavigateTo();
   const todayHours    = getTodayHours(business);
   const isClosedToday = todayHours.toLowerCase() === 'closed' || todayHours === 'סגור';
   const activeCert    = business.kosherCertificates.find((c) => c.isActive);
@@ -94,7 +89,7 @@ export default function BusinessCard({ business, distLabel, canManage, onPress, 
               <Text style={styles.actionText}>חייג</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.mapsBtn} onPress={() => openMaps(business.address, business.latitude, business.longitude)}>
+          <TouchableOpacity style={styles.mapsBtn} onPress={() => navigateTo({ latitude: business.latitude, longitude: business.longitude, address: business.address })}>
             <Ionicons name="map-outline" size={16} color={Colors.kosher} />
             <Text style={styles.mapsText}>ניווט</Text>
           </TouchableOpacity>
@@ -123,6 +118,7 @@ export default function BusinessCard({ business, distLabel, canManage, onPress, 
         onClear={() => updateBusiness(business.id, { latitude: undefined, longitude: undefined })}
         onClose={() => setEditingLoc(false)}
       />
+      {navSheet}
     </>
   );
 }
