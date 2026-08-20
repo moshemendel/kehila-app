@@ -15,7 +15,7 @@
  * Remember to flip it back — with it on you lose the ability to preview the
  * Shabbat lock and to enter demo mode.
  */
-export const PRESENTATION_MODE = true;
+export const PRESENTATION_MODE = false;
 
 /** True only in a dev build that is not currently being presented. */
 export const SHOW_DEV_TOOLS = __DEV__ && !PRESENTATION_MODE;
