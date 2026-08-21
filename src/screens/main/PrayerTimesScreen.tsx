@@ -18,6 +18,7 @@ import {
   todayDayNumber, tomorrowDayNumber, resolveSlotTime,
 } from '../../utils/prayerUtils';
 import FilterBar from '../../components/FilterBar';
+import { reachInTime, formatMinutes } from '../../utils/travel';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type PrayerType = 'shacharit' | 'mincha' | 'maariv';
@@ -105,6 +106,36 @@ export default function PrayerTimesScreen() {
   useEffect(() => {
     const id = setInterval(() => setNowMin(nowInMinutes()), 60_000);
     return () => clearInterval(id);
+  }, []);
+
+  /**
+   * Fetch position on mount when permission is ALREADY granted.
+   *
+   * Distances used to matter only to the "קרוב" sort, so they were fetched only
+   * when that sort was chosen. The travel-time flags changed that: they belong
+   * to the TIME-sorted view — "can I still get there" is the question you ask
+   * while reading a list ordered by when things start — so gating them behind a
+   * sort nobody taps made them invisible in the one place they were built for.
+   *
+   * Deliberately getForegroundPermissionsAsync, not request: throwing a
+   * permission dialog at someone the moment they open a prayer-times list, for
+   * something they never asked for, is how apps teach people to hit "deny".
+   * If permission isn't granted the screen works exactly as before, and tapping
+   * "קרוב" still asks properly.
+   */
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        if (live) setUserLoc({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+      } catch {
+        // Distances simply stay hidden — the screen is fully usable without them.
+      }
+    })();
+    return () => { live = false; };
   }, []);
 
   async function requestLocation() {
@@ -324,6 +355,12 @@ export default function PrayerTimesScreen() {
             // Don't show countdowns for tomorrow — they'd show "עוד 14 שעות" which is useless
             const countdown   = viewDay === 'today' && !slot.isPast ? formatCountdown(minutesLeft) : '';
             const isVeryClose = viewDay === 'today' && !slot.isPast && minutesLeft <= 15;
+            // Only meaningful for today's upcoming slots — a countdown to
+            // tomorrow's shacharit says nothing about whether you can walk there.
+            const reach = (viewDay === 'today' && !slot.isPast)
+              ? reachInTime(slot.distanceKm, minutesLeft)
+              : { kind: 'unknown' as const, walkMin: 0, driveMin: 0 };
+            const cantWalk = reach.kind === 'drive-only' || reach.kind === 'late';
 
             return (
               <TouchableOpacity
@@ -353,6 +390,28 @@ export default function PrayerTimesScreen() {
                     )}
                   </View>
 
+                  {/* Travel row — both modes, so the choice is the reader's.
+                      For short hops these come out level: driving carries a
+                      fixed overhead for reaching the car and parking, which is
+                      real and usually forgotten. The walking figure greys out
+                      when there isn't time to walk, so the icons carry the
+                      state and the badge below only has to name it once. */}
+                  {reach.kind !== 'unknown' && (
+                    <View style={s.travelRow}>
+                      <Ionicons name="walk-outline" size={12}
+                        color={cantWalk ? Colors.textMuted : Colors.textSecondary} />
+                      <Text style={[s.travelTxt, cantWalk && s.travelTxtOff]}>
+                        {formatMinutes(reach.walkMin)}
+                      </Text>
+                      <Text style={s.travelSep}>·</Text>
+                      <Ionicons name="car-outline" size={12}
+                        color={reach.kind === 'late' ? Colors.textMuted : Colors.textSecondary} />
+                      <Text style={[s.travelTxt, reach.kind === 'late' && s.travelTxtOff]}>
+                        {formatMinutes(reach.driveMin)}
+                      </Text>
+                    </View>
+                  )}
+
                   {/* Bottom row: time + countdown */}
                   <View style={s.cardBottom}>
                     <Text style={[s.timeText, { color }]}>{slot.time}</Text>
@@ -363,6 +422,29 @@ export default function PrayerTimesScreen() {
                         <Text style={[s.countdownTxt, isVeryClose && { color, fontWeight: '800' }]}>
                           {countdown}
                         </Text>
+                      </View>
+                    )}
+
+                    {/* Flagged, never filtered out. The distance is a straight
+                        line and the estimate can be wrong — the congregant may
+                        know a shortcut, or be driving. Warning respects that;
+                        hiding the row would not. */}
+                    {reach.kind === 'late' && (
+                      <View style={s.reachLate}>
+                        <Ionicons name="alert-circle-outline" size={11} color={Colors.danger} />
+                        <Text style={s.reachLateTxt}>לא תספיק</Text>
+                      </View>
+                    )}
+                    {reach.kind === 'drive-only' && (
+                      <View style={s.reachTight}>
+                        <Ionicons name="car-outline" size={11} color={Colors.warning} />
+                        <Text style={s.reachTightTxt}>ברכב בלבד</Text>
+                      </View>
+                    )}
+                    {reach.kind === 'walk-tight' && (
+                      <View style={s.reachTight}>
+                        <Ionicons name="walk-outline" size={11} color={Colors.warning} />
+                        <Text style={s.reachTightTxt}>בקושי תספיק</Text>
                       </View>
                     )}
                   </View>
@@ -420,4 +502,23 @@ const s = StyleSheet.create({
   timeText:     { fontSize: 22, fontWeight: '800', letterSpacing: 0.5 },
   countdownBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: Radius.full, backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.border },
   countdownTxt: { fontSize: 12, color: Colors.textSecondary, fontWeight: '600' },
+
+  travelRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
+  travelTxt: { fontSize: 11.5, color: Colors.textSecondary, fontWeight: '600' },
+  travelTxtOff: { color: Colors.textMuted, textDecorationLine: 'line-through' },
+  travelSep: { fontSize: 11.5, color: Colors.border, marginHorizontal: 2 },
+
+  reachLate: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: Radius.full,
+    backgroundColor: Colors.danger + '14', borderWidth: 1, borderColor: Colors.danger + '55',
+  },
+  reachLateTxt: { fontSize: 11.5, color: Colors.danger, fontWeight: '700' },
+
+  reachTight: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: Radius.full,
+    backgroundColor: Colors.warning + '14', borderWidth: 1, borderColor: Colors.warning + '55',
+  },
+  reachTightTxt: { fontSize: 11.5, color: Colors.warning, fontWeight: '700' },
 });
