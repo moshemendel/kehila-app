@@ -715,7 +715,7 @@ export default function HomeScreen() {
         {!!nextSelichot && (
           <TouchableOpacity
             style={styles.selichotCard}
-            onPress={() => (navigation as any).navigate('Selichot')}
+            onPress={() => navigation.navigate('Selichot')}
             activeOpacity={0.85}
           >
             <View style={styles.selichotLeft}>

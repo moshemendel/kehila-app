@@ -13,6 +13,7 @@ import { useAnalyticsTrack } from '../../services/analytics';
 import FilterBar, { type FilterConfig } from '../../components/FilterBar';
 import { collectSelichot, type SelichotOccurrence } from '../../utils/selichotSlots';
 import { selichotDayLabel } from '../../utils/selichot';
+import { reachInTime, formatMinutes } from '../../utils/travel';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 
 function formatDist(km: number): string {
@@ -23,7 +24,7 @@ export default function SelichotScreen() {
   useAnalyticsTrack('selichot');
   const navigation = useNavigation<any>();
   const cityId = useCityId();
-  const { bottom } = useSafeAreaInsets();
+  const { top, bottom } = useSafeAreaInsets();
   const { synagogues, loading } = useSynagogues(cityId);
   const zmanim = useTodayZmanim(cityId);
 
@@ -33,6 +34,12 @@ export default function SelichotScreen() {
   const [subFilters, setSubFilters] = useState<Record<string, string[]>>({ nusach: [], neighborhood: [] });
   /** Which night's list is on screen. Null until the nights load. */
   const [activeNight, setActiveNight] = useState<string | null>(null);
+  /** Ticks every minute so "can I still get there" doesn't go stale on screen. */
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   const requestLocation = useCallback(async () => {
     if (userLoc || locLoading) return;
@@ -52,6 +59,33 @@ export default function SelichotScreen() {
   useEffect(() => {
     if (sort === 'closest') requestLocation();
   }, [sort, requestLocation]);
+
+  /**
+   * Read position on mount when permission was ALREADY granted.
+   *
+   * Distances used to be needed only by the "הקרוב" sort, so they were fetched
+   * only when that sort was picked. The travel estimates need them in the
+   * default (earliest-first) view too — otherwise the feature is invisible
+   * exactly where someone deciding "can I still make it" is looking.
+   *
+   * getForegroundPermissionsAsync, never request: nobody opening a selichot
+   * list asked to be prompted for location, and an unprompted dialog is how
+   * apps teach people to hit deny. Without permission the screen is unchanged.
+   */
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        if (live) setUserLoc({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+      } catch {
+        // Distances stay hidden; the list still works without them.
+      }
+    })();
+    return () => { live = false; };
+  }, []);
 
   // All upcoming selichot, grouped by the evening they belong to.
   const nights = useMemo(
@@ -93,7 +127,9 @@ export default function SelichotScreen() {
         occ = [...occ].sort((a, b) =>
           sort === 'closest' && a.distanceKm != null && b.distanceKm != null
             ? a.distanceKm - b.distanceKm
-            : a.timeMinutes - b.timeMinutes);
+            // whenMs, not timeMinutes: the 00:30 minyan closes the day it
+            // belongs to, so ordering by clock time would hoist it to the top.
+            : a.whenMs - b.whenMs);
         return { ...night, occurrences: occ };
       })
       .filter((n) => n.occurrences.length > 0);
@@ -116,6 +152,15 @@ export default function SelichotScreen() {
 
   return (
     <View style={s.container}>
+      {/* Own header: this screen used to be a root-stack screen and inherited
+          one, but that also covered the bottom tab bar and left no way back
+          except the header arrow. As a tab it keeps the bar and brings its
+          own title. */}
+      <View style={[s.header, { paddingTop: top + 12 }]}>
+        <Ionicons name="moon" size={18} color={Colors.white} />
+        <Text style={s.headerTitle}>סליחות</Text>
+      </View>
+
       {filters.length > 0 && (
         <FilterBar
           filters={filters}
@@ -186,7 +231,16 @@ export default function SelichotScreen() {
                 </Text>
               </View>
 
-              {shownNight.occurrences.map((o: SelichotOccurrence, i: number) => (
+              {shownNight.occurrences.map((o: SelichotOccurrence, i: number) => {
+                const minutesLeft = Math.round((o.whenMs - nowMs) / 60000);
+                // Only judge reachability for minyanim still ahead. A slot that
+                // already began would otherwise be stamped "לא תספיק", which is
+                // true but useless — it isn't a travel problem any more.
+                const reach = minutesLeft > 0
+                  ? reachInTime(o.distanceKm, minutesLeft)
+                  : { kind: 'unknown' as const, walkMin: 0, driveMin: 0 };
+                const cantWalk = reach.kind === 'drive-only' || reach.kind === 'late';
+                return (
                 <TouchableOpacity
                   key={`${o.synagogue.id}-${i}`}
                   style={s.row}
@@ -198,18 +252,37 @@ export default function SelichotScreen() {
                     <Text style={s.synName} numberOfLines={1}>{o.synagogue.name}</Text>
                     <Text style={s.synMeta} numberOfLines={1}>
                       {[
-                        selichotDayLabel(o.dayNum, o.time, (zmanim as { alot?: number } | null)?.alot),
+                        selichotDayLabel(o.dayNum, o.time),
                         o.synagogue.neighborhood,
                         (o.synagogue.nusach ?? []).join(' / '),
                       ].filter(Boolean).join(' · ')}
                     </Text>
                     {!!o.notes && <Text style={s.note} numberOfLines={1}>{o.notes}</Text>}
+                    {reach.kind !== 'unknown' && (
+                      <View style={s.travelRow}>
+                        <Ionicons name="walk-outline" size={11}
+                          color={cantWalk ? Colors.textMuted : Colors.textSecondary} />
+                        <Text style={[s.travelTxt, cantWalk && s.travelTxtOff]}>
+                          {formatMinutes(reach.walkMin)}
+                        </Text>
+                        <Text style={s.travelSep}>·</Text>
+                        <Ionicons name="car-outline" size={11}
+                          color={reach.kind === 'late' ? Colors.textMuted : Colors.textSecondary} />
+                        <Text style={[s.travelTxt, reach.kind === 'late' && s.travelTxtOff]}>
+                          {formatMinutes(reach.driveMin)}
+                        </Text>
+                        {reach.kind === 'late' && <Text style={s.reachLateTxt}>· לא תספיק</Text>}
+                        {reach.kind === 'drive-only' && <Text style={s.reachTightTxt}>· ברכב בלבד</Text>}
+                        {reach.kind === 'walk-tight' && <Text style={s.reachTightTxt}>· בקושי תספיק</Text>}
+                      </View>
+                    )}
                   </View>
                   {o.distanceKm != null && (
                     <Text style={s.dist}>{formatDist(o.distanceKm)}</Text>
                   )}
                 </TouchableOpacity>
-              ))}
+                );
+              })}
             </View>
           )
         )}
@@ -220,6 +293,12 @@ export default function SelichotScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    paddingBottom: 12, paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.gold,
+  },
+  headerTitle: { fontSize: 17, fontWeight: '800', color: Colors.white },
   content:   { padding: Spacing.md },
 
   sortBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6 },
@@ -254,6 +333,13 @@ const s = StyleSheet.create({
   synMeta: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   note:    { fontSize: 11, color: Colors.textMuted, fontStyle: 'italic', marginTop: 2 },
   dist:    { fontSize: 12, color: Colors.textMuted },
+
+  travelRow:    { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  travelTxt:    { fontSize: 11, color: Colors.textSecondary, fontWeight: '600' },
+  travelTxtOff: { color: Colors.textMuted, textDecorationLine: 'line-through' },
+  travelSep:    { fontSize: 11, color: Colors.border, marginHorizontal: 1 },
+  reachLateTxt:  { fontSize: 11, color: Colors.danger, fontWeight: '700' },
+  reachTightTxt: { fontSize: 11, color: Colors.warning, fontWeight: '700' },
 
   empty:     { alignItems: 'center', paddingVertical: 60, gap: 10 },
   emptyTxt:  { fontSize: 16, fontWeight: '700', color: Colors.textSecondary },

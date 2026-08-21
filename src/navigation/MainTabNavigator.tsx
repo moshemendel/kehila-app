@@ -19,6 +19,7 @@ import ProfileScreen     from '../screens/main/ProfileScreen';
 import EruvScreen        from '../screens/main/EruvScreen';
 import GemachScreen      from '../screens/main/GemachScreen';
 import SearchScreen      from '../screens/main/SearchScreen';
+import SelichotScreen    from '../screens/main/SelichotScreen';
 
 import { Colors, Spacing, Radius, Shadow } from '../utils/theme';
 import { MainTabParamList }                 from '../types';
@@ -30,6 +31,7 @@ import { useAppIconBadge }                  from '../hooks/useAppIconBadge';
 import BottomSheetModal                     from '../components/BottomSheetModal';
 import ComingSoonScreen, { ComingSoonBadge } from '../components/ComingSoon';
 import { isComingSoon }                     from '../utils/comingSoon';
+import { isSelichotWindowOpen }             from '../utils/selichot';
 
 /** Stands in for the kashrut tab while the certificate data is being verified. */
 const KashrutComingSoon = () => (
@@ -57,12 +59,19 @@ const TAB_INFO: Record<TabName, TabInfo> = {
   Events:      { icon: 'calendar-outline',   iconActive: 'calendar',   label: 'אירועים',   color: Colors.events    },
   Eruv:        { icon: 'shield-outline',     iconActive: 'shield',     label: 'עירוב',     color: Colors.gold      },
   Gemach:      { icon: 'gift-outline',       iconActive: 'gift',       label: 'גמ"ח',      color: '#B06B3A'        },
+  Selichot:    { icon: 'moon-outline',       iconActive: 'moon',       label: 'סליחות',    color: Colors.gold      },
   Profile:     { icon: 'person-outline',     iconActive: 'person',     label: 'פרופיל',   color: Colors.primary   },
 };
 
+/**
+ * Every tab that CAN exist. Selichot is filtered out of the menus outside its
+ * season — see `visible` in KehilaTabBar. The Tab.Screen stays registered all
+ * year regardless, so the Home card and deep links still reach it; it simply
+ * isn't offered in the "עוד" popup for the eleven months it means nothing.
+ */
 const ALL_TABS: TabName[] = [
   'Home','Search','Synagogues','PrayerTimes','Zmanim',
-  'Businesses','Mikveh','Events','Eruv','Gemach','Profile',
+  'Businesses','Mikveh','Events','Eruv','Gemach','Selichot','Profile',
 ];
 
 // Default: 4 bar slots (More fixed in center, remaining 4 go to popup)
@@ -133,7 +142,7 @@ function EditModal({
       <Text style={ed.subtitle}>בחר 4 כפתורים לסרגל ({sel.length}/4)</Text>
 
       <View style={ed.grid}>
-        {ALL_TABS.map(name => {
+        {ALL_TABS.filter(n => n !== 'Selichot' || isSelichotWindowOpen()).map(name => {
           const info   = TAB_INFO[name];
           const inBar  = sel.includes(name);
           const locked = name === 'Home';
@@ -240,13 +249,19 @@ function KehilaTabBar({ state, navigation }: BottomTabBarProps) {
   // ── Hide bar on Home screen ──
   if (currentRoute === 'Home') return null;
 
-  const moreTabs  = ALL_TABS.filter(n => !(barTabs as string[]).includes(n));
+  // Out of season Selichot drops out of the popup AND out of a persisted bar
+  // config — someone who pinned it during Elul shouldn't meet a dead tab in
+  // Cheshvan.
+  const inSeason  = isSelichotWindowOpen();
+  const visible   = ALL_TABS.filter(n => n !== 'Selichot' || inSeason);
+  const barShown  = (barTabs as TabName[]).filter(n => visible.includes(n));
+  const moreTabs  = visible.filter(n => !(barShown as string[]).includes(n));
   // Only badge "עוד" for things that are actually inside it — otherwise the
   // user opens the popup looking for the count and finds nothing.
   const hiddenEventAlerts  = moreTabs.includes('Events') ? alertCount : 0;
   const hiddenProfileAlert = moreTabs.includes('Profile') && needsAttention;
-  const leftTabs  = barTabs.slice(0, 2) as TabName[];
-  const rightTabs = barTabs.slice(2, 4) as TabName[];
+  const leftTabs  = barShown.slice(0, 2) as TabName[];
+  const rightTabs = barShown.slice(2, 4) as TabName[];
 
   const go = (name: TabName) => {
     setMoreOpen(false);
@@ -473,6 +488,7 @@ export default function MainTabNavigator() {
         <Tab.Screen name="Events"      component={EventsScreen} />
         <Tab.Screen name="Eruv"        component={EruvScreen} />
         <Tab.Screen name="Gemach"      component={GemachScreen} />
+        <Tab.Screen name="Selichot"    component={SelichotScreen} />
         <Tab.Screen name="Profile"     component={ProfileScreen} />
       </Tab.Navigator>
     </>

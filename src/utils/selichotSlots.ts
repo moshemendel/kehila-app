@@ -16,6 +16,15 @@ export interface SelichotOccurrence {
   timeMinutes: number;
   /** 1=Sunday … 7=Shabbat — the civil day this is clocked on. */
   dayNum: number;
+  /**
+   * Absolute start time, ms since epoch.
+   *
+   * Kept because "how long until this starts" cannot be recovered from
+   * `timeMinutes` alone: an after-midnight slot is grouped under the PREVIOUS
+   * evening, so its clock time is smaller than now's while still being in the
+   * future. The screen needs the real instant to judge whether you can get there.
+   */
+  whenMs: number;
   notes?: string | null;
   distanceKm: number | null;
 }
@@ -132,13 +141,14 @@ export function collectSelichot(
         if (when.getTime() < now.getTime()) continue;
 
         // Group under the evening it belongs to.
-        const nightDate = belongsToPreviousEvening(timeMinutes, alot) ? addDays(date, -1) : date;
+        const nightDate = belongsToPreviousEvening(timeMinutes) ? addDays(date, -1) : date;
         const key = isoOf(nightDate);
         const list = byNight.get(key) ?? [];
         list.push({
           synagogue: syn,
           time,
           timeMinutes,
+          whenMs: when.getTime(),
           dayNum: dayNumOf(date),
           notes: slot.notes,
           distanceKm,
@@ -151,32 +161,41 @@ export function collectSelichot(
   const todayKey = isoOf(now);
   return [...byNight.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, occurrences]) => {
+    .map(([key, unsorted]) => {
+      // Chronological within the session, by absolute instant rather than clock
+      // time. A selichot day runs 04:00 → … → 00:30, and that last one is
+      // clocked on the NEXT civil date: sorting on timeMinutes would put 00:30
+      // first, at the head of a day it actually closes. whenMs has no such
+      // wraparound.
+      //
+      // Sorted here rather than in the screen because callers assume it —
+      // HomeScreen shows occurrences[0] as "המוקדם", which was only accidentally
+      // right whenever iteration order happened to agree.
+      const occurrences = [...unsorted].sort((a, b) => a.whenMs - b.whenMs);
       const d = new Date(`${key}T12:00:00`);
       const dateTxt = `${p2(d.getDate())}/${p2(d.getMonth() + 1)}`;
 
-      // A group is an "evening" only when its minyanim run after midnight and
-      // were therefore pushed back a day. A 05:15 minyan is that morning — it
-      // belongs to its own civil day, and calling it "ליל <next day>" names the
-      // wrong night entirely.
-      const isEvening = occurrences.some((o) => belongsToPreviousEvening(o.timeMinutes, alot));
+      // A group is a DAY, named for the day it belongs to — not for the night
+      // that follows it. Sunday's group holds Sunday's pre-dawn selichot, its
+      // morning and evening minyanim, AND the 00:30 one clocked on Monday: one
+      // session running from before netz through to after midnight. Naming that
+      // "ליל שני" pointed at the wrong day entirely.
+      //
+      // Shabbat is the exception. No selichot are said during the day, so a
+      // group keyed to Saturday contains only the post-Shabbat night minyanim —
+      // which everyone calls מוצ״ש, not "יום שבת".
+      const isMotzaeiShabbat = d.getDay() === 6;
 
-      // The Hebrew date follows the MINYAN, not the group key: an evening group
-      // is keyed to the Saturday, but a 00:30 minyan happens after nightfall and
-      // is therefore already the next Hebrew day.
-      const hebrewLabel = hebrewDayLabel(isEvening ? addDays(d, 1) : d);
+      // The Hebrew date follows the MINYAN: a מוצ״ש group is keyed to Saturday,
+      // but its minyanim run after nightfall and are already the next Hebrew day.
+      const hebrewLabel = hebrewDayLabel(isMotzaeiShabbat ? addDays(d, 1) : d);
 
-      let label: string;
-      if (isEvening) {
-        const isTonight = key === todayKey
-          && !belongsToPreviousEvening(now.getHours() * 60 + now.getMinutes(), alot);
-        label = isTonight
-          ? 'הלילה'
-          : `${d.getDay() === 6 ? 'מוצ״ש' : `ליל ${DAY_LABELS[(d.getDay() + 1) % 7]}`} · ${dateTxt}`;
-      } else {
-        const isToday = key === todayKey;
-        label = isToday ? 'היום' : `יום ${DAY_LABELS[d.getDay()]} · ${dateTxt}`;
-      }
+      const isToday = key === todayKey;
+      const label = isMotzaeiShabbat
+        ? `מוצ״ש · ${dateTxt}`
+        : isToday
+          ? `היום · ${dateTxt}`
+          : `יום ${DAY_LABELS[d.getDay()]} · ${dateTxt}`;
       return { key, label, hebrewLabel, dateLabel: dateTxt, occurrences };
     });
 }

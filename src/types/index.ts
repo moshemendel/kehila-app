@@ -453,6 +453,7 @@ export type MainTabParamList = {
   Events: undefined;
   Eruv: undefined;
   Gemach: undefined;
+  Selichot: undefined;
   Profile: undefined;
 };
 
