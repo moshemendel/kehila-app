@@ -86,13 +86,19 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     [favorites],
   );
 
+  // `uid` belongs in the dependencies: `persist` closes over it to pick the
+  // storage slot, and on the first render Firebase Auth has not answered yet,
+  // so it is still undefined. Frozen with an empty dependency list, these
+  // callbacks kept writing to the guest slot forever, while the loader read
+  // the signed-in one — so a signed-in user's stars were saved somewhere they
+  // were never read back from, and every star vanished on the next launch.
   const setFavorite = useCallback((id: string, setting: FavoriteSetting) => {
     setFavorites((prev) => {
       const next = { ...prev, [id]: setting };
       persist(next);
       return next;
     });
-  }, []);
+  }, [uid]);
 
   const removeFavorite = useCallback((id: string) => {
     setFavorites((prev) => {
@@ -101,7 +107,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       persist(next);
       return next;
     });
-  }, []);
+  }, [uid]);
 
   return (
     <Ctx.Provider value={{ favorites, isFavorite, getFavoriteSetting, setFavorite, removeFavorite }}>
