@@ -83,6 +83,8 @@ export interface NotifSettings {
   prayers: Array<PrayerType>;
   /** Post reminders to the alarm stream instead of the notification stream. */
   alarmSound?: boolean;
+  /** Minutes before a starred event to remind. See utils/eventReminders. */
+  eventLeadTimes?: number[];
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

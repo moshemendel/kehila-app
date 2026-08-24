@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NotifSettings } from '../utils/prayerNotifications';
 import { cancelAllPrayerNotifications } from '../utils/prayerNotifications';
+import { DEFAULT_EVENT_LEAD_TIMES, MAX_EVENT_LEAD_TIMES } from '../utils/eventReminders';
 
 const STORAGE_KEY = '@notif_settings';
 
@@ -12,12 +13,14 @@ interface NotificationsContextValue {
   setMinutesBefore: (v: number) => Promise<void>;
   togglePrayer: (p: 'shacharit' | 'mincha' | 'maariv') => Promise<void>;
   setAlarmSound: (v: boolean) => Promise<void>;
+  toggleEventLeadTime: (minutes: number) => Promise<void>;
 }
 
 const DEFAULTS: NotifSettings = {
   minutesBefore: 15,
   prayers: ['shacharit', 'mincha', 'maariv'],
   alarmSound: false,
+  eventLeadTimes: DEFAULT_EVENT_LEAD_TIMES,
 };
 
 const Ctx = createContext<NotificationsContextValue | null>(null);
@@ -73,9 +76,26 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     // which it does, because `settings` is one of its dependencies.
   }
 
+  async function toggleEventLeadTime(minutes: number) {
+    const current = settings.eventLeadTimes ?? DEFAULT_EVENT_LEAD_TIMES;
+    const has = current.includes(minutes);
+    // Adding past the cap drops the closest-in one, so the pick that was just
+    // made always survives instead of silently doing nothing.
+    let next = has ? current.filter((m) => m !== minutes) : [...current, minutes];
+    if (next.length > MAX_EVENT_LEAD_TIMES) {
+      next = next.sort((a, b) => b - a).slice(0, MAX_EVENT_LEAD_TIMES);
+    }
+    const nextSettings = { ...settings, eventLeadTimes: next.sort((a, b) => b - a) };
+    setSettingsState(nextSettings);
+    await persist(enabled, nextSettings);
+  }
+
   return (
     <Ctx.Provider
-      value={{ enabled, settings, setEnabled, setMinutesBefore, togglePrayer, setAlarmSound }}
+      value={{
+        enabled, settings, setEnabled, setMinutesBefore, togglePrayer, setAlarmSound,
+        toggleEventLeadTime,
+      }}
     >
       {children}
     </Ctx.Provider>

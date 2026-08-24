@@ -18,11 +18,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   doc, getDoc, setDoc, collection, query, where, onSnapshot,
 } from 'firebase/firestore';
-import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
 import { db } from '../services/firebase';
 import { useCityId } from '../hooks/useCityId';
 import { useAuth } from './AuthContext';
+import { useNotifications } from './NotificationsContext';
+import { DEFAULT_EVENT_LEAD_TIMES, syncEventReminders } from '../utils/eventReminders';
 import { CommunityEvent } from '../types';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -102,84 +102,6 @@ async function saveRead(uid: string | null, ids: Set<string>) {
   if (uid) setDoc(userDocRef(uid), { readEvents: arr }, { merge: true }).catch(() => {});
 }
 
-// ── Notifications ─────────────────────────────────────────────────────────────
-
-async function ensureEventChannel() {
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('events', {
-      name: 'תזכורות אירועים',
-      importance: Notifications.AndroidImportance.HIGH,
-      vibrationPattern: [0, 250, 250, 250],
-      sound: 'default',
-    });
-  }
-}
-
-async function scheduleEventReminders(event: CommunityEvent, uid: string | null) {
-  const startMs = new Date(event.startDate).getTime();
-  const nowMs   = Date.now();
-  if (startMs <= nowMs) return;
-
-  await ensureEventChannel();
-
-  const notifIds: Record<string, string> = {};
-
-  async function schedule(titleHe: string, offsetMs: number) {
-    const fireMs = startMs - offsetMs;
-    const secondsUntil = Math.floor((fireMs - nowMs) / 1000);
-    if (secondsUntil < 60) return;
-    try {
-      const id = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: titleHe,
-          body:  event.title,
-          data:  { eventId: event.id },
-          sound: 'default',
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-          seconds: secondsUntil,
-          repeats: false,
-          ...(Platform.OS === 'android' ? { channelId: 'events' } : {}),
-        },
-      });
-      return id;
-    } catch {
-      return undefined;
-    }
-  }
-
-  const dayId  = await schedule('📅 אירוע מחר', 24 * 60 * 60 * 1000);
-  const hourId = await schedule('⏰ אירוע בעוד שעה', 60 * 60 * 1000);
-
-  if (dayId)  notifIds.dayBefore  = dayId;
-  if (hourId) notifIds.hourBefore = hourId;
-
-  if (Object.keys(notifIds).length === 0) return;
-
-  const key = localKey('notifIds', uid);
-  const raw = await AsyncStorage.getItem(key).catch(() => null);
-  const all: Record<string, Record<string, string>> = raw ? JSON.parse(raw) : {};
-  all[event.id] = notifIds;
-  AsyncStorage.setItem(key, JSON.stringify(all)).catch(() => {});
-}
-
-async function cancelEventReminders(eventId: string, uid: string | null) {
-  const key = localKey('notifIds', uid);
-  const raw = await AsyncStorage.getItem(key).catch(() => null);
-  if (!raw) return;
-  const all: Record<string, Record<string, string>> = JSON.parse(raw);
-  const ids = all[eventId];
-  if (!ids) return;
-  await Promise.all(
-    Object.values(ids).map((id) =>
-      Notifications.cancelScheduledNotificationAsync(id).catch(() => {}),
-    ),
-  );
-  delete all[eventId];
-  AsyncStorage.setItem(key, JSON.stringify(all)).catch(() => {});
-}
-
 // ── Context ───────────────────────────────────────────────────────────────────
 
 interface EventsCtx {
@@ -215,6 +137,7 @@ const EventsContext = createContext<EventsCtx>({
 export function EventsProvider({ children }: { children: ReactNode }) {
   const cityId = useCityId();
   const { firebaseUser } = useAuth();
+  const { settings: notifSettings } = useNotifications();
   const uid = firebaseUser?.uid ?? null;
   const uidRef = useRef(uid);
   uidRef.current = uid;
@@ -225,6 +148,7 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   const [dismissed,  setDismissed]  = useState<Set<string>>(new Set());
   const [favorites,  setFavorites]  = useState<Set<string>>(new Set());
   const [readEvents, setReadEvents] = useState<Set<string>>(new Set());
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
 
   // Keep a ref to `all` so callbacks can access it without re-creation
   const allRef = useRef(all);
@@ -252,11 +176,13 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   // Reload per-user prefs whenever uid changes (login / logout)
   useEffect(() => {
     let cancelled = false;
+    setPrefsLoaded(false);
     loadPrefs(uid).then(({ dismissed: d, favorites: f, read: r }) => {
       if (cancelled) return;
       setDismissed(d);
       setFavorites(f);
       setReadEvents(r);
+      setPrefsLoaded(true);
     });
     return () => { cancelled = true; };
   }, [uid]);
@@ -285,6 +211,23 @@ export function EventsProvider({ children }: { children: ReactNode }) {
     });
   }, [all]);
 
+  // Keep the scheduled reminders matching the feed, the stars and the chosen
+  // lead times. This is what makes a postponed event move its reminder and a
+  // deleted one drop it — neither happened while scheduling was tied to the
+  // star alone.
+  const leadKey = (notifSettings.eventLeadTimes ?? DEFAULT_EVENT_LEAD_TIMES).join(',');
+  useEffect(() => {
+    // Both inputs start empty and fill in asynchronously. Running before they
+    // arrive would read as "nothing is starred" and cancel every reminder the
+    // user has, only to rebuild it a moment later — and lose the lot if the
+    // app were killed in between.
+    if (loading || !prefsLoaded) return;
+    const leadTimes = leadKey ? leadKey.split(',').map(Number) : [];
+    syncEventReminders(
+      all, favorites, leadTimes, localKey('notifIds', uidRef.current),
+    ).catch(() => {});
+  }, [all, favorites, leadKey, loading, prefsLoaded]);
+
   const dismiss = useCallback((id: string) => {
     setDismissed((prev) => {
       const next = new Set(prev);
@@ -297,7 +240,6 @@ export function EventsProvider({ children }: { children: ReactNode }) {
       const next = new Set(prev);
       next.delete(id);
       saveFavorites(uidRef.current, next);
-      cancelEventReminders(id, uidRef.current);
       return next;
     });
   }, []);
@@ -323,16 +265,14 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   const toggleFavorite = useCallback((event: CommunityEvent) => {
     setFavorites((prev) => {
       const next = new Set(prev);
-      if (next.has(event.id)) {
-        next.delete(event.id);
-        cancelEventReminders(event.id, uidRef.current);
-      } else {
-        next.add(event.id);
-        scheduleEventReminders(event, uidRef.current);
-      }
+      if (next.has(event.id)) next.delete(event.id);
+      else next.add(event.id);
       saveFavorites(uidRef.current, next);
       return next;
     });
+    // Scheduling is not done here — the reconcile effect below owns it, so
+    // that a moved or deleted event is handled the same way as an unstarred
+    // one instead of needing its own path.
   }, []);
 
   const isFavorite = useCallback((id: string) => favorites.has(id), [favorites]);

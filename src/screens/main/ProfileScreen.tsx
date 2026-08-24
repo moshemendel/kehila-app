@@ -18,6 +18,9 @@ import { requireManagerAuth, lockManagerArea } from '../../utils/managerAuth';
 import { useCityId } from '../../hooks/useCityId';
 import { useCity } from '../../hooks/useCity';
 import { NEEDS_EXACT_ALARM_OPT_IN, openExactAlarmSettings } from '../../utils/exactAlarms';
+import {
+  DEFAULT_EVENT_LEAD_TIMES, EVENT_LEAD_OPTIONS, MAX_EVENT_LEAD_TIMES,
+} from '../../utils/eventReminders';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { UserRole, City } from '../../types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -101,7 +104,9 @@ export default function ProfileScreen() {
   const [homeCityPickerOpen, setHomeCityPickerOpen] = useState(false);
   const {
     enabled, settings: notifSettings, setEnabled, setMinutesBefore, togglePrayer, setAlarmSound,
+    toggleEventLeadTime,
   } = useNotifications();
+  const eventLeadTimes = notifSettings.eventLeadTimes ?? DEFAULT_EVENT_LEAD_TIMES;
   const { favorites } = useFavorites();
   const favoriteCount = Object.keys(favorites ?? {}).length;
 
@@ -424,6 +429,40 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* Event reminders. Separate from prayer reminders on purpose: a
+            prayer needs minutes' warning, an event needs enough time to get
+            ready for it. */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>תזכורות אירועים</Text>
+          <View style={styles.card}>
+            <View style={styles.notifSubSection}>
+              <Text style={styles.notifSubLabel}>
+                מתי להזכיר על אירוע שסימנת ★
+              </Text>
+              <View style={styles.leadRow}>
+                {EVENT_LEAD_OPTIONS.map((opt) => {
+                  const active = eventLeadTimes.includes(opt.minutes);
+                  return (
+                    <TouchableOpacity
+                      key={opt.minutes}
+                      style={[styles.leadChip, active && styles.leadChipActive]}
+                      onPress={() => toggleEventLeadTime(opt.minutes)}
+                    >
+                      <Text style={[styles.leadChipTxt, active && styles.leadChipTxtActive]}>
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <Text style={styles.leadHint}>
+                עד {MAX_EVENT_LEAD_TIMES} תזכורות לאירוע. תזכורת שמועדה כבר חלף
+                — למשל ״שבוע״ על אירוע בעוד יומיים — פשוט לא נקבעת.
+              </Text>
+            </View>
+          </View>
+        </View>
+
         {/* General settings */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>הגדרות</Text>
@@ -642,6 +681,19 @@ const styles = StyleSheet.create({
     color: Colors.gold,
     fontWeight: '500',
     textAlign: 'right',
+  },
+
+  leadRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' },
+  leadChip: {
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full,
+    borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.background,
+  },
+  leadChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  leadChipTxt: { fontSize: 13, fontWeight: '700', color: Colors.textSecondary },
+  leadChipTxtActive: { color: '#fff' },
+  leadHint: {
+    fontSize: 11.5, lineHeight: 16, color: Colors.textSecondary,
+    textAlign: 'right', marginTop: 10,
   },
 
   alarmToggleText: { flex: 1 },
