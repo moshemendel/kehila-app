@@ -11,11 +11,13 @@ interface NotificationsContextValue {
   setEnabled: (v: boolean)     => Promise<void>;
   setMinutesBefore: (v: number) => Promise<void>;
   togglePrayer: (p: 'shacharit' | 'mincha' | 'maariv') => Promise<void>;
+  setAlarmSound: (v: boolean) => Promise<void>;
 }
 
 const DEFAULTS: NotifSettings = {
   minutesBefore: 15,
   prayers: ['shacharit', 'mincha', 'maariv'],
+  alarmSound: false,
 };
 
 const Ctx = createContext<NotificationsContextValue | null>(null);
@@ -62,8 +64,19 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     await persist(enabled, next);
   }
 
+  async function setAlarmSound(v: boolean) {
+    const next = { ...settings, alarmSound: v };
+    setSettingsState(next);
+    await persist(enabled, next);
+    // The channel is chosen when a reminder is scheduled, so anything already
+    // queued keeps the old sound until PrayerNotificationScheduler re-runs —
+    // which it does, because `settings` is one of its dependencies.
+  }
+
   return (
-    <Ctx.Provider value={{ enabled, settings, setEnabled, setMinutesBefore, togglePrayer }}>
+    <Ctx.Provider
+      value={{ enabled, settings, setEnabled, setMinutesBefore, togglePrayer, setAlarmSound }}
+    >
       {children}
     </Ctx.Provider>
   );
