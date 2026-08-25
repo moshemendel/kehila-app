@@ -18,6 +18,13 @@
  * current lead times, and makes the queue match. Each event's reminders carry
  * a signature of what they were built from; when the signature no longer
  * matches, they are torn down and rebuilt.
+ *
+ * `reconcileReminders` is the generic core of that, working over a minimal
+ * ReminderTarget (id/title/startDate) rather than a full CommunityEvent, so
+ * it also drives SynagogueEventRemindersContext — reminders for a gabay's own
+ * announcements, which live outside the `events` collection entirely and are
+ * joined from a different source. Both keep the "no reminder outlives what it
+ * was set on" guarantee by going through the same tear-down/rebuild logic.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
@@ -73,6 +80,15 @@ export function formatLead(minutes: number): string {
 /** What the app scheduled before this was configurable. */
 export const DEFAULT_EVENT_LEAD_TIMES = [24 * 60, 60];
 
+/** The minimum a reminder needs: something to schedule against. CommunityEvent
+ *  satisfies this structurally; so does the join SynagogueEventReminders
+ *  produces from a gabay's announcement. */
+export interface ReminderTarget {
+  id: string;
+  title: string;
+  startDate: string;
+}
+
 /** Reminders already queued for one event, and what they were built from. */
 interface StoredReminders {
   sig: string;
@@ -104,10 +120,11 @@ export function leadTimesFor(
 }
 
 async function scheduleFor(
-  event: CommunityEvent,
+  target: ReminderTarget,
   leadTimes: number[],
+  data: Record<string, unknown>,
 ): Promise<string[]> {
-  const startMs = new Date(event.startDate).getTime();
+  const startMs = new Date(target.startDate).getTime();
   const nowMs = Date.now();
   const ids: string[] = [];
 
@@ -121,8 +138,8 @@ async function scheduleFor(
       const id = await Notifications.scheduleNotificationAsync({
         content: {
           title: option?.title ?? '📅 אירוע קרב',
-          body: event.title,
-          data: { eventId: event.id },
+          body: target.title,
+          data,
           sound: 'default',
         },
         trigger: {
@@ -147,14 +164,15 @@ async function cancelIds(ids: string[]): Promise<void> {
 }
 
 /**
- * Make the queued reminders match the current feed, stars and lead times.
- * Safe to call often — it only touches events whose signature changed.
+ * Make the queued notifications match `wanted` — the generic core both
+ * syncEventReminders and SynagogueEventRemindersContext build on. Safe to
+ * call often: it only touches entries whose signature changed.
  */
-export async function syncEventReminders(
-  events: CommunityEvent[],
-  favorites: Set<string>,
-  reminders: Record<string, number[]>,
-  defaults: number[],
+export async function reconcileReminders(
+  // `data` is read by navigationRef.ts's notification-tap handler, which
+  // looks for `{ screen, params }` and routes there — pass that shape so
+  // tapping the notification actually opens what it was reminding about.
+  wanted: Map<string, { target: ReminderTarget; leads: number[]; data?: Record<string, unknown> }>,
   storageKey: string,
 ): Promise<void> {
   const raw = await AsyncStorage.getItem(storageKey).catch(() => null);
@@ -174,34 +192,29 @@ export async function syncEventReminders(
     }
   }
 
-  const nowMs = Date.now();
-  const wanted = new Map<string, { event: CommunityEvent; sig: string; leads: number[] }>();
-  for (const event of events) {
-    if (!favorites.has(event.id)) continue;
-    if (new Date(event.startDate).getTime() <= nowMs) continue;
-    const leads = leadTimesFor(event.id, reminders, defaults);
-    wanted.set(event.id, { event, leads, sig: signature(event.startDate, leads) });
-  }
+  const withSig = new Map(
+    [...wanted].map(([id, w]) => [id, { ...w, sig: signature(w.target.startDate, w.leads) }]),
+  );
 
   let changed = false;
 
-  // Tear down anything unstarred, deleted, past, moved, or built from a
+  // Tear down anything not wanted any more, deleted, moved, or built from a
   // different set of lead times.
-  for (const [eventId, entry] of Object.entries(stored)) {
-    const want = wanted.get(eventId);
+  for (const [id, entry] of Object.entries(stored)) {
+    const want = withSig.get(id);
     if (want && want.sig === entry.sig) continue;
     await cancelIds(entry.ids);
-    delete stored[eventId];
+    delete stored[id];
     changed = true;
   }
 
   // Build whatever is now missing.
-  const toSchedule = [...wanted.entries()].filter(([id]) => !stored[id]);
+  const toSchedule = [...withSig.entries()].filter(([id]) => !stored[id]);
   if (toSchedule.length > 0) await ensureChannel();
-  for (const [eventId, { event, sig, leads }] of toSchedule) {
-    const ids = await scheduleFor(event, leads);
+  for (const [id, { target, sig, leads, data }] of toSchedule) {
+    const ids = await scheduleFor(target, leads, data ?? {});
     if (ids.length > 0) {
-      stored[eventId] = { sig, ids };
+      stored[id] = { sig, ids };
       changed = true;
     }
   }
@@ -209,4 +222,33 @@ export async function syncEventReminders(
   if (changed) {
     await AsyncStorage.setItem(storageKey, JSON.stringify(stored)).catch(() => {});
   }
+}
+
+/**
+ * Make the queued reminders match the current feed, stars and lead times.
+ * Safe to call often — it only touches events whose signature changed.
+ */
+export async function syncEventReminders(
+  events: CommunityEvent[],
+  favorites: Set<string>,
+  reminders: Record<string, number[]>,
+  defaults: number[],
+  storageKey: string,
+): Promise<void> {
+  const nowMs = Date.now();
+  const wanted = new Map<
+    string,
+    { target: ReminderTarget; leads: number[]; data?: Record<string, unknown> }
+  >();
+  for (const event of events) {
+    if (!favorites.has(event.id)) continue;
+    if (new Date(event.startDate).getTime() <= nowMs) continue;
+    const leads = leadTimesFor(event.id, reminders, defaults);
+    wanted.set(event.id, {
+      target: event,
+      leads,
+      data: { screen: 'EventDetail', params: { eventId: event.id } },
+    });
+  }
+  await reconcileReminders(wanted, storageKey);
 }
