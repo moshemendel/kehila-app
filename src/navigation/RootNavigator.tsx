@@ -18,6 +18,7 @@ import MikvehDetailScreen         from '../screens/main/MikvehDetailScreen';
 import AppointmentBookingScreen   from '../screens/main/AppointmentBookingScreen';
 import KashrutUpdatesScreen        from '../screens/main/KashrutUpdatesScreen';
 import EventDetailScreen           from '../screens/main/EventDetailScreen';
+import MyEventsScreen              from '../screens/main/MyEventsScreen';
 import ManageSynagogueScreen      from '../screens/admin/ManageSynagogueScreen';
 import ManageAppointmentsScreen   from '../screens/admin/ManageAppointmentsScreen';
 import ManageBusinessScreen from '../screens/admin/ManageBusinessScreen';
@@ -189,6 +190,13 @@ export default function RootNavigator() {
         name="EventDetail"
         component={EventDetailScreen}
         options={{ headerShown: false }}
+      />
+
+      {/* Starred events + synagogue-announcement reminders, merged */}
+      <Root.Screen
+        name="MyEvents"
+        component={MyEventsScreen}
+        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.events }, title: 'האירועים שלי', contentStyle: stackContentStyle }}
       />
 
       {/* Selichot lives in the tab navigator, not here: as a root-stack screen

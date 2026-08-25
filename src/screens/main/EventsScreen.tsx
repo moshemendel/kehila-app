@@ -7,9 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import EventCard from '../../components/EventCard';
 import FilterBar from '../../components/FilterBar';
 import { useEventsFeed } from '../../context/EventsContext';
-import {
-  useSynagogueEventReminders, SynagogueEventRef,
-} from '../../context/SynagogueEventRemindersContext';
+import { useSynagogueEventReminders } from '../../context/SynagogueEventRemindersContext';
 import { Colors, Spacing, Radius } from '../../utils/theme';
 import { EventCategory } from '../../types';
 
@@ -102,17 +100,25 @@ export default function EventsScreen() {
         <Text style={styles.errorText}>שגיאה בטעינת הנתונים: {error}</Text>
       ) : (
         <ScrollView contentContainerStyle={{ padding: Spacing.md }}>
+          {/* A full rendering of these used to live here. It moved to
+              MyEventsScreen, which merges them with starred city events
+              instead of keeping a second, separately-maintained list — this
+              stays as a slim pointer to that screen. */}
           {!showFavoritesOnly && remindedEvents.length > 0 && (
-            <View style={styles.synSection}>
-              <Text style={styles.synSectionTitle}>התזכורות שלי מבתי כנסת</Text>
-              {remindedEvents.map((e) => (
-                <SynagogueReminderRow
-                  key={e.key}
-                  event={e}
-                  onPress={() => navigation.navigate('SynagogueDetail', { synagogueId: e.synagogueId })}
-                />
-              ))}
-            </View>
+            <TouchableOpacity
+              style={styles.synBanner}
+              onPress={() => navigation.navigate('MyEvents')}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="notifications" size={16} color={Colors.events} />
+              <Text style={styles.synBannerTxt}>
+                {remindedEvents.length === 1
+                  ? 'תזכורת אחת מבית כנסת'
+                  : `${remindedEvents.length} תזכורות מבתי כנסת`}
+                {' · לצפייה בהכל'}
+              </Text>
+              <Ionicons name="chevron-back-outline" size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
           )}
 
           {visible.length === 0 && (
@@ -149,24 +155,6 @@ export default function EventsScreen() {
         </ScrollView>
       )}
     </View>
-  );
-}
-
-function SynagogueReminderRow({ event, onPress }: { event: SynagogueEventRef; onPress: () => void }) {
-  const date = new Date(event.startDate);
-  const dateStr = date.toLocaleDateString('he-IL', { day: 'numeric', month: 'long' });
-  const timeStr = date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
-  return (
-    <TouchableOpacity style={styles.synRow} onPress={onPress} activeOpacity={0.8}>
-      <Ionicons name="notifications" size={16} color={Colors.primary} />
-      <View style={styles.synRowText}>
-        <Text style={styles.synRowTitle} numberOfLines={1}>{event.title}</Text>
-        <Text style={styles.synRowSub} numberOfLines={1}>
-          {dateStr} · {timeStr}  ·  {event.synagogueName}
-        </Text>
-      </View>
-      <Ionicons name="chevron-back-outline" size={16} color={Colors.textMuted} />
-    </TouchableOpacity>
   );
 }
 
@@ -229,23 +217,14 @@ const styles = StyleSheet.create({
   },
   alertBadgeText: { fontSize: 12, color: Colors.white, fontWeight: '700' },
 
-  // Card wrapper with unread dot
-  synSection: {
-    marginBottom: Spacing.md, backgroundColor: Colors.cardBackground,
-    borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',
+  // Slim pointer to MyEventsScreen — see the comment at its call site.
+  synBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: Colors.cardBackground, borderRadius: Radius.md,
+    borderWidth: 1, borderColor: Colors.events + '40',
+    paddingHorizontal: Spacing.md, paddingVertical: 11, marginBottom: Spacing.md,
   },
-  synSectionTitle: {
-    fontSize: 12, fontWeight: '700', color: Colors.textSecondary,
-    textAlign: 'right', paddingHorizontal: Spacing.md, paddingTop: 12, paddingBottom: 6,
-  },
-  synRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingHorizontal: Spacing.md, paddingVertical: 11,
-    borderTopWidth: 1, borderTopColor: Colors.border,
-  },
-  synRowText: { flex: 1 },
-  synRowTitle: { fontSize: 14, fontWeight: '600', color: Colors.text, textAlign: 'right' },
-  synRowSub: { fontSize: 11.5, color: Colors.textMuted, textAlign: 'right', marginTop: 1 },
+  synBannerTxt: { flex: 1, fontSize: 13, fontWeight: '600', color: Colors.text, textAlign: 'right' },
 
   cardWrap: { position: 'relative' },
   unreadDot: {
