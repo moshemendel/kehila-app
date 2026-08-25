@@ -6,27 +6,55 @@
  * is useless even though it is both near and soon, and sorting by time alone
  * puts exactly that at the top of the list.
  *
- * WALKING — 15 min/km, about 4 km/h, slower than a brisk walk on purpose.
- * Distances come from `haversineKm`, a straight line, while מעלה אדומים is built
- * across ridges with wadis between them: the real path is routinely longer than
- * the line, sometimes much longer. A deliberately slow pace absorbs part of that
- * error rather than promising times people cannot hit.
+ * ── The straight-line problem ────────────────────────────────────────────────
  *
- * DRIVING — 40 km/h, plus a fixed overhead. In-town driving is stop-start, and
- * the clock does not begin when the car moves: it begins when you start walking
- * to it and ends when you have parked and reached the door. Without that
- * overhead the maths claims a 300 m drive takes 30 seconds, which would be a
- * lie in the direction that makes people late. With it, short distances come out
- * roughly level with walking — which is the truth.
+ * Distances reach us from `haversineKm` — a קו אווירי, the line a bird flies.
+ * Nobody walks that line. מעלה אדומים is built across ridges with wadis between
+ * them, so the walked path is routinely longer than the line and occasionally
+ * far longer: two buildings 400 m apart across a wadi can be a 1.2 km walk
+ * around it.
  *
- * These are ESTIMATES and never promises, which is why callers flag rather than
- * filter. Hiding a minyan because a straight-line guess called it unreachable
- * would be worse than showing it with a warning — the congregant knows the
- * shortcut through the wadi, and we do not.
+ * An earlier version hid this inside a deliberately slow pace — 15 min/km,
+ * which is really 12 min/km of walking plus an unnamed allowance for detour.
+ * That is unreasonable-about: nobody can say whether it is too generous or too
+ * mean, because the two errors are tangled. So the model is now explicit:
+ *
+ *     straight line  ×  detour factor  =  distance actually travelled
+ *     that distance  ÷  real pace      =  time
+ *
+ * Each number can now be argued with on its own, and swapping in real routing
+ * later means replacing ONE step — routeKm — and nothing else.
+ *
+ * ── The detour factors ───────────────────────────────────────────────────────
+ *
+ * Street networks in ordinary towns run about 1.2–1.4× the straight line.
+ * Walking gets the lower factor here and driving the higher one, which is the
+ * opposite of the usual assumption but right for this terrain: pedestrians have
+ * stairs and paths across the wadis that cars cannot use, so a car often has to
+ * go the long way round while someone on foot cuts straight down and up.
+ *
+ * These remain ESTIMATES. They are wrong in individual cases by design, which
+ * is why callers flag rather than filter: the congregant knows which staircase
+ * exists, and we do not.
  */
 
-export const WALK_MIN_PER_KM = 15;   // ≈ 4 km/h
-export const DRIVE_KMH = 40;
+/** Walked path ÷ straight line. Lower than driving — footpaths cross wadis. */
+export const WALK_DETOUR = 1.35;
+
+/** Driven path ÷ straight line. Cars follow roads around the terrain. */
+export const DRIVE_DETOUR = 1.6;
+
+/** Actual walking pace, applied to the DETOURED distance, not the straight line. */
+export const WALK_KMH = 5;
+
+/** In-town driving speed: stop-start, junctions, 30-50 zones. */
+export const DRIVE_KMH = 45;
+
+/** Straight-line km → km actually walked. */
+export const walkKm = (km: number) => km * WALK_DETOUR;
+
+/** Straight-line km → km actually driven. */
+export const driveKm = (km: number) => km * DRIVE_DETOUR;
 
 /** Door-to-door overhead for driving: reaching the car, parking, walking in. */
 export const DRIVE_OVERHEAD_MIN = 3;
@@ -55,12 +83,14 @@ const ESTIMATE_TOLERANCE_MIN = 2;
  */
 const MIN_DRIVE_SAVING_MIN = 3;
 
+/** Minutes on foot for a straight-line distance, detour included. */
 export function walkingMinutes(km: number): number {
-  return Math.max(1, Math.ceil(km * WALK_MIN_PER_KM));
+  return Math.max(1, Math.ceil((walkKm(km) / WALK_KMH) * 60));
 }
 
+/** Minutes by car for a straight-line distance, detour and overhead included. */
 export function drivingMinutes(km: number): number {
-  return Math.max(1, Math.ceil((km / DRIVE_KMH) * 60 + DRIVE_OVERHEAD_MIN));
+  return Math.max(1, Math.ceil((driveKm(km) / DRIVE_KMH) * 60 + DRIVE_OVERHEAD_MIN));
 }
 
 /** "~9 דק׳" / "~1 שע׳ 5 דק׳". The ~ is doing honest work. */
