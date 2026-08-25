@@ -42,11 +42,33 @@ export const EVENT_LEAD_OPTIONS: EventLeadOption[] = [
 ];
 
 /**
- * Every selected lead time multiplies the pending notifications per starred
- * event. Android is relaxed about this; iOS caps an app at 64 pending local
- * notifications and silently drops the rest, so three is the ceiling.
+ * Every reminder is a pending notification. Android is relaxed about this;
+ * iOS caps an app at 64 pending local notifications and silently drops the
+ * rest, so both the default set and any one event stay small.
  */
 export const MAX_EVENT_LEAD_TIMES = 3;
+export const MAX_REMINDERS_PER_EVENT = 5;
+
+/** "יומיים ו-3 שעות לפני" — how a lead time reads in the reminder list. */
+export function formatLead(minutes: number): string {
+  if (minutes <= 0) return 'בזמן האירוע';
+  const days = Math.floor(minutes / (24 * 60));
+  const hours = Math.floor((minutes % (24 * 60)) / 60);
+  const mins = minutes % 60;
+
+  const parts: string[] = [];
+  if (days === 1) parts.push('יום');
+  else if (days === 2) parts.push('יומיים');
+  else if (days > 2) parts.push(`${days} ימים`);
+
+  if (hours === 1) parts.push('שעה');
+  else if (hours === 2) parts.push('שעתיים');
+  else if (hours > 2) parts.push(`${hours} שעות`);
+
+  if (mins > 0) parts.push(`${mins} דקות`);
+
+  return `${parts.join(' ו')} לפני`;
+}
 
 /** What the app scheduled before this was configurable. */
 export const DEFAULT_EVENT_LEAD_TIMES = [24 * 60, 60];
@@ -69,6 +91,16 @@ async function ensureChannel(): Promise<void> {
     vibrationPattern: [0, 250, 250, 250],
     sound: 'default',
   });
+}
+
+/** What a starred event should remind at: its own choices, else the default. */
+export function leadTimesFor(
+  eventId: string,
+  reminders: Record<string, number[]>,
+  defaults: number[],
+): number[] {
+  const own = reminders[eventId];
+  return own && own.length > 0 ? own : defaults;
 }
 
 async function scheduleFor(
@@ -121,7 +153,8 @@ async function cancelIds(ids: string[]): Promise<void> {
 export async function syncEventReminders(
   events: CommunityEvent[],
   favorites: Set<string>,
-  leadTimes: number[],
+  reminders: Record<string, number[]>,
+  defaults: number[],
   storageKey: string,
 ): Promise<void> {
   const raw = await AsyncStorage.getItem(storageKey).catch(() => null);
@@ -142,11 +175,12 @@ export async function syncEventReminders(
   }
 
   const nowMs = Date.now();
-  const wanted = new Map<string, { event: CommunityEvent; sig: string }>();
+  const wanted = new Map<string, { event: CommunityEvent; sig: string; leads: number[] }>();
   for (const event of events) {
     if (!favorites.has(event.id)) continue;
     if (new Date(event.startDate).getTime() <= nowMs) continue;
-    wanted.set(event.id, { event, sig: signature(event.startDate, leadTimes) });
+    const leads = leadTimesFor(event.id, reminders, defaults);
+    wanted.set(event.id, { event, leads, sig: signature(event.startDate, leads) });
   }
 
   let changed = false;
@@ -164,8 +198,8 @@ export async function syncEventReminders(
   // Build whatever is now missing.
   const toSchedule = [...wanted.entries()].filter(([id]) => !stored[id]);
   if (toSchedule.length > 0) await ensureChannel();
-  for (const [eventId, { event, sig }] of toSchedule) {
-    const ids = await scheduleFor(event, leadTimes);
+  for (const [eventId, { event, sig, leads }] of toSchedule) {
+    const ids = await scheduleFor(event, leads);
     if (ids.length > 0) {
       stored[eventId] = { sig, ids };
       changed = true;

@@ -43,7 +43,10 @@ function isExpired(e: CommunityEvent): boolean {
   return false;
 }
 
-function localKey(type: 'dismissed' | 'favorites' | 'notifIds' | 'read', uid: string | null) {
+function localKey(
+  type: 'dismissed' | 'favorites' | 'notifIds' | 'read' | 'reminders',
+  uid: string | null,
+) {
   const suffix = uid ?? 'guest';
   return `@events_${type}_${suffix}`;
 }
@@ -58,6 +61,7 @@ async function loadPrefs(uid: string | null): Promise<{
   dismissed: Set<string>;
   favorites: Set<string>;
   read: Set<string>;
+  reminders: Record<string, number[]>;
 }> {
   if (uid) {
     try {
@@ -67,20 +71,23 @@ async function loadPrefs(uid: string | null): Promise<{
           dismissed: new Set<string>(snap.data().dismissedEvents ?? []),
           favorites:  new Set<string>(snap.data().favoriteEvents  ?? []),
           read:       new Set<string>(snap.data().readEvents      ?? []),
+          reminders:  (snap.data().eventReminders ?? {}) as Record<string, number[]>,
         };
       }
     } catch {}
   }
   // AsyncStorage fallback (guests + offline)
-  const [dRaw, fRaw, rRaw] = await Promise.all([
+  const [dRaw, fRaw, rRaw, remRaw] = await Promise.all([
     AsyncStorage.getItem(localKey('dismissed', uid)),
     AsyncStorage.getItem(localKey('favorites',  uid)),
     AsyncStorage.getItem(localKey('read',       uid)),
+    AsyncStorage.getItem(localKey('reminders',  uid)),
   ]);
   return {
     dismissed: new Set<string>(dRaw ? JSON.parse(dRaw) : []),
     favorites:  new Set<string>(fRaw ? JSON.parse(fRaw) : []),
     read:       new Set<string>(rRaw ? JSON.parse(rRaw) : []),
+    reminders:  remRaw ? JSON.parse(remRaw) : {},
   };
 }
 
@@ -94,6 +101,13 @@ async function saveFavorites(uid: string | null, ids: Set<string>) {
   const arr = [...ids];
   AsyncStorage.setItem(localKey('favorites', uid), JSON.stringify(arr)).catch(() => {});
   if (uid) setDoc(userDocRef(uid), { favoriteEvents: arr }, { merge: true }).catch(() => {});
+}
+
+/** The chosen distances sync like the stars do — the intent should survive a
+ *  new phone. The scheduled notification ids stay device-local. */
+async function saveReminders(uid: string | null, map: Record<string, number[]>) {
+  AsyncStorage.setItem(localKey('reminders', uid), JSON.stringify(map)).catch(() => {});
+  if (uid) setDoc(userDocRef(uid), { eventReminders: map }, { merge: true }).catch(() => {});
 }
 
 async function saveRead(uid: string | null, ids: Set<string>) {
@@ -121,6 +135,10 @@ interface EventsCtx {
   /** Mark all current events as read */
   markAllRead:    () => void;
   toggleFavorite: (event: CommunityEvent) => void;
+  /** Minutes-before list chosen for one event; empty means "use the default set" */
+  getReminders:   (id: string) => number[];
+  /** Replace one event's reminders. An empty list unstars it. */
+  setReminders:   (event: CommunityEvent, minutes: number[]) => void;
   /** Look up any event by id — including dismissed ones (used by detail screen) */
   findEvent:      (id: string) => CommunityEvent | undefined;
 }
@@ -129,7 +147,9 @@ const EventsContext = createContext<EventsCtx>({
   events: [], favoriteEvents: [], loading: true, error: null, unreadCount: 0,
   isFavorite: () => false, isRead: () => false,
   dismiss: () => {}, markRead: () => {}, markAllRead: () => {},
-  toggleFavorite: () => {}, findEvent: () => undefined,
+  toggleFavorite: () => {},
+  getReminders: () => [], setReminders: () => {},
+  findEvent: () => undefined,
 });
 
 // ── Provider ──────────────────────────────────────────────────────────────────
@@ -149,6 +169,7 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   const [favorites,  setFavorites]  = useState<Set<string>>(new Set());
   const [readEvents, setReadEvents] = useState<Set<string>>(new Set());
   const [prefsLoaded, setPrefsLoaded] = useState(false);
+  const [reminders,  setRemindersState] = useState<Record<string, number[]>>({});
 
   // Keep a ref to `all` so callbacks can access it without re-creation
   const allRef = useRef(all);
@@ -177,11 +198,12 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
     setPrefsLoaded(false);
-    loadPrefs(uid).then(({ dismissed: d, favorites: f, read: r }) => {
+    loadPrefs(uid).then(({ dismissed: d, favorites: f, read: r, reminders: rem }) => {
       if (cancelled) return;
       setDismissed(d);
       setFavorites(f);
       setReadEvents(r);
+      setRemindersState(rem);
       setPrefsLoaded(true);
     });
     return () => { cancelled = true; };
@@ -222,11 +244,11 @@ export function EventsProvider({ children }: { children: ReactNode }) {
     // user has, only to rebuild it a moment later — and lose the lot if the
     // app were killed in between.
     if (loading || !prefsLoaded) return;
-    const leadTimes = leadKey ? leadKey.split(',').map(Number) : [];
+    const defaults = leadKey ? leadKey.split(',').map(Number) : [];
     syncEventReminders(
-      all, favorites, leadTimes, localKey('notifIds', uidRef.current),
+      all, favorites, reminders, defaults, localKey('notifIds', uidRef.current),
     ).catch(() => {});
-  }, [all, favorites, leadKey, loading, prefsLoaded]);
+  }, [all, favorites, reminders, leadKey, loading, prefsLoaded]);
 
   const dismiss = useCallback((id: string) => {
     setDismissed((prev) => {
@@ -262,17 +284,57 @@ export function EventsProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  /** The quick star, from the list. Uses the default set; open the event to
+   *  choose distances for it specifically. */
   const toggleFavorite = useCallback((event: CommunityEvent) => {
+    let removing = false;
     setFavorites((prev) => {
       const next = new Set(prev);
-      if (next.has(event.id)) next.delete(event.id);
+      if (next.has(event.id)) { next.delete(event.id); removing = true; }
       else next.add(event.id);
       saveFavorites(uidRef.current, next);
       return next;
     });
+    // Drop any custom distances along with the star, so re-starring later
+    // does not silently resurrect choices the user thought they had cleared.
+    if (removing) {
+      setRemindersState((prev) => {
+        if (!(event.id in prev)) return prev;
+        const next = { ...prev };
+        delete next[event.id];
+        saveReminders(uidRef.current, next);
+        return next;
+      });
+    }
     // Scheduling is not done here — the reconcile effect below owns it, so
     // that a moved or deleted event is handled the same way as an unstarred
     // one instead of needing its own path.
+  }, []);
+
+  const getReminders = useCallback(
+    (id: string) => reminders[id] ?? [],
+    [reminders],
+  );
+
+  /** An empty list means "no reminders", which for an event is the same as
+   *  not starring it — otherwise a starred event with nothing set would
+   *  silently fall back to the default set the user just cleared. */
+  const setReminders = useCallback((event: CommunityEvent, minutes: number[]) => {
+    const uid = uidRef.current;
+    setRemindersState((prev) => {
+      const next = { ...prev };
+      if (minutes.length === 0) delete next[event.id];
+      else next[event.id] = [...minutes].sort((a, b) => b - a);
+      saveReminders(uid, next);
+      return next;
+    });
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (minutes.length === 0) next.delete(event.id);
+      else next.add(event.id);
+      saveFavorites(uid, next);
+      return next;
+    });
   }, []);
 
   const isFavorite = useCallback((id: string) => favorites.has(id), [favorites]);
@@ -296,9 +358,11 @@ export function EventsProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<EventsCtx>(() => ({
     events, favoriteEvents, loading, error, unreadCount,
-    isFavorite, isRead, dismiss, markRead, markAllRead, toggleFavorite, findEvent,
+    isFavorite, isRead, dismiss, markRead, markAllRead, toggleFavorite,
+    getReminders, setReminders, findEvent,
   }), [events, favoriteEvents, loading, error, unreadCount,
-    isFavorite, isRead, dismiss, markRead, markAllRead, toggleFavorite, findEvent]);
+    isFavorite, isRead, dismiss, markRead, markAllRead, toggleFavorite,
+    getReminders, setReminders, findEvent]);
 
   return <EventsContext.Provider value={value}>{children}</EventsContext.Provider>;
 }

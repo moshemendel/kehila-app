@@ -437,7 +437,7 @@ export default function ProfileScreen() {
           <View style={styles.card}>
             <View style={styles.notifSubSection}>
               <Text style={styles.notifSubLabel}>
-                מתי להזכיר על אירוע שסימנת ★
+                ברירת מחדל לאירוע חדש שמסמנים ★
               </Text>
               <View style={styles.leadRow}>
                 {EVENT_LEAD_OPTIONS.map((opt) => {
@@ -456,8 +456,8 @@ export default function ProfileScreen() {
                 })}
               </View>
               <Text style={styles.leadHint}>
-                עד {MAX_EVENT_LEAD_TIMES} תזכורות לאירוע. תזכורת שמועדה כבר חלף
-                — למשל ״שבוע״ על אירוע בעוד יומיים — פשוט לא נקבעת.
+                עד {MAX_EVENT_LEAD_TIMES} תזכורות. לכל אירוע אפשר לקבוע זמנים
+                משלו בכרטיס שלו — כאן נקבע רק מה מוצע כברירת מחדל.
               </Text>
             </View>
           </View>
