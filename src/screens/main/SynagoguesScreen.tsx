@@ -19,6 +19,7 @@ import { haversineKm, formatDist } from '../../utils/location';
 import { getSlotLabel } from '../../utils/prayerUtils';
 import { Synagogue } from '../../types';
 import FilterBar from '../../components/FilterBar';
+import FavoriteFilterChip from '../../components/FavoriteFilterChip';
 import FavoritePrayerModal, { ModalOptions } from '../../components/FavoritePrayerModal';
 import { collectShiurim } from '../../utils/prayerNotifications';
 import { formatDays } from '../../utils/prayerUtils';
@@ -59,6 +60,7 @@ export default function SynagoguesScreen() {
   const [locLoading,    setLocLoading]    = useState(false);
   const [selectedSynId, setSelectedSynId] = useState<string | null>(null);
   const [viewMode,      setViewMode]      = useState<'list' | 'map'>('list');
+  const [favOnly,       setFavOnly]       = useState(false);
   const [modalSyn,      setModalSyn]      = useState<Synagogue | null>(null);
 
   const mapRef    = useRef<MapView>(null);
@@ -174,7 +176,13 @@ export default function SynagoguesScreen() {
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'he'));
   }, [synagogues]);
 
+  const favCount = useMemo(
+    () => synagogues.filter((sy) => isFavorite(sy.id)).length,
+    [synagogues, isFavorite],
+  );
+
   const visible = synagogues
+    .filter((sy) => !favOnly || isFavorite(sy.id))
     .filter((s) => filters.nusach.length === 0 || synNusachValues(s).some((n) => filters.nusach.includes(n)))
     .filter((s) => filters.neighborhood.length === 0 || filters.neighborhood.includes(s.neighborhood ?? ''))
     .filter((s) => !search || s.name.includes(search) || (s.address.he ?? s.address.en ?? '').includes(search))
@@ -243,6 +251,13 @@ export default function SynagoguesScreen() {
             ? [{ key: 'neighborhood', label: 'שכונה', options: availableNeighborhoods.map((n) => ({ key: n, label: n })), activeColor: Colors.kosher }]
             : []),
         ]}
+        toggleSlot={
+          <FavoriteFilterChip
+            active={favOnly}
+            count={favCount}
+            onPress={() => setFavOnly((v) => !v)}
+          />
+        }
         sortSlot={
           <View style={s.sortGroup}>
             <TouchableOpacity style={[s.sortBtn, sort === 'alpha' && s.sortBtnActive]} onPress={() => handleSort('alpha')}>
