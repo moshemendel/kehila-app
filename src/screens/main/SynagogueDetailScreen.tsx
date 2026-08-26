@@ -18,6 +18,7 @@ import { useTodayZmanim } from '../../hooks/useTodayZmanim';
 import { ZmanimResult } from '../../utils/zmanim';
 import { useFavorites } from '../../context/FavoritesContext';
 import { useSynagogueEventReminders } from '../../context/SynagogueEventRemindersContext';
+import { splitAnnouncements } from '../../utils/synagogueAnnouncements';
 import FavoritePrayerModal, { ModalOptions } from '../../components/FavoritePrayerModal';
 import EventReminderModal from '../../components/EventReminderModal';
 import { getSlotLabel } from '../../utils/prayerUtils';
@@ -640,10 +641,13 @@ export default function SynagogueDetailScreen() {
         })()}
 
         {/* ── Synagogue announcements / events ─────────────────────────────── */}
-        {(syn.synagogueEvents ?? []).length > 0 && (() => {
-          const sorted = [...(syn.synagogueEvents ?? [])]
-            .sort((a, b) => a.startDate.localeCompare(b.startDate));
-          const hasAlerts = sorted.some((a) => a.isAlert);
+        {/* Upcoming only — a resident has no use for an announcement whose
+            event already happened, and the gabay's own screen is where a
+            past one gets recycled forward rather than re-shown here as is. */}
+        {(() => {
+          const { upcoming } = splitAnnouncements(syn.synagogueEvents ?? []);
+          if (upcoming.length === 0) return null;
+          const hasAlerts = upcoming.some((a) => a.isAlert);
           return (
             <View style={st.section}>
               <View style={st.sectionHdr}>
@@ -655,7 +659,7 @@ export default function SynagogueDetailScreen() {
                 <Text style={st.sectionTitle}>אירועים והודעות</Text>
               </View>
               <View style={st.sectionCard}>
-                {sorted.map((ann) => (
+                {upcoming.map((ann) => (
                   <AnnouncementRow key={ann.id} ann={ann} synagogueId={syn.id} />
                 ))}
               </View>

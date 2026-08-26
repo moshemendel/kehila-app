@@ -25,6 +25,7 @@ import ImageGalleryEditor from '../../components/ImageGalleryEditor';
 import TimePicker from '../../components/TimePicker';
 import MultiDateCalendar from '../../components/MultiDateCalendar';
 import { synagogueSelichotStart } from '../../utils/selichot';
+import { splitAnnouncements } from '../../utils/synagogueAnnouncements';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -688,12 +689,17 @@ const EVENT_CATEGORIES: { key: EventCategory; label: string; icon: string }[] = 
   { key: 'alert',       label: 'התראה',  icon: 'warning-outline' },
 ];
 
-function SubmitEventModal({ visible, onSave, onClose }: {
+function SubmitEventModal({ visible, initial, onSave, onClose }: {
   visible: boolean;
+  /** Editing an existing announcement — including a past one being recycled
+   *  forward. Its id and createdAt are kept so onSave replaces it in place
+   *  instead of adding a duplicate. */
+  initial?: SynagogueAnnouncement | null;
   onSave: (ann: SynagogueAnnouncement, submitForApproval: boolean) => Promise<void>;
   onClose: () => void;
 }) {
   const { bottom } = useSafeAreaInsets();
+  const isEdit = !!initial;
   const [title,              setTitle]              = useState('');
   const [description,        setDescription]        = useState('');
   const [category,           setCategory]           = useState<EventCategory>('announcement');
@@ -708,11 +714,25 @@ function SubmitEventModal({ visible, onSave, onClose }: {
 
   useEffect(() => {
     if (!visible) return;
-    setTitle(''); setDescription(''); setCategory('announcement');
-    setLocation(''); setIsAlert(false); setSubmitForApproval(false);
-    const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(20, 0, 0, 0);
-    setStartDt(d); setPickerOpen(false); setSaving(false);
-  }, [visible]);
+    if (initial) {
+      // Recycling a past one forward starts from tomorrow, same default as a
+      // fresh announcement — not the original (likely already-past) date,
+      // which the gabay would just have to move anyway.
+      const startsInPast = new Date(initial.startDate).getTime() < Date.now();
+      const d = startsInPast
+        ? (() => { const nd = new Date(); nd.setDate(nd.getDate() + 1); nd.setHours(20, 0, 0, 0); return nd; })()
+        : new Date(initial.startDate);
+      setTitle(initial.title); setDescription(initial.description); setCategory(initial.category);
+      setLocation(initial.location ?? ''); setIsAlert(initial.isAlert); setSubmitForApproval(false);
+      setStartDt(d);
+    } else {
+      setTitle(''); setDescription(''); setCategory('announcement');
+      setLocation(''); setIsAlert(false); setSubmitForApproval(false);
+      const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(20, 0, 0, 0);
+      setStartDt(d);
+    }
+    setPickerOpen(false); setSaving(false);
+  }, [visible, initial]);
 
   function formatDt(d: Date) {
     return d.toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -725,13 +745,18 @@ function SubmitEventModal({ visible, onSave, onClose }: {
     setSaving(true);
     try {
       const ann: SynagogueAnnouncement = {
-        id:          `ev_${Date.now()}`,
+        // Same id on edit — it is what tells the save handler to replace the
+        // entry in place rather than add a second one, and what keeps any
+        // reminder a resident already set on it (SynagogueEventReminders-
+        // Context keys reminders by synagogueId + announcement id) attached
+        // to the recycled announcement instead of orphaning it.
+        id:          initial?.id ?? `ev_${Date.now()}`,
         title:       title.trim(),
         description: description.trim(),
         category,
         startDate:   startDt.toISOString(),
         isAlert,
-        createdAt:   new Date().toISOString(),
+        createdAt:   initial?.createdAt ?? new Date().toISOString(),
         // omit location entirely when empty — Firestore rejects undefined values
         ...(location.trim() ? { location: location.trim() } : {}),
       };
@@ -769,7 +794,7 @@ function SubmitEventModal({ visible, onSave, onClose }: {
       avoidKeyboard
       header={
         <View style={sm.header}>
-          <Text style={sm.title}>הוספת אירוע לבית הכנסת</Text>
+          <Text style={sm.title}>{isEdit ? 'עריכת אירוע' : 'הוספת אירוע לבית הכנסת'}</Text>
           <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color={Colors.textSecondary} /></TouchableOpacity>
         </View>
       }
@@ -815,6 +840,11 @@ function SubmitEventModal({ visible, onSave, onClose }: {
 
           {/* Date */}
           <Text style={sm.label}>תאריך ושעה</Text>
+          {isEdit && initial && new Date(initial.startDate).getTime() < Date.now() && (
+            <Text style={{ fontSize: 11, color: Colors.textMuted, marginBottom: 4, textAlign: 'right' }}>
+              האירוע הזה כבר עבר — תאריך חדש יחזיר אותו לדף בית הכנסת
+            </Text>
+          )}
           <TouchableOpacity style={[sm.noteInput, { minHeight: undefined, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }]} onPress={openPicker}>
             <Ionicons name="calendar-outline" size={16} color={Colors.events} />
             <Text style={{ flex: 1, fontSize: 14, color: Colors.text }}>{formatDt(startDt)}</Text>
@@ -883,12 +913,51 @@ function SubmitEventModal({ visible, onSave, onClose }: {
             >
               {saving
                 ? <ActivityIndicator size="small" color={Colors.white} />
-                : <><Ionicons name={submitForApproval ? 'send-outline' : 'add-circle-outline'} size={15} color={Colors.white} />
-                   <Text style={sm.saveTxt}>{submitForApproval ? 'הוסף ושלח לאישור' : 'הוסף לבית הכנסת'}</Text></>}
+                : <><Ionicons
+                     name={submitForApproval ? 'send-outline' : (isEdit ? 'save-outline' : 'add-circle-outline')}
+                     size={15} color={Colors.white}
+                   />
+                   <Text style={sm.saveTxt}>
+                     {submitForApproval ? 'הוסף ושלח לאישור' : (isEdit ? 'שמור שינויים' : 'הוסף לבית הכנסת')}
+                   </Text></>}
             </TouchableOpacity>
           </View>
       </ScrollView>
     </BottomSheetModal>
+  );
+}
+
+// ─── Announcement row (manage screen) ──────────────────────────────────────────
+// Tapping the row opens it for edit — same interaction as the shiur rows above
+// (pencil affordance, whole row pressable) — with a separate trash icon for
+// direct delete. `past` only changes the accent colour, since a past row is
+// exactly as editable as an upcoming one: editing it onto a future date is
+// how a recurring event's next occurrence gets created.
+function AnnouncementAdminRow({ ann, past, onPress, onDelete }: {
+  ann: SynagogueAnnouncement; past?: boolean; onPress: () => void; onDelete: () => void;
+}) {
+  const accent = past ? Colors.textMuted : (ann.isAlert ? Colors.danger : Colors.events);
+  return (
+    <TouchableOpacity
+      style={[sm.slotCard, { borderLeftColor: accent }, past && { opacity: 0.65 }]}
+      onPress={onPress}
+      activeOpacity={0.75}
+    >
+      <View style={{ flex: 1 }}>
+        <Text style={sm.slotCardTime}>{ann.title}</Text>
+        <Text style={sm.slotCardDays}>
+          {new Date(ann.startDate).toLocaleDateString('he-IL', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+          {ann.location ? ` · ${ann.location}` : ''}
+        </Text>
+        {!!ann.description && (
+          <Text style={sm.slotCardNote} numberOfLines={1}>{ann.description}</Text>
+        )}
+      </View>
+      <Ionicons name="pencil-outline" size={15} color={Colors.textMuted} style={{ marginHorizontal: 4 }} />
+      <TouchableOpacity onPress={onDelete} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <Ionicons name="trash-outline" size={16} color={Colors.danger} />
+      </TouchableOpacity>
+    </TouchableOpacity>
   );
 }
 
@@ -937,13 +1006,21 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
   const [addShiurOpen,   setAddShiurOpen]   = useState(false);
   const [shiurEditIdx,   setShiurEditIdx]   = useState<number | null>(null);
   const [submitEventOpen,setSubmitEventOpen]= useState(false);
+  const [editingEvent,   setEditingEvent]   = useState<SynagogueAnnouncement | null>(null);
 
   function setShiurim(shiurim: Shiur[]) {
     setForm((p) => ({ ...p, shiurim }));
   }
 
   async function handleSaveEvent(ann: SynagogueAnnouncement, submitForApproval: boolean) {
-    const updated = [...(form.synagogueEvents ?? []), ann];
+    // Same id as an existing entry means this is an edit (including
+    // recycling a past announcement onto a new date) — replace it in place
+    // rather than adding a duplicate.
+    const existing = form.synagogueEvents ?? [];
+    const isEdit = existing.some((e) => e.id === ann.id);
+    const updated = isEdit
+      ? existing.map((e) => (e.id === ann.id ? ann : e))
+      : [...existing, ann];
     // Save directly to the synagogue doc — no approval needed for synagogue-level visibility
     await updateSynagogue(form.id, { synagogueEvents: updated });
     setForm((p) => ({ ...p, synagogueEvents: updated }));
@@ -962,9 +1039,11 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
         organizer:       form.name,
         isAlert:         ann.isAlert,
       });
-      Alert.alert('✓ נוסף ונשלח', 'האירוע נוסף לדף בית הכנסת ונשלח לאישור מנהל הקהילה לפרסום קהילתי.');
+      Alert.alert('✓ נשלח', isEdit
+        ? 'האירוע עודכן ונשלח לאישור מנהל הקהילה לפרסום קהילתי.'
+        : 'האירוע נוסף לדף בית הכנסת ונשלח לאישור מנהל הקהילה לפרסום קהילתי.');
     } else {
-      Alert.alert('✓ נוסף', 'האירוע נוסף לדף בית הכנסת.');
+      Alert.alert('✓ נשמר', isEdit ? 'האירוע עודכן.' : 'האירוע נוסף לדף בית הכנסת.');
     }
   }
 
@@ -1356,41 +1435,54 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
         </View>
 
         {/* ── Synagogue events / announcements ── */}
+        {/* Split past from upcoming: the resident page only ever shows
+            upcoming ones (see splitAnnouncements), so a past entry sitting
+            here is otherwise invisible and easy to forget existed at all —
+            worth surfacing on its own, since it is exactly what a recurring
+            event's next occurrence starts from. */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>אירועים והודעות</Text>
           <Text style={s.sectionHint}>יוצגו בדף בית הכנסת — ניתן גם לשלוח לאישור לפרסום קהילתי</Text>
           <View style={s.card}>
-            {(form.synagogueEvents ?? []).length === 0 ? (
-              <Text style={sm.emptySlots}>אין אירועים רשומים</Text>
-            ) : (
-              (form.synagogueEvents ?? [])
-                .slice()
-                .sort((a, b) => a.startDate.localeCompare(b.startDate))
-                .map((ann) => (
-                  <View
-                    key={ann.id}
-                    style={[sm.slotCard, { borderLeftColor: ann.isAlert ? Colors.danger : Colors.events }]}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <Text style={sm.slotCardTime}>{ann.title}</Text>
-                      <Text style={sm.slotCardDays}>
-                        {new Date(ann.startDate).toLocaleDateString('he-IL', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
-                        {ann.location ? ` · ${ann.location}` : ''}
-                      </Text>
-                      {!!ann.description && (
-                        <Text style={sm.slotCardNote} numberOfLines={1}>{ann.description}</Text>
-                      )}
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => handleDeleteEvent(ann.id)}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    >
-                      <Ionicons name="trash-outline" size={16} color={Colors.danger} />
-                    </TouchableOpacity>
-                  </View>
-                ))
-            )}
-            <TouchableOpacity style={s.addSlotBtn} onPress={() => setSubmitEventOpen(true)}>
+            {(() => {
+              const { upcoming, past } = splitAnnouncements(form.synagogueEvents ?? []);
+              if (upcoming.length === 0 && past.length === 0) {
+                return <Text style={sm.emptySlots}>אין אירועים רשומים</Text>;
+              }
+              return (
+                <>
+                  {upcoming.length === 0 && (
+                    <Text style={sm.emptySlots}>אין אירועים עתידיים</Text>
+                  )}
+                  {upcoming.map((ann) => (
+                    <AnnouncementAdminRow
+                      key={ann.id}
+                      ann={ann}
+                      onPress={() => { setEditingEvent(ann); setSubmitEventOpen(true); }}
+                      onDelete={() => handleDeleteEvent(ann.id)}
+                    />
+                  ))}
+                  {past.length > 0 && (
+                    <>
+                      <Text style={sm.pastDivider}>אירועים שעברו · לחצו כדי לשכפל לתאריך חדש</Text>
+                      {past.map((ann) => (
+                        <AnnouncementAdminRow
+                          key={ann.id}
+                          ann={ann}
+                          past
+                          onPress={() => { setEditingEvent(ann); setSubmitEventOpen(true); }}
+                          onDelete={() => handleDeleteEvent(ann.id)}
+                        />
+                      ))}
+                    </>
+                  )}
+                </>
+              );
+            })()}
+            <TouchableOpacity
+              style={s.addSlotBtn}
+              onPress={() => { setEditingEvent(null); setSubmitEventOpen(true); }}
+            >
               <Ionicons name="add-circle-outline" size={18} color={Colors.events} />
               <Text style={[s.addSlotTxt, { color: Colors.events }]}>הוסף אירוע</Text>
             </TouchableOpacity>
@@ -1399,8 +1491,9 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
 
         <SubmitEventModal
           visible={submitEventOpen}
+          initial={editingEvent}
           onSave={handleSaveEvent}
-          onClose={() => setSubmitEventOpen(false)}
+          onClose={() => { setSubmitEventOpen(false); setEditingEvent(null); }}
         />
 
         <TouchableOpacity style={s.saveBtn} onPress={handleSave} disabled={saving}>
@@ -1774,4 +1867,8 @@ const sm = StyleSheet.create({
   slotCardDays: { fontSize: 13, color: Colors.textSecondary, fontWeight: '600' },
   slotCardNote: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
   emptySlots:   { fontSize: 12, color: Colors.textMuted, paddingVertical: 4 },
+  pastDivider:  {
+    fontSize: 11, fontWeight: '700', color: Colors.textMuted, textAlign: 'right',
+    marginTop: 10, marginBottom: 4, paddingTop: 10, borderTopWidth: 1, borderTopColor: Colors.border,
+  },
 });
