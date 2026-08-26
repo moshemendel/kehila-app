@@ -30,31 +30,36 @@ const TISHREI = 7;
 const ELUL = 6;
 
 /**
- * Where one Jewish day ends and the next begins, for grouping minyanim.
+ * Where one selichot session ends and the next begins.
  *
- * The real line is עלות השחר: until dawn one may still daven arvit, so a minyan
- * before it belongs to the PREVIOUS day — a 00:30 selichot is "Motzaei
- * Shabbat", not Sunday. Alot moves through the year (and by location), so it is
- * read from the day's zmanim rather than assumed.
+ * NOT עלות השחר, despite that being the halachic day boundary. The two customs
+ * sit on either side of it and grouping by alot merges them:
  *
- * The fixed hour below is only a fallback for when zmanim aren't loaded yet.
+ *   • Motzaei Shabbat selichot are said at חצות — 00:30, 01:00. Those belong to
+ *     the night that just began, i.e. to מוצ״ש.
+ *   • Every other day they are אשמורת הבוקר, before shacharit — 04:00, 05:00,
+ *     06:00. Those are THAT MORNING's selichot and belong to their own day.
+ *
+ * Alot in late Elul falls around 04:40, so an alot boundary swept 04:00 and
+ * 04:10 backwards into the previous evening and labelled Sunday's early minyan
+ * "מוצ״ש". Verified against real pilot data, 22-23/08/2026.
+ *
+ * 02:00 sits in the empty gap between the two customs — comfortably after the
+ * chatzot minyanim and well before the pre-dawn ones — so it is stable even
+ * though both drift with the season. It is a display-grouping boundary, not a
+ * halachic claim: for "may one still daven arvit", alot remains the answer.
  */
-export const FALLBACK_NIGHT_CUTOFF_MIN = 4 * 60;
+export const NIGHT_CUTOFF_MIN = 2 * 60;
 
 /**
- * Minutes before alot that still count as the previous day.
+ * Does a minyan at `timeMinutes` belong to the previous evening's session?
  *
- * 0 = the halachic line exactly. Raise it if minyanim scheduled just before
- * dawn should be grouped with the night rather than the morning.
+ * True for the small hours right after nightfall (00:30 → belongs to the night
+ * that began the evening before), false from 02:00 onward (04:00 → that day's
+ * own pre-dawn selichot).
  */
-export const NIGHT_CUTOFF_MARGIN_MIN = 0;
-
-/** Does a minyan at `timeMinutes` belong to the previous evening? */
-export function belongsToPreviousEvening(timeMinutes: number, alotMinutes?: number | null): boolean {
-  const alot = typeof alotMinutes === 'number' && Number.isFinite(alotMinutes)
-    ? alotMinutes
-    : FALLBACK_NIGHT_CUTOFF_MIN;
-  return timeMinutes < alot - NIGHT_CUTOFF_MARGIN_MIN;
+export function belongsToPreviousEvening(timeMinutes: number): boolean {
+  return timeMinutes < NIGHT_CUTOFF_MIN;
 }
 
 const atMidnight = (d: Date): Date => {
@@ -137,6 +142,27 @@ export function isSelichotSeason(date: Date = new Date()): boolean {
 }
 
 /**
+ * Is the selichot SEASON open — regardless of whether they are said today?
+ *
+ * Distinct from `isSelichotSeason`, and the distinction matters. That one
+ * excludes Shabbat and Rosh Hashana, which is right for "is there a minyan
+ * today" and wrong for "should the screen be reachable": the list looks a week
+ * ahead, so on Shabbat afternoon someone checking tonight's Motzaei Shabbat
+ * selichot would find the entry had disappeared — at precisely the moment they
+ * went looking. Navigation and menus should use this; per-day content should
+ * use `isSelichotSeason`.
+ *
+ * Opens SELICHOT_LEAD_DAYS early so the screen exists while people are still
+ * planning, matching `shouldShowSelichot`.
+ */
+export function isSelichotWindowOpen(date: Date = new Date()): boolean {
+  const w = getSelichotWindow(date);
+  if (!w) return false;
+  const day = atMidnight(date);
+  return day >= addDays(w.sephardiStart, -SELICHOT_LEAD_DAYS) && day <= w.end;
+}
+
+/**
  * Days on which selichot are not said, inside the season.
  *
  * Shabbat, and Rosh Hashana itself (1–2 Tishrei). The date is the civil day the
@@ -159,18 +185,18 @@ export function isSelichotExcludedDay(date: Date): boolean {
  * Returns the civil date of the evening it belongs to, so "tonight's selichot"
  * on Saturday night includes the small hours of Sunday.
  */
-export function selichotNightOf(when: Date, alotMinutes?: number | null): Date {
+export function selichotNightOf(when: Date): Date {
   const mins = when.getHours() * 60 + when.getMinutes();
-  return belongsToPreviousEvening(mins, alotMinutes)
+  return belongsToPreviousEvening(mins)
     ? atMidnight(addDays(when, -1))
     : atMidnight(when);
 }
 
 /** As `belongsToPreviousEvening`, from an "HH:MM" string. */
-export function isAfterMidnight(time: string, alotMinutes?: number | null): boolean {
+export function isAfterMidnight(time: string): boolean {
   const [h, m] = time.split(':').map(Number);
   if (!Number.isFinite(h) || !Number.isFinite(m)) return false;
-  return belongsToPreviousEvening(h * 60 + m, alotMinutes);
+  return belongsToPreviousEvening(h * 60 + m);
 }
 
 const DAY_LABELS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
@@ -182,10 +208,10 @@ const DAY_LABELS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמי�
  * minyan is "מוצ״ש", not "יום א׳", which is what a gabbai would say and what
  * someone deciding whether to go tonight needs to see.
  */
-export function selichotDayLabel(dayNum: number, time: string, alotMinutes?: number | null): string {
+export function selichotDayLabel(dayNum: number, time: string): string {
   // days[] is 1=Sunday … 7=Shabbat, matching the rest of the app.
   const idx = ((dayNum - 1) % 7 + 7) % 7;
-  if (isAfterMidnight(time, alotMinutes)) {
+  if (isAfterMidnight(time)) {
     const prev = (idx + 6) % 7;
     return prev === 6 ? 'מוצ״ש' : `ליל ${DAY_LABELS[idx]}`;
   }

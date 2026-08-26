@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "kehila-app",
+    "name": "קהילה",
     "slug": "kehila-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -28,10 +28,6 @@
         }
       },
       "permissions": [
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.USE_BIOMETRIC",
-        "android.permission.USE_FINGERPRINT",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.USE_BIOMETRIC",

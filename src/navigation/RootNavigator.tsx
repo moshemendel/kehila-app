@@ -18,6 +18,7 @@ import MikvehDetailScreen         from '../screens/main/MikvehDetailScreen';
 import AppointmentBookingScreen   from '../screens/main/AppointmentBookingScreen';
 import KashrutUpdatesScreen        from '../screens/main/KashrutUpdatesScreen';
 import EventDetailScreen           from '../screens/main/EventDetailScreen';
+import MyEventsScreen              from '../screens/main/MyEventsScreen';
 import ManageSynagogueScreen      from '../screens/admin/ManageSynagogueScreen';
 import ManageAppointmentsScreen   from '../screens/admin/ManageAppointmentsScreen';
 import ManageBusinessScreen from '../screens/admin/ManageBusinessScreen';
@@ -26,7 +27,6 @@ import ManageMikvehScreen     from '../screens/admin/ManageMikvehScreen';
 import ManageEventsScreen     from '../screens/admin/ManageEventsScreen';
 import UserManagementScreen   from '../screens/admin/UserManagementScreen';
 import ManageEruvScreen       from '../screens/admin/ManageEruvScreen';
-import SelichotScreen          from '../screens/main/SelichotScreen';
 import ManageReportsScreen     from '../screens/admin/ManageReportsScreen';
 import ManageCitiesScreen     from '../screens/admin/ManageCitiesScreen';
 import ManageGemachScreen     from '../screens/admin/ManageGemachScreen';
@@ -192,11 +192,18 @@ export default function RootNavigator() {
         options={{ headerShown: false }}
       />
 
+      {/* Starred events + synagogue-announcement reminders, merged */}
       <Root.Screen
-        name="Selichot"
-        component={SelichotScreen}
-        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.gold }, title: 'סליחות', contentStyle: stackContentStyle }}
+        name="MyEvents"
+        component={MyEventsScreen}
+        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.events }, title: 'האירועים שלי', contentStyle: stackContentStyle }}
       />
+
+      {/* Selichot lives in the tab navigator, not here: as a root-stack screen
+          it covered the bottom bar, so there was no way back to the rest of the
+          app except the header arrow. It is season-gated inside MainTabNavigator
+          rather than registered conditionally, so navigate('Selichot') always
+          resolves. */}
 
       {/* Admin screens */}
       <Root.Screen

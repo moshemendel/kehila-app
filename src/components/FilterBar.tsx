@@ -20,9 +20,14 @@ interface Props {
   values: Record<string, string[]>; // empty array = "all" / no filter
   onChange: (filterKey: string, selected: string[]) => void;
   sortSlot?: React.ReactNode; // optional sort toggle rendered on the left
+  /** On/off filters that have no options to choose from — "favourites only"
+   *  and the like. Rendered as plain chips beside the dropdown filters. */
+  toggleSlot?: React.ReactNode;
 }
 
-export default function FilterBar({ filters, values, onChange, sortSlot }: Props) {
+export default function FilterBar({
+  filters, values, onChange, sortSlot, toggleSlot,
+}: Props) {
   const [openKey, setOpenKey] = useState<string | null>(null);
   const openFilter = filters.find((f) => f.key === openKey) ?? null;
 
@@ -66,6 +71,8 @@ export default function FilterBar({ filters, values, onChange, sortSlot }: Props
             <View style={s.sep} />
           </>
         )}
+
+        {toggleSlot}
 
         {filters.map((f) => {
           const selected = values[f.key] ?? [];

@@ -7,6 +7,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useEventsFeed } from '../../context/EventsContext';
+import { useNotifications } from '../../context/NotificationsContext';
+import EventReminderModal from '../../components/EventReminderModal';
+import { DEFAULT_EVENT_LEAD_TIMES, formatLead } from '../../utils/eventReminders';
 import ReportListingButton from '../../components/ReportListingButton';
 import { useNavigateTo } from '../../hooks/useNavigateTo';
 import { CommunityEvent, EventCategory } from '../../types';
@@ -60,7 +63,11 @@ export default function EventDetailScreen() {
   const route      = useRoute<any>();
   const { eventId } = route.params as { eventId: string };
 
-  const { findEvent, isFavorite, toggleFavorite, dismiss, markRead } = useEventsFeed();
+  const {
+    findEvent, isFavorite, dismiss, markRead, getReminders, setReminders,
+  } = useEventsFeed();
+  const { settings: notifSettings } = useNotifications();
+  const [reminderModal, setReminderModal] = useState(false);
   const event = findEvent(eventId);
 
   // Auto-mark as read when the user opens the detail screen
@@ -89,6 +96,13 @@ export default function EventDetailScreen() {
 
   const cfg      = CATEGORY_CFG[event.category] ?? CATEGORY_CFG.announcement;
   const favorite = isFavorite(event.id);
+  const defaults = notifSettings.eventLeadTimes ?? DEFAULT_EVENT_LEAD_TIMES;
+  const ownReminders = getReminders(event.id);
+  const activeReminders = ownReminders.length > 0 ? ownReminders : defaults;
+  const reminderSummary =
+    activeReminders.length === 1
+      ? formatLead(activeReminders[0])
+      : `${activeReminders.length} תזכורות`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const countdown = useMemo(() => countdownLabel(event.startDate), [tick, event.startDate]);
 
@@ -250,7 +264,7 @@ export default function EventDetailScreen() {
         {/* Favorite — primary action */}
         <TouchableOpacity
           style={[styles.favBtn, favorite && styles.favBtnActive]}
-          onPress={() => toggleFavorite(event)}
+          onPress={() => setReminderModal(true)}
           activeOpacity={0.8}
         >
           <Ionicons
@@ -259,7 +273,7 @@ export default function EventDetailScreen() {
             color={favorite ? Colors.white : Colors.goldBright}
           />
           <Text style={[styles.favBtnText, favorite && styles.favBtnTextActive]}>
-            {favorite ? 'במועדפים · תקבל תזכורת' : 'הוסף למועדפים'}
+            {favorite ? reminderSummary : 'הוסף למועדפים'}
           </Text>
         </TouchableOpacity>
 
@@ -271,6 +285,16 @@ export default function EventDetailScreen() {
       </View>
 
       {navSheet}
+
+      <EventReminderModal
+        visible={reminderModal}
+        eventTitle={event.title}
+        startDate={event.startDate}
+        initial={activeReminders}
+        onSave={(minutes) => { setReminders(event, minutes); setReminderModal(false); }}
+        onRemove={() => { setReminders(event, []); setReminderModal(false); }}
+        onClose={() => setReminderModal(false)}
+      />
     </View>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Switch, Linking,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +17,10 @@ import { PRIVACY_POLICY_URL, ABOUT_URL, SUPPORT_URL } from '../../utils/links';
 import { requireManagerAuth, lockManagerArea } from '../../utils/managerAuth';
 import { useCityId } from '../../hooks/useCityId';
 import { useCity } from '../../hooks/useCity';
+import { NEEDS_EXACT_ALARM_OPT_IN, openExactAlarmSettings } from '../../utils/exactAlarms';
+import {
+  DEFAULT_EVENT_LEAD_TIMES, EVENT_LEAD_OPTIONS, MAX_EVENT_LEAD_TIMES,
+} from '../../utils/eventReminders';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { UserRole, City } from '../../types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -97,7 +102,11 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(false);
   const [cityPickerOpen, setCityPickerOpen] = useState(false);
   const [homeCityPickerOpen, setHomeCityPickerOpen] = useState(false);
-  const { enabled, settings: notifSettings, setEnabled, setMinutesBefore, togglePrayer } = useNotifications();
+  const {
+    enabled, settings: notifSettings, setEnabled, setMinutesBefore, togglePrayer, setAlarmSound,
+    toggleEventLeadTime,
+  } = useNotifications();
+  const eventLeadTimes = notifSettings.eventLeadTimes ?? DEFAULT_EVENT_LEAD_TIMES;
   const { favorites } = useFavorites();
   const favoriteCount = Object.keys(favorites ?? {}).length;
 
@@ -352,6 +361,44 @@ export default function ProfileScreen() {
                   </View>
                 </View>
 
+                {/* Ring like an alarm. Routed to a second channel rather than
+                    re-configuring the first one: Android freezes a channel's
+                    settings once it exists. */}
+                {Platform.OS === 'android' && (
+                  <View style={styles.notifRow}>
+                    <Ionicons name="volume-high-outline" size={20} color={Colors.primary} />
+                    <View style={styles.alarmToggleText}>
+                      <Text style={styles.alarmToggleTitle}>צלצול כמו שעון מעורר</Text>
+                      <Text style={styles.alarmToggleHint}>
+                        בעוצמת האזעקה, ועובר גם ב״נא לא להפריע״
+                      </Text>
+                    </View>
+                    <Switch
+                      value={!!notifSettings.alarmSound}
+                      onValueChange={setAlarmSound}
+                      trackColor={{ false: Colors.border, true: Colors.primaryLight }}
+                      thumbColor={notifSettings.alarmSound ? Colors.primary : Colors.textMuted}
+                    />
+                  </View>
+                )}
+
+                {/* Exact-alarm opt-in. Android 14 stopped granting
+                    SCHEDULE_EXACT_ALARM on install, and without it every
+                    reminder above silently becomes approximate. */}
+                {NEEDS_EXACT_ALARM_OPT_IN && (
+                  <TouchableOpacity style={styles.exactAlarmRow} onPress={openExactAlarmSettings}>
+                    <Ionicons name="alarm-outline" size={18} color={Colors.gold} />
+                    <View style={styles.exactAlarmText}>
+                      <Text style={styles.exactAlarmTitle}>תזכורות בזמן מדויק</Text>
+                      <Text style={styles.exactAlarmBody}>
+                        אנדרואיד עלול לאחר תזכורות בכמה דקות. כדי שיגיעו בשעה
+                        המדויקת, אפשרו ״התראות ותזכורות״ עבור קהילה.
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-back-outline" size={16} color={Colors.textMuted} />
+                  </TouchableOpacity>
+                )}
+
                 {/* Prayer type toggles */}
                 <View style={styles.notifSubSection}>
                   <Text style={styles.notifSubLabel}>תפילות</Text>
@@ -379,6 +426,40 @@ export default function ProfileScreen() {
                 </View>
               </>
             )}
+          </View>
+        </View>
+
+        {/* Event reminders. Separate from prayer reminders on purpose: a
+            prayer needs minutes' warning, an event needs enough time to get
+            ready for it. */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>תזכורות אירועים</Text>
+          <View style={styles.card}>
+            <View style={styles.notifSubSection}>
+              <Text style={styles.notifSubLabel}>
+                ברירת מחדל לאירוע חדש שמסמנים ★
+              </Text>
+              <View style={styles.leadRow}>
+                {EVENT_LEAD_OPTIONS.map((opt) => {
+                  const active = eventLeadTimes.includes(opt.minutes);
+                  return (
+                    <TouchableOpacity
+                      key={opt.minutes}
+                      style={[styles.leadChip, active && styles.leadChipActive]}
+                      onPress={() => toggleEventLeadTime(opt.minutes)}
+                    >
+                      <Text style={[styles.leadChipTxt, active && styles.leadChipTxtActive]}>
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <Text style={styles.leadHint}>
+                עד {MAX_EVENT_LEAD_TIMES} תזכורות. לכל אירוע אפשר לקבוע זמנים
+                משלו בכרטיס שלו — כאן נקבע רק מה מוצע כברירת מחדל.
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -599,6 +680,58 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.gold,
     fontWeight: '500',
+    textAlign: 'right',
+  },
+
+  leadRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' },
+  leadChip: {
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full,
+    borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.background,
+  },
+  leadChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  leadChipTxt: { fontSize: 13, fontWeight: '700', color: Colors.textSecondary },
+  leadChipTxtActive: { color: '#fff' },
+  leadHint: {
+    fontSize: 11.5, lineHeight: 16, color: Colors.textSecondary,
+    textAlign: 'right', marginTop: 10,
+  },
+
+  alarmToggleText: { flex: 1 },
+  alarmToggleTitle: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.text,
+    textAlign: 'right',
+  },
+  alarmToggleHint: {
+    fontSize: 11.5,
+    color: Colors.textSecondary,
+    textAlign: 'right',
+    marginTop: 1,
+  },
+
+  exactAlarmRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#FDF8EC',
+    borderTopWidth: 1,
+    borderTopColor: '#EDD98A',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 12,
+  },
+  exactAlarmText: { flex: 1 },
+  exactAlarmTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.gold,
+    textAlign: 'right',
+    marginBottom: 2,
+  },
+  exactAlarmBody: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: Colors.textSecondary,
     textAlign: 'right',
   },
 

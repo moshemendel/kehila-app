@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import EventCard from '../../components/EventCard';
 import FilterBar from '../../components/FilterBar';
 import { useEventsFeed } from '../../context/EventsContext';
+import { useSynagogueEventReminders } from '../../context/SynagogueEventRemindersContext';
 import { Colors, Spacing, Radius } from '../../utils/theme';
 import { EventCategory } from '../../types';
 
@@ -24,6 +25,10 @@ export default function EventsScreen() {
     isFavorite, isRead, unreadCount,
     dismiss, markRead, markAllRead, toggleFavorite,
   } = useEventsFeed();
+  // Reminders set from a synagogue's own announcements — a different source
+  // than the city feed above, shown here so there is one place to see every
+  // reminder rather than needing to remember which synagogue it came from.
+  const { remindedEvents } = useSynagogueEventReminders();
 
   const [filters,           setFilters]           = useState<Record<string, string[]>>({ category: [] });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -95,6 +100,27 @@ export default function EventsScreen() {
         <Text style={styles.errorText}>שגיאה בטעינת הנתונים: {error}</Text>
       ) : (
         <ScrollView contentContainerStyle={{ padding: Spacing.md }}>
+          {/* A full rendering of these used to live here. It moved to
+              MyEventsScreen, which merges them with starred city events
+              instead of keeping a second, separately-maintained list — this
+              stays as a slim pointer to that screen. */}
+          {!showFavoritesOnly && remindedEvents.length > 0 && (
+            <TouchableOpacity
+              style={styles.synBanner}
+              onPress={() => navigation.navigate('MyEvents')}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="notifications" size={16} color={Colors.events} />
+              <Text style={styles.synBannerTxt}>
+                {remindedEvents.length === 1
+                  ? 'תזכורת אחת מבית כנסת'
+                  : `${remindedEvents.length} תזכורות מבתי כנסת`}
+                {' · לצפייה בהכל'}
+              </Text>
+              <Ionicons name="chevron-back-outline" size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
+          )}
+
           {visible.length === 0 && (
             <View style={styles.empty}>
               <Ionicons
@@ -191,7 +217,15 @@ const styles = StyleSheet.create({
   },
   alertBadgeText: { fontSize: 12, color: Colors.white, fontWeight: '700' },
 
-  // Card wrapper with unread dot
+  // Slim pointer to MyEventsScreen — see the comment at its call site.
+  synBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: Colors.cardBackground, borderRadius: Radius.md,
+    borderWidth: 1, borderColor: Colors.events + '40',
+    paddingHorizontal: Spacing.md, paddingVertical: 11, marginBottom: Spacing.md,
+  },
+  synBannerTxt: { flex: 1, fontSize: 13, fontWeight: '600', color: Colors.text, textAlign: 'right' },
+
   cardWrap: { position: 'relative' },
   unreadDot: {
     position: 'absolute',

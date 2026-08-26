@@ -30,6 +30,7 @@ import { collectSelichot } from '../../utils/selichotSlots';
 import { useCity }           from '../../hooks/useCity';
 import { useSynagogues }     from '../../hooks/useSynagogues';
 import { useEventsFeed }     from '../../context/EventsContext';
+import { useSynagogueEventReminders } from '../../context/SynagogueEventRemindersContext';
 import { useTodayZmanim }    from '../../hooks/useTodayZmanim';
 import { useAppForegroundTick } from '../../hooks/useAppForegroundTick';
 import { useZmanimSettings } from '../../context/ZmanimSettingsContext';
@@ -106,7 +107,9 @@ export default function HomeScreen() {
 
   const { city, refetch: refetchCity }    = useCity(cityId);
   const { synagogues, loading: synLoad }  = useSynagogues(cityId);
-  const { events, unreadCount, isRead }    = useEventsFeed();
+  const { events, unreadCount, isRead, favoriteEvents } = useEventsFeed();
+  const { remindedEvents } = useSynagogueEventReminders();
+  const myEventsCount = favoriteEvents.length + remindedEvents.length;
   const todayZmanim                        = useTodayZmanim(cityId);
 
   // ── Selichot ────────────────────────────────────────────────────────────────
@@ -711,11 +714,31 @@ export default function HomeScreen() {
           </TouchableOpacity>
         )}
 
+        {/* ── My events — only once there is at least one ─────────────────── */}
+        {myEventsCount > 0 && (
+          <TouchableOpacity
+            style={styles.myEventsCard}
+            onPress={() => (navigation as any).navigate('MyEvents')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.myEventsBadge}>
+              <Text style={styles.myEventsBadgeTxt}>{myEventsCount}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.myEventsTitle}>האירועים שלי</Text>
+              <Text style={styles.myEventsSub}>
+                {myEventsCount === 1 ? 'אירוע אחד שסימנת' : `${myEventsCount} אירועים שסימנת`}
+              </Text>
+            </View>
+            <Ionicons name="chevron-back" size={18} color={Colors.events} />
+          </TouchableOpacity>
+        )}
+
         {/* ── Fast day widget ──────────────────────────────── */}
         {!!nextSelichot && (
           <TouchableOpacity
             style={styles.selichotCard}
-            onPress={() => (navigation as any).navigate('Selichot')}
+            onPress={() => navigation.navigate('Selichot')}
             activeOpacity={0.85}
           >
             <View style={styles.selichotLeft}>
@@ -829,6 +852,23 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom:    Spacing.md,
   },
+  myEventsCard: {
+    flexDirection:   'row',
+    alignItems:      'center',
+    gap:             Spacing.sm,
+    backgroundColor: Colors.events + '12',
+    borderRadius:    Radius.md,
+    borderWidth:     1,
+    borderColor:     Colors.events + '40',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 12,
+    marginBottom: Spacing.md,
+  },
+  myEventsBadge:    { minWidth: 26, height: 26, borderRadius: 13, backgroundColor: Colors.events, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
+  myEventsBadgeTxt: { fontSize: 14, fontWeight: '800', color: '#fff' },
+  myEventsTitle:    { fontSize: 15, fontWeight: '800', color: Colors.text },
+  myEventsSub:      { fontSize: 12, color: Colors.textSecondary, marginTop: 1 },
+
   kashrutBannerWarn:    { backgroundColor: Colors.danger + '10', borderColor: Colors.danger + '50' },
   kashrutBannerAllRead: { backgroundColor: Colors.kosher + '08', borderColor: Colors.kosher + '25' },
   kashrutBadge:    { minWidth: 26, height: 26, borderRadius: 13, backgroundColor: Colors.kosher, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },

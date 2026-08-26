@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   Linking, Image, ActivityIndicator,
@@ -17,7 +17,9 @@ import { shouldShowSelichot, daysUntilSelichot } from '../../utils/selichot';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
 import { ZmanimResult } from '../../utils/zmanim';
 import { useFavorites } from '../../context/FavoritesContext';
+import { useSynagogueEventReminders } from '../../context/SynagogueEventRemindersContext';
 import FavoritePrayerModal, { ModalOptions } from '../../components/FavoritePrayerModal';
+import EventReminderModal from '../../components/EventReminderModal';
 import { getSlotLabel } from '../../utils/prayerUtils';
 import { collectShiurim } from '../../utils/prayerNotifications';
 import {
@@ -161,7 +163,12 @@ const CATEGORY_HE: Record<string, string> = {
   announcement: 'הודעה', alert: 'התראה', youth: 'נוער', charity: 'צדקה',
 };
 
-function AnnouncementRow({ ann }: { ann: SynagogueAnnouncement }) {
+function AnnouncementRow({ ann, synagogueId }: { ann: SynagogueAnnouncement; synagogueId: string }) {
+  const { getReminders, setReminders } = useSynagogueEventReminders();
+  const [modalOpen, setModalOpen] = useState(false);
+  const minutes = getReminders(synagogueId, ann.id);
+  const hasReminder = minutes.length > 0;
+
   const date = new Date(ann.startDate);
   const dateStr = date.toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
   const timeStr = date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
@@ -173,6 +180,17 @@ function AnnouncementRow({ ann }: { ann: SynagogueAnnouncement }) {
           <Text style={[st.annBadgeTxt, { color: accentColor }]}>{CATEGORY_HE[ann.category] ?? ann.category}</Text>
         </View>
         <Text style={st.annDate}>{dateStr} · {timeStr}</Text>
+        <TouchableOpacity
+          style={[st.annRemindBtn, hasReminder && st.annRemindBtnActive]}
+          onPress={() => setModalOpen(true)}
+          hitSlop={8}
+        >
+          <Ionicons
+            name={hasReminder ? 'notifications' : 'notifications-outline'}
+            size={16}
+            color={hasReminder ? Colors.white : Colors.textSecondary}
+          />
+        </TouchableOpacity>
       </View>
       <Text style={st.annTitle}>{ann.title}</Text>
       <Text style={st.annDesc}>{ann.description}</Text>
@@ -182,6 +200,16 @@ function AnnouncementRow({ ann }: { ann: SynagogueAnnouncement }) {
           <Text style={st.annLoc}>{ann.location}</Text>
         </View>
       )}
+
+      <EventReminderModal
+        visible={modalOpen}
+        eventTitle={ann.title}
+        startDate={ann.startDate}
+        initial={minutes}
+        onSave={(m) => { setReminders(synagogueId, ann.id, m); setModalOpen(false); }}
+        onRemove={() => { setReminders(synagogueId, ann.id, []); setModalOpen(false); }}
+        onClose={() => setModalOpen(false)}
+      />
     </View>
   );
 }
@@ -627,7 +655,9 @@ export default function SynagogueDetailScreen() {
                 <Text style={st.sectionTitle}>אירועים והודעות</Text>
               </View>
               <View style={st.sectionCard}>
-                {sorted.map((ann) => <AnnouncementRow key={ann.id} ann={ann} />)}
+                {sorted.map((ann) => (
+                  <AnnouncementRow key={ann.id} ann={ann} synagogueId={syn.id} />
+                ))}
               </View>
             </View>
           );
@@ -857,6 +887,11 @@ const st = StyleSheet.create({
   annBadge:    { borderRadius: Radius.full, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 2 },
   annBadgeTxt: { fontSize: 10, fontWeight: '700' },
   annDate:     { fontSize: 11, color: Colors.textMuted, flex: 1,  },
+  annRemindBtn: {
+    width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.border,
+  },
+  annRemindBtnActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   annTitle:    { fontSize: 14, fontWeight: '700', color: Colors.text,  },
   annDesc:     { fontSize: 13, color: Colors.textSecondary, lineHeight: 18 },
   annLocRow:   { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },

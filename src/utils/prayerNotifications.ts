@@ -25,15 +25,46 @@ const PRAYER_LABELS: Record<string, string> = {
   maariv:    'ערבית',
 };
 
+// ─── Channels ─────────────────────────────────────────────────────────────────
+/**
+ * Two channels rather than one setting on one channel, because Android freezes
+ * a channel's configuration the first time it is created — editing the values
+ * below would do nothing for anyone who has already opened the app. So the
+ * quiet and the loud variants are separate channels, and the user's choice
+ * decides which one a reminder is posted to.
+ */
+export const CHANNEL_PRAYERS = 'prayers';
+export const CHANNEL_PRAYERS_ALARM = 'prayers-alarm';
+
+export function prayerChannelId(alarmSound: boolean | undefined): string {
+  return alarmSound ? CHANNEL_PRAYERS_ALARM : CHANNEL_PRAYERS;
+}
+
 // ─── Permissions ──────────────────────────────────────────────────────────────
 export async function requestNotificationPermissions(): Promise<boolean> {
   if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('prayers', {
+    await Notifications.setNotificationChannelAsync(CHANNEL_PRAYERS, {
       name: 'תזכורות תפילה',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#1B3A6B',   // Colors.primary
       sound: 'default',
+    });
+    // Same reminder, routed to the alarm audio stream: it follows the alarm
+    // volume rather than the (usually much lower) notification volume, and
+    // Do Not Disturb normally lets alarms through — which is what makes a
+    // 06:00 shacharit reminder actually arrive.
+    await Notifications.setNotificationChannelAsync(CHANNEL_PRAYERS_ALARM, {
+      name: 'תזכורות תפילה (צלצול)',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 400, 200, 400, 200, 400],
+      lightColor: '#1B3A6B',
+      sound: 'default',
+      audioAttributes: {
+        usage: Notifications.AndroidAudioUsage.ALARM,
+        contentType: Notifications.AndroidAudioContentType.SONIFICATION,
+        flags: { enforceAudibility: true, requestHardwareAudioVideoSynchronization: false },
+      },
     });
     // Required for admin push notifications that specify channelId: 'default'
     await Notifications.setNotificationChannelAsync('default', {
@@ -50,6 +81,10 @@ export async function requestNotificationPermissions(): Promise<boolean> {
 export interface NotifSettings {
   minutesBefore: number;
   prayers: Array<PrayerType>;
+  /** Post reminders to the alarm stream instead of the notification stream. */
+  alarmSound?: boolean;
+  /** Minutes before a starred event to remind. See utils/eventReminders. */
+  eventLeadTimes?: number[];
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -214,7 +249,9 @@ export async function schedulePrayerNotifications(
         type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
         seconds: secondsUntil,
         repeats: false,
-        ...(Platform.OS === 'android' ? { channelId: 'prayers' } : {}),
+        ...(Platform.OS === 'android'
+          ? { channelId: prayerChannelId(settings.alarmSound) }
+          : {}),
       },
     });
   }
