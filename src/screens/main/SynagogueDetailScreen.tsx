@@ -72,6 +72,13 @@ function synAddress(syn: Synagogue): string {
   return syn.address.he ?? syn.address.en ?? '';
 }
 
+function primaryNusachColor(syn: Synagogue): string {
+  const values = Array.isArray(syn.nusach)
+    ? syn.nusach.filter(Boolean)
+    : (syn.nusach ? [syn.nusach as unknown as string] : []);
+  return NUSACH_COLORS[values[0] ?? ''] ?? Colors.primary;
+}
+
 /** "16/08 (מוצ״ש)" — dated selichot nights, named the way people refer to them.
  *  An after-midnight slot is called for the evening it follows. */
 function formatSelichotDates(dates: string[]): string {
@@ -175,23 +182,27 @@ function AnnouncementRow({ ann, synagogueId }: { ann: SynagogueAnnouncement; syn
   const timeStr = date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
   const accentColor = ann.isAlert ? Colors.danger : Colors.events;
   return (
-    <View style={[st.annRow, { borderRightColor: accentColor }]}>
+    // The whole card opens the reminder sheet — not just the bell — since a
+    // small icon in the corner of a card this size is easy to miss, and
+    // there is nowhere else tapping the card could usefully go: everything
+    // the announcement has to say is already shown inline below.
+    <TouchableOpacity
+      style={[st.annRow, { borderRightColor: accentColor }]}
+      onPress={() => setModalOpen(true)}
+      activeOpacity={0.75}
+    >
       <View style={st.annTop}>
         <View style={[st.annBadge, { backgroundColor: accentColor + '18', borderColor: accentColor + '50' }]}>
           <Text style={[st.annBadgeTxt, { color: accentColor }]}>{CATEGORY_HE[ann.category] ?? ann.category}</Text>
         </View>
         <Text style={st.annDate}>{dateStr} · {timeStr}</Text>
-        <TouchableOpacity
-          style={[st.annRemindBtn, hasReminder && st.annRemindBtnActive]}
-          onPress={() => setModalOpen(true)}
-          hitSlop={8}
-        >
+        <View style={[st.annRemindBtn, hasReminder && st.annRemindBtnActive]}>
           <Ionicons
             name={hasReminder ? 'notifications' : 'notifications-outline'}
             size={16}
             color={hasReminder ? Colors.white : Colors.textSecondary}
           />
-        </TouchableOpacity>
+        </View>
       </View>
       <Text style={st.annTitle}>{ann.title}</Text>
       <Text style={st.annDesc}>{ann.description}</Text>
@@ -211,7 +222,7 @@ function AnnouncementRow({ ann, synagogueId }: { ann: SynagogueAnnouncement; syn
         onRemove={() => { setReminders(synagogueId, ann.id, []); setModalOpen(false); }}
         onClose={() => setModalOpen(false)}
       />
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -283,6 +294,38 @@ export default function SynagogueDetailScreen() {
     };
   }, [syn, todayZmanim]);
 
+  // Report affordance lives in the stack header — visible the moment something
+  // looks wrong, without scrolling to the bottom of a long listing.
+  //
+  // This must sit here, before the loading/not-found returns below, not next
+  // to the rest of the render logic that reads `syn` further down. Reached
+  // via { synagogue: fullObject } (the synagogue list), `syn` is non-null
+  // from the very first render, so a copy of this positioned after the
+  // guards never actually skipped a render and the bug stayed invisible for
+  // as long as that was the only way in. Reached via { synagogueId } (first
+  // wired up for EventDetailScreen's "view synagogue" link, now also used by
+  // MyEventsScreen's synagogue-reminder cards), the first render has
+  // syn === null and returns the loading spinner early — skipping this hook
+  // entirely — and the render after the fetch resolves reaches past the
+  // guards and calls it for the first time: one more hook than the previous
+  // render, straight into React's "Rendered more hooks" error.
+  React.useLayoutEffect(() => {
+    if (!syn) return;
+    navigation.setOptions({
+      headerRight: () => (
+        <ReportListingButton
+          variant="icon"
+          iconColor={Colors.white}
+          cityId={syn.cityId}
+          entityType="synagogue"
+          entityId={syn.id}
+          entityName={syn.name}
+          color={primaryNusachColor(syn)}
+        />
+      ),
+    });
+  }, [navigation, syn]);
+
   // ── All hooks called — safe to do conditional returns ─────────────────────
   if (loading) {
     return (
@@ -311,24 +354,6 @@ export default function SynagogueDetailScreen() {
   const nusachValues = Array.isArray(syn.nusach) ? syn.nusach.filter(Boolean) : (syn.nusach ? [syn.nusach as unknown as string] : []);
   const primaryNusach = nusachValues[0] ?? '';
   const nusachColor = NUSACH_COLORS[primaryNusach] ?? Colors.primary;
-
-  // Report affordance lives in the stack header — visible the moment something
-  // looks wrong, without scrolling to the bottom of a long listing.
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <ReportListingButton
-          variant="icon"
-          iconColor={Colors.white}
-          cityId={syn.cityId}
-          entityType="synagogue"
-          entityId={syn.id}
-          entityName={syn.name}
-          color={nusachColor}
-        />
-      ),
-    });
-  }, [navigation, syn.id, syn.cityId, syn.name, nusachColor]);
   const nusachLabel = nusachValues.join(' / ');
   const nusachEmoji = NUSACH_EMOJIS[primaryNusach] ?? '🕍';
 
