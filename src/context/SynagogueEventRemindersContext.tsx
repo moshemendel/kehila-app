@@ -26,8 +26,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { useAuth } from './AuthContext';
-import { useCityId } from '../hooks/useCityId';
-import { useSynagogues } from '../hooks/useSynagogues';
+import { useSynagoguesFeed } from './SynagoguesContext';
 import { reconcileReminders, ReminderTarget } from '../utils/eventReminders';
 import { EventCategory } from '../types';
 
@@ -75,8 +74,7 @@ const Ctx = createContext<Ctx>({
 export function SynagogueEventRemindersProvider({ children }: { children: ReactNode }) {
   const { firebaseUser } = useAuth();
   const uid = firebaseUser?.uid;
-  const cityId = useCityId();
-  const { synagogues, loading: synLoading } = useSynagogues(cityId);
+  const { synagogues, loading: synLoading } = useSynagoguesFeed();
 
   const [intents, setIntents] = useState<Record<string, number[]>>({});
   const [intentsLoaded, setIntentsLoaded] = useState(false);

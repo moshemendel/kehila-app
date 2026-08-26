@@ -6,8 +6,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { getUsersByCity, setUserRoles } from '../../services/users';
-import { useSynagogues } from '../../hooks/useSynagogues';
-import { useBusinesses } from '../../hooks/useBusinesses';
+import { useSynagoguesFeed } from '../../context/SynagoguesContext';
+import { useBusinessesFeed } from '../../context/BusinessesContext';
 import { useCityId } from '../../hooks/useCityId';
 import { AppUser, UserRole } from '../../types';
 
@@ -70,8 +70,8 @@ function initDraft(user: AppUser): UserDraft {
 
 export default function UserManagementScreen() {
   const cityId = useCityId();
-  const { synagogues } = useSynagogues(cityId);
-  const { businesses } = useBusinesses(cityId);
+  const { synagogues } = useSynagoguesFeed();
+  const { businesses } = useBusinessesFeed();
 
   const [users, setUsers]             = useState<AppUser[]>([]);
   const [loading, setLoading]         = useState(true);

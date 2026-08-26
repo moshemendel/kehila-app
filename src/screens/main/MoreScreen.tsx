@@ -6,8 +6,7 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { MainTabParamList } from '../../types';
-import { useEvents } from '../../hooks/useEvents';
-import { useCityId } from '../../hooks/useCityId';
+import { useEventsFeed } from '../../context/EventsContext';
 import { useAuth } from '../../context/AuthContext';
 import { isComingSoon } from '../../utils/comingSoon';
 import { ComingSoonBadge } from '../../components/ComingSoon';
@@ -32,8 +31,7 @@ const MORE_ITEMS: MoreItem[] = [
 export default function MoreScreen() {
   const navigation  = useNavigation<Nav>();
   const { top }     = useSafeAreaInsets();
-  const cityId      = useCityId();
-  const { events }  = useEvents(cityId);
+  const { events }  = useEventsFeed();
   const { appUser } = useAuth();
 
   const alertCount  = events.filter((e) => e.isAlert).length;

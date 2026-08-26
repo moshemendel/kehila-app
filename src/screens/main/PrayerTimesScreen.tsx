@@ -1,13 +1,13 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   ActivityIndicator, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useAnalyticsTrack } from '../../services/analytics';
 import * as Location from 'expo-location';
-import { useSynagogues } from '../../hooks/useSynagogues';
+import { useSynagoguesFeed } from '../../context/SynagoguesContext';
 import { useCityId } from '../../hooks/useCityId';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
@@ -88,9 +88,7 @@ export default function PrayerTimesScreen() {
   useAnalyticsTrack('prayer_times');
   const cityId = useCityId();
   const { top } = useSafeAreaInsets();
-  const [focused, setFocused] = useState(false);
-  useFocusEffect(useCallback(() => { setFocused(true); return () => setFocused(false); }, []));
-  const { synagogues, loading } = useSynagogues(cityId, focused);
+  const { synagogues, loading } = useSynagoguesFeed();
   const todayZmanim = useTodayZmanim(cityId);
   const navigation = useNavigation<any>();
 

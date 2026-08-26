@@ -7,8 +7,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
-import { useBusinesses } from '../../hooks/useBusinesses';
-import { useCityId } from '../../hooks/useCityId';
+import { useBusinessesFeed } from '../../context/BusinessesContext';
 import { useAuth } from '../../context/AuthContext';
 import { updateBusiness, deleteBusiness } from '../../services/businesses';
 import { Business } from '../../types';
@@ -150,10 +149,9 @@ function EditForm({ rest, onBack }: { rest: Business; onBack: () => void }) {
 
 // ─── List view ────────────────────────────────────────────────────────────────
 export default function ManageBusinessScreen() {
-  const cityId = useCityId();
   const navigation = useNavigation();
   const { appUser } = useAuth();
-  const { businesses, loading } = useBusinesses(cityId);
+  const { businesses, loading } = useBusinessesFeed();
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Business | null>(null);
   // Deep-link from a content report ("פתח לתיקון") — preselect the reported

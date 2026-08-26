@@ -14,6 +14,8 @@ import { NotificationsProvider } from './src/context/NotificationsContext';
 import { FavoritesProvider } from './src/context/FavoritesContext';
 import { KashrutUpdatesProvider } from './src/context/KashrutUpdatesContext';
 import { EventsProvider } from './src/context/EventsContext';
+import { SynagoguesProvider } from './src/context/SynagoguesContext';
+import { BusinessesProvider } from './src/context/BusinessesContext';
 import { SynagogueEventRemindersProvider } from './src/context/SynagogueEventRemindersContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import { navigationRef, navigateFromNotification } from './src/navigation/navigationRef';
@@ -76,20 +78,24 @@ export default function App() {
                 <FavoritesProvider>
                   <KashrutUpdatesProvider>
                     <EventsProvider>
-                      <SynagogueEventRemindersProvider>
-                        <NavigationContainer
-                          ref={navigationRef}
-                          onReady={() => {
-                            // Handle tap that launched the app from a closed state
-                            Notifications.getLastNotificationResponseAsync().then(response => {
-                              if (response) handleNotifResponse(response);
-                            });
-                          }}
-                        >
-                          <StatusBar style="light" />
-                          <RootNavigator />
-                        </NavigationContainer>
-                      </SynagogueEventRemindersProvider>
+                      <SynagoguesProvider>
+                        <BusinessesProvider>
+                          <SynagogueEventRemindersProvider>
+                            <NavigationContainer
+                              ref={navigationRef}
+                              onReady={() => {
+                                // Handle tap that launched the app from a closed state
+                                Notifications.getLastNotificationResponseAsync().then(response => {
+                                  if (response) handleNotifResponse(response);
+                                });
+                              }}
+                            >
+                              <StatusBar style="light" />
+                              <RootNavigator />
+                            </NavigationContainer>
+                          </SynagogueEventRemindersProvider>
+                        </BusinessesProvider>
+                      </SynagoguesProvider>
                     </EventsProvider>
                   </KashrutUpdatesProvider>
                 </FavoritesProvider>

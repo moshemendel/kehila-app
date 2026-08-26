@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as Location from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSynagogues } from '../../hooks/useSynagogues';
+import { useSynagoguesFeed } from '../../context/SynagoguesContext';
 import { useCityId } from '../../hooks/useCityId';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
 import { useAnalyticsTrack } from '../../services/analytics';
@@ -25,7 +25,7 @@ export default function SelichotScreen() {
   const navigation = useNavigation<any>();
   const cityId = useCityId();
   const { top, bottom } = useSafeAreaInsets();
-  const { synagogues, loading } = useSynagogues(cityId);
+  const { synagogues, loading } = useSynagoguesFeed();
   const zmanim = useTodayZmanim(cityId);
 
   const [sort, setSort] = useState<'earliest' | 'closest'>('earliest');

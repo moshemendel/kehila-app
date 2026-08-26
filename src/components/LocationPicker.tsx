@@ -7,9 +7,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheetModal from './BottomSheetModal';
 import { Colors, Radius, Spacing } from '../utils/theme';
-import { useCityId } from '../hooks/useCityId';
-import { useSynagogues } from '../hooks/useSynagogues';
-import { useBusinesses } from '../hooks/useBusinesses';
+import { useSynagoguesFeed } from '../context/SynagoguesContext';
+import { useBusinessesFeed } from '../context/BusinessesContext';
 
 const STORAGE_KEY = 'kehila_saved_locations_v1';
 const MAX_SAVED = 12;
@@ -28,9 +27,8 @@ export default function LocationPicker({
   placeholder = 'כתובת / שם המקום',
   invalid = false,
 }: LocationPickerProps) {
-  const cityId = useCityId();
-  const { synagogues } = useSynagogues(cityId);
-  const { businesses } = useBusinesses(cityId);
+  const { synagogues } = useSynagoguesFeed();
+  const { businesses } = useBusinessesFeed();
 
   const [visible, setVisible] = useState(false);
   const [query, setQuery] = useState('');

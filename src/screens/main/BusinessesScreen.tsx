@@ -1,16 +1,16 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TextInput,
   TouchableOpacity, ActivityIndicator, Alert, Animated,
 } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import * as Location from 'expo-location';
 import BusinessCard from '../../components/BusinessCard';
 import FilterBar from '../../components/FilterBar';
 import { businessCategories, certificationTags, sortCertTags } from '../../services/businesses';
-import { useBusinesses } from '../../hooks/useBusinesses';
+import { useBusinessesFeed } from '../../context/BusinessesContext';
 import { useCityId } from '../../hooks/useCityId';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCity } from '../../hooks/useCity';
@@ -51,9 +51,7 @@ export default function BusinessesScreen() {
   const cityId     = useCityId();
   const navigation = useNavigation<any>();
   const { top, bottom } = useSafeAreaInsets();
-  const [focused, setFocused] = useState(false);
-  useFocusEffect(useCallback(() => { setFocused(true); return () => setFocused(false); }, []));
-  const { businesses, loading, error } = useBusinesses(cityId, focused);
+  const { businesses, loading, error } = useBusinessesFeed();
   const { city } = useCity(cityId);
   const { count: kashrutCount, totalCount: kashrutTotal, hasDowngrade } = useKashrutUpdates();
 

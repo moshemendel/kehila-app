@@ -8,8 +8,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useCityId } from '../../hooks/useCityId';
-import { useSynagogues } from '../../hooks/useSynagogues';
-import { useBusinesses } from '../../hooks/useBusinesses';
+import { useSynagoguesFeed } from '../../context/SynagoguesContext';
+import { useBusinessesFeed } from '../../context/BusinessesContext';
 import { useEvents } from '../../hooks/useEvents';
 import { useGemachs } from '../../hooks/useGemachs';
 import { Synagogue, Business, CommunityEvent, Gemach, GemachCategory } from '../../types';
@@ -58,8 +58,8 @@ export default function SearchScreen() {
   const navigation = useNavigation<any>();
   const cityId = useCityId();
 
-  const { synagogues, loading: lSyn  } = useSynagogues(cityId);
-  const { businesses, loading: lBiz  } = useBusinesses(cityId);
+  const { synagogues, loading: lSyn  } = useSynagoguesFeed();
+  const { businesses, loading: lBiz  } = useBusinessesFeed();
   const { events,     loading: lEvt  } = useEvents(cityId);
   const { gemachs,    loading: lGem  } = useGemachs(cityId);
 

@@ -28,7 +28,7 @@ import { useCityId }         from '../../hooks/useCityId';
 import { useManagerAlerts } from '../../hooks/useManagerAlerts';
 import { collectSelichot } from '../../utils/selichotSlots';
 import { useCity }           from '../../hooks/useCity';
-import { useSynagogues }     from '../../hooks/useSynagogues';
+import { useSynagoguesFeed } from '../../context/SynagoguesContext';
 import { useEventsFeed }     from '../../context/EventsContext';
 import { useSynagogueEventReminders } from '../../context/SynagogueEventRemindersContext';
 import { useTodayZmanim }    from '../../hooks/useTodayZmanim';
@@ -106,7 +106,7 @@ export default function HomeScreen() {
   const { top, bottom } = useSafeAreaInsets();
 
   const { city, refetch: refetchCity }    = useCity(cityId);
-  const { synagogues, loading: synLoad }  = useSynagogues(cityId);
+  const { synagogues, loading: synLoad }  = useSynagoguesFeed();
   const { events, unreadCount, isRead, favoriteEvents } = useEventsFeed();
   const { remindedEvents } = useSynagogueEventReminders();
   const myEventsCount = favoriteEvents.length + remindedEvents.length;

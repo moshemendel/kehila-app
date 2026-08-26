@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import Constants from 'expo-constants';
-import { useSynagogues } from '../hooks/useSynagogues';
+import { useSynagoguesFeed } from '../context/SynagoguesContext';
 import { useCityId } from '../hooks/useCityId';
 import { useCity } from '../hooks/useCity';
 import { useZmanimSettings } from '../context/ZmanimSettingsContext';
@@ -25,7 +25,7 @@ const IS_EXPO_GO = Constants.executionEnvironment === 'storeClient';
  */
 export default function PrayerNotificationScheduler() {
   const cityId             = useCityId();
-  const { synagogues }     = useSynagogues(cityId);
+  const { synagogues }     = useSynagoguesFeed();
   const { city }           = useCity(cityId);
   const { settings: zmanimSettings } = useZmanimSettings();
   const { enabled, settings: notifSettings } = useNotifications();

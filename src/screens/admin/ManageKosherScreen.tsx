@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
-import { useBusinesses } from '../../hooks/useBusinesses';
+import { useBusinessesFeed } from '../../context/BusinessesContext';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
@@ -704,7 +704,7 @@ export default function ManageKosherScreen() {
   const { appUser } = useAuth();
   const navigation = useNavigation();
   const { city } = useCity(cityId);
-  const { businesses, loading } = useBusinesses(cityId);
+  const { businesses, loading } = useBusinessesFeed();
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Business | null>(null);
   // Deep-link from a content report ("פתח לתיקון") — preselect the reported

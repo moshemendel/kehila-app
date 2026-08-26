@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheetModal from '../../components/BottomSheetModal';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
-import { useSynagogues } from '../../hooks/useSynagogues';
+import { useSynagoguesFeed } from '../../context/SynagoguesContext';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
@@ -1529,7 +1529,7 @@ export default function ManageSynagogueScreen() {
   const cityId = useCityId();
   const { appUser, isDemo } = useAuth();
   const navigation = useNavigation();
-  const { synagogues, loading } = useSynagogues(cityId);
+  const { synagogues, loading } = useSynagoguesFeed();
   const [search,   setSearch]   = useState('');
   const [selected, setSelected] = useState<Synagogue | null>(null);
   // Deep-link from a content report ("פתח לתיקון") — preselect the reported

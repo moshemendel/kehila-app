@@ -1,14 +1,14 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TextInput,
   TouchableOpacity, ActivityIndicator, Alert, Animated,
 } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useAnalyticsTrack } from '../../services/analytics';
 import * as Location from 'expo-location';
-import { useSynagogues } from '../../hooks/useSynagogues';
+import { useSynagoguesFeed } from '../../context/SynagoguesContext';
 import { useCityId } from '../../hooks/useCityId';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCity } from '../../hooks/useCity';
@@ -46,9 +46,7 @@ export default function SynagoguesScreen() {
   useAnalyticsTrack('synagogues');
   const cityId     = useCityId();
   const { top, bottom } = useSafeAreaInsets();
-  const [focused, setFocused] = useState(false);
-  useFocusEffect(useCallback(() => { setFocused(true); return () => setFocused(false); }, []));
-  const { synagogues, loading } = useSynagogues(cityId, focused);
+  const { synagogues, loading } = useSynagoguesFeed();
   const { city }   = useCity(cityId);
   const navigation = useNavigation<any>();
 
