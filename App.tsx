@@ -17,6 +17,7 @@ import { EventsProvider } from './src/context/EventsContext';
 import { SynagoguesProvider } from './src/context/SynagoguesContext';
 import { BusinessesProvider } from './src/context/BusinessesContext';
 import { SynagogueEventRemindersProvider } from './src/context/SynagogueEventRemindersContext';
+import { ManagerAlertsProvider } from './src/context/ManagerAlertsContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import { navigationRef, navigateFromNotification } from './src/navigation/navigationRef';
 
@@ -81,18 +82,20 @@ export default function App() {
                       <SynagoguesProvider>
                         <BusinessesProvider>
                           <SynagogueEventRemindersProvider>
-                            <NavigationContainer
-                              ref={navigationRef}
-                              onReady={() => {
-                                // Handle tap that launched the app from a closed state
-                                Notifications.getLastNotificationResponseAsync().then(response => {
-                                  if (response) handleNotifResponse(response);
-                                });
-                              }}
-                            >
-                              <StatusBar style="light" />
-                              <RootNavigator />
-                            </NavigationContainer>
+                            <ManagerAlertsProvider>
+                              <NavigationContainer
+                                ref={navigationRef}
+                                onReady={() => {
+                                  // Handle tap that launched the app from a closed state
+                                  Notifications.getLastNotificationResponseAsync().then(response => {
+                                    if (response) handleNotifResponse(response);
+                                  });
+                                }}
+                              >
+                                <StatusBar style="light" />
+                                <RootNavigator />
+                              </NavigationContainer>
+                            </ManagerAlertsProvider>
                           </SynagogueEventRemindersProvider>
                         </BusinessesProvider>
                       </SynagoguesProvider>

@@ -25,7 +25,7 @@ import GemachIcon from '../../assets/icons/Gemach.png';
 
 import { useAuth }           from '../../context/AuthContext';
 import { useCityId }         from '../../hooks/useCityId';
-import { useManagerAlerts } from '../../hooks/useManagerAlerts';
+import { useManagerAlertsFeed } from '../../context/ManagerAlertsContext';
 import { collectSelichot } from '../../utils/selichotSlots';
 import { useCity }           from '../../hooks/useCity';
 import { useSynagoguesFeed } from '../../context/SynagoguesContext';
@@ -98,7 +98,7 @@ function fmtCountdown(diffMin: number): string {
 
 // ─────────────────────────────────────────────────────────────────
 export default function HomeScreen() {
-  const managerAlerts = useManagerAlerts();
+  const managerAlerts = useManagerAlertsFeed();
   useAnalyticsTrack('home');
   const { appUser, refreshUser }  = useAuth();
   const navigation   = useNavigation<Nav>();

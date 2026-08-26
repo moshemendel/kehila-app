@@ -26,7 +26,7 @@ import { MainTabParamList }                 from '../types';
 import { useEventsFeed }                    from '../context/EventsContext';
 import { useCityId }                        from '../hooks/useCityId';
 import PrayerNotificationScheduler          from '../components/PrayerNotificationScheduler';
-import { useManagerAlerts }                 from '../hooks/useManagerAlerts';
+import { useManagerAlertsFeed }             from '../context/ManagerAlertsContext';
 import { useAppIconBadge }                  from '../hooks/useAppIconBadge';
 import BottomSheetModal                     from '../components/BottomSheetModal';
 import ComingSoonScreen, { ComingSoonBadge } from '../components/ComingSoon';
@@ -202,7 +202,7 @@ function KehilaTabBar({ state, navigation }: BottomTabBarProps) {
   const alertCount    = events.filter(e => e.isAlert && !isRead(e.id)).length;
   // "!" on Profile whenever something in the management screens needs action —
   // the badge replaces push notifications, which need a Cloud Function.
-  const managerAlerts = useManagerAlerts();
+  const managerAlerts = useManagerAlertsFeed();
   const needsAttention = managerAlerts.total > 0;
   // Same count on the OS app icon. Set locally (no push needed), so it reflects
   // what was true the last time the app was open — see useAppIconBadge.

@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import { useAuth } from '../../context/AuthContext';
 import { canSeeReports } from '../../services/reports';
-import { useManagerAlerts } from '../../hooks/useManagerAlerts';
+import { useManagerAlertsFeed } from '../../context/ManagerAlertsContext';
 import { useNotifications } from '../../context/NotificationsContext';
 import { useFavorites } from '../../context/FavoritesContext';
 import { logout } from '../../services/auth';
@@ -116,7 +116,7 @@ export default function ProfileScreen() {
   // the management menu on it alone would hide every other role they actually hold.
   const roles = appUser?.roles ?? [role];
   const isManager = roles.some((r) => r !== 'user');
-  const alerts = useManagerAlerts();
+  const alerts = useManagerAlertsFeed();
   const isAdminRole = roles.some((r) => ['city_admin', 'super_admin', 'dev'].includes(r));
 
   const cityId = useCityId();
