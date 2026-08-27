@@ -7,12 +7,14 @@
  * own live Firestore listener on the identical query and downloading its
  * own copy of the same ~70 documents. On a cold start that meant several
  * simultaneous full downloads of the same collection before the app felt
- * usable, which is what "slow to load" actually was.
+ * usable.
  *
  * One listener, mounted once at the app root (same shape as EventsProvider),
- * removes the duplication rather than trying to make each copy faster. By
- * the time any screen that shows synagogues mounts, the data is usually
- * already warm from whichever always-on consumer paid for it first.
+ * removes the duplication. It does not remove the remaining "few seconds
+ * before the first screen that needs this can show anything" — that is
+ * useCachedLiveQuery's job, layered on top: the last snapshot persists to
+ * AsyncStorage and renders instantly on the next cold start, replaced the
+ * moment this listener's live data arrives.
  *
  * Always-on rather than focus-gated, also matching EventsProvider: the
  * expensive part is the one-time initial snapshot, not an idle listener
@@ -23,6 +25,7 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useCityId } from '../hooks/useCityId';
 import { useSynagogues } from '../hooks/useSynagogues';
+import { useCachedLiveQuery } from '../hooks/useCachedLiveQuery';
 import { Synagogue } from '../types';
 
 interface Ctx {
@@ -36,8 +39,10 @@ const SynagoguesContext = createContext<Ctx>({ synagogues: [], loading: true, er
 export function SynagoguesProvider({ children }: { children: ReactNode }) {
   const cityId = useCityId();
   const { synagogues, loading, error } = useSynagogues(cityId);
+  const cached = useCachedLiveQuery(`@cache_synagogues_${cityId}`, { data: synagogues, loading, error });
+
   return (
-    <SynagoguesContext.Provider value={{ synagogues, loading, error }}>
+    <SynagoguesContext.Provider value={{ synagogues: cached.data, loading: cached.loading, error: cached.error }}>
       {children}
     </SynagoguesContext.Provider>
   );
