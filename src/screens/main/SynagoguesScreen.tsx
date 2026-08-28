@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TextInput,
+  View, Text, FlatList, StyleSheet, TextInput,
   TouchableOpacity, ActivityIndicator, Alert, Animated,
 } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
@@ -41,6 +41,62 @@ const MAP_STYLE = [
 ];
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
+
+/**
+ * One row of the list, extracted and memoised.
+ *
+ * Inline in the parent, every re-render of the screen rebuilt the element tree
+ * for all 69 rows. As its own memo component, a row whose synagogue, distance
+ * and starred state have not changed does no work at all.
+ */
+const SynagogueRow = React.memo(function SynagogueRow({
+  syn, dist, fav, onOpen, onStar,
+}: {
+  syn:    Synagogue;
+  dist:   number | null;
+  fav:    boolean;
+  onOpen: (syn: Synagogue) => void;
+  onStar: (syn: Synagogue) => void;
+}) {
+  return (
+    <TouchableOpacity
+      style={[s.card, fav && s.cardFav]}
+      onPress={() => onOpen(syn)}
+      activeOpacity={0.82}
+    >
+      <View style={s.cardRow}>
+        <View style={s.cardLeft}>
+          <Text style={s.cardName}>{syn.name}</Text>
+          <Text style={s.cardAddr}>{syn.address.he ?? syn.address.en ?? ''}</Text>
+          <View style={s.cardMeta}>
+            {syn.nusach && (
+              <View style={s.nusachBadge}><Text style={s.nusachBadgeTxt}>{synNusachValues(syn).join(' / ')}</Text></View>
+            )}
+            {syn.neighborhood && (
+              <View style={s.neighborhoodBadge}>
+                <Ionicons name="location-outline" size={10} color={Colors.textSecondary} />
+                <Text style={s.neighborhoodBadgeTxt}>{syn.neighborhood}</Text>
+              </View>
+            )}
+            {syn.rabbi && <Text style={s.cardRabbi}>רב: {syn.rabbi}</Text>}
+          </View>
+        </View>
+        <View style={s.cardRight}>
+          {dist !== null && (
+            <View style={s.distBadge}>
+              <Ionicons name="navigate-outline" size={10} color={Colors.primaryLight} />
+              <Text style={s.distTxt}>{formatDist(dist)}</Text>
+            </View>
+          )}
+          <TouchableOpacity onPress={() => onStar(syn)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Ionicons name={fav ? 'star' : 'star-outline'} size={26} color={fav ? Colors.goldBright : Colors.textMuted} />
+          </TouchableOpacity>
+          <Ionicons name="chevron-back-outline" size={22} color={Colors.textMuted} />
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+});
 
 export default function SynagoguesScreen() {
   useAnalyticsTrack('synagogues');
@@ -156,10 +212,10 @@ export default function SynagoguesScreen() {
     if (val === 'distance' && !userLoc) requestLocation();
   }
 
-  const getDist = (syn: Synagogue) => {
+  const getDist = useCallback((syn: Synagogue) => {
     if (!userLoc || !syn.latitude) return null;
     return haversineKm(userLoc.lat, userLoc.lon, syn.latitude, syn.longitude!);
-  };
+  }, [userLoc]);
 
   // ── Filters ────────────────────────────────────────────────────────────────
   const availableNusachim = useMemo(() => {
@@ -179,7 +235,7 @@ export default function SynagoguesScreen() {
     [synagogues, isFavorite],
   );
 
-  const visible = synagogues
+  const visible = useMemo(() => synagogues
     .filter((sy) => !favOnly || isFavorite(sy.id))
     .filter((s) => filters.nusach.length === 0 || synNusachValues(s).some((n) => filters.nusach.includes(n)))
     .filter((s) => filters.neighborhood.length === 0 || filters.neighborhood.includes(s.neighborhood ?? ''))
@@ -187,9 +243,29 @@ export default function SynagoguesScreen() {
     .sort((a, b) => {
       if (sort === 'distance') { const da = getDist(a), db = getDist(b); if (da !== null && db !== null) return da - db; }
       return a.name.localeCompare(b.name, 'he');
-    });
+    }),
+  [synagogues, favOnly, isFavorite, filters.nusach, filters.neighborhood, search, sort, userLoc]);
 
   const selectedSyn = useMemo(() => visible.find((s) => s.id === selectedSynId) ?? null, [visible, selectedSynId]);
+  // Stable identities so the memoised rows above actually memoise — a fresh
+  // arrow function per render would defeat React.memo on every row.
+  const keyExtractor = useCallback((syn: Synagogue) => syn.id, []);
+  const openSyn      = useCallback(
+    (syn: Synagogue) => navigation.navigate('SynagogueDetail', { synagogue: syn }),
+    [navigation],
+  );
+  const renderRow = useCallback(
+    ({ item }: { item: Synagogue }) => (
+      <SynagogueRow
+        syn={item}
+        dist={getDist(item)}
+        fav={isFavorite(item.id)}
+        onOpen={openSyn}
+        onStar={setModalSyn}
+      />
+    ),
+    [getDist, isFavorite, openSyn],
+  );
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
@@ -278,68 +354,29 @@ export default function SynagoguesScreen() {
       ) : viewMode === 'list' ? (
 
         /* ── LIST MODE ── */
-        <ScrollView
+        /* A FlatList, not a ScrollView + .map: the city has 69 synagogues and
+           each card is roughly a dozen native views, so rendering them all up
+           front was close to a thousand views built in one synchronous pass —
+           landing squarely inside the navigation transition and freezing it.
+           Virtualised, only the rows on screen are mounted. */
+        <FlatList
           style={{ flex: 1 }}
+          data={visible}
+          keyExtractor={keyExtractor}
+          renderItem={renderRow}
           contentContainerStyle={{ padding: Spacing.md, paddingBottom: bottom + 48 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-        >
-          {visible.length === 0 && (
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          ListEmptyComponent={
             <View style={s.empty}>
               <Ionicons name="business-outline" size={48} color={Colors.textMuted} />
               <Text style={s.emptyText}>לא נמצאו בתי כנסת</Text>
             </View>
-          )}
-          {visible.map((syn) => {
-            const dist       = getDist(syn);
-            const fav        = isFavorite(syn.id);
-            return (
-              <TouchableOpacity
-                key={syn.id}
-                style={[s.card, fav && s.cardFav]}
-                onPress={() => navigation.navigate('SynagogueDetail', { synagogue: syn })}
-                activeOpacity={0.82}
-              >
-                <View style={s.cardRow}>
-                  <View style={s.cardLeft}>
-                    <Text style={s.cardName}>{syn.name}</Text>
-                    <Text style={s.cardAddr}>{syn.address.he ?? syn.address.en ?? ''}</Text>
-                    <View style={s.cardMeta}>
-                      {syn.nusach && (
-                        <View style={s.nusachBadge}><Text style={s.nusachBadgeTxt}>{synNusachValues(syn).join(' / ')}</Text></View>
-                      )}
-                      {syn.neighborhood && (
-                        <View style={s.neighborhoodBadge}>
-                          <Ionicons name="location-outline" size={10} color={Colors.textSecondary} />
-                          <Text style={s.neighborhoodBadgeTxt}>{syn.neighborhood}</Text>
-                        </View>
-                      )}
-                      {syn.rabbi && <Text style={s.cardRabbi}>רב: {syn.rabbi}</Text>}
-                    </View>
-                  </View>
-                  <View style={s.cardRight}>
-                    {dist !== null && (
-                      <View style={s.distBadge}>
-                        <Ionicons name="navigate-outline" size={10} color={Colors.primaryLight} />
-                        <Text style={s.distTxt}>{formatDist(dist)}</Text>
-                      </View>
-                    )}
-                    <TouchableOpacity onPress={() => setModalSyn(syn)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                      <Ionicons name={fav ? 'star' : 'star-outline'} size={26} color={fav ? Colors.goldBright : Colors.textMuted} />
-                    </TouchableOpacity>
-                    <Ionicons name="chevron-back-outline" size={22} color={Colors.textMuted} />
-                  </View>
-                </View>
-                {/* {syn.shiurim && syn.shiurim.length > 0 && (
-                  <View style={s.shiurPill}>
-                    <Ionicons name="book-outline" size={11} color={Colors.primaryLight} />
-                    <Text style={s.shiurPillTxt}>{syn.shiurim.length} שיעורים</Text>
-                  </View>
-                )} */}
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+          }
+        />
 
       ) : (
 
