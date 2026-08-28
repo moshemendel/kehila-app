@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCityId } from '../hooks/useCityId';
 import { useCity } from '../hooks/useCity';
 import { useZmanimSettings } from '../context/ZmanimSettingsContext';
-import AppLoadingScreen from '../components/AppLoadingScreen';
+import AppLoadingScreen, { useSplashHold } from '../components/AppLoadingScreen';
 import { useShabbatLock } from '../hooks/useShabbatLock';
 import ShabbatClosedScreen from '../screens/ShabbatClosedScreen';
 import CompleteCityScreen from '../screens/auth/CompleteCityScreen';
@@ -90,7 +90,12 @@ export default function RootNavigator() {
   const [devForceLock, setDevForceLock] = useState(false);
   const isLocked = (lock.locked || devForceLock) && !devBypass;
 
-  if (loading) return <AppLoadingScreen />;
+  // Must be called before the early returns below — a hook skipped on one
+  // render and reached on the next is exactly the "rendered more hooks"
+  // crash SynagogueDetailScreen hit.
+  const showSplash = useSplashHold(loading);
+
+  if (showSplash) return <AppLoadingScreen />;
 
   // A brand-new account created without a city (currently only reachable via
   // Google sign-in, which has no city-collection step of its own) must pick
