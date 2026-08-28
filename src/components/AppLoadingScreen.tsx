@@ -83,6 +83,13 @@ export default function AppLoadingScreen() {
           resizeMode="contain"
         />
         <Text style={styles.title}>קהילה</Text>
+        {/* One tagline, in the app's own language, at the end of the reading
+            order. A splash that clears in under a second is not a reading
+            surface — a second line above the wordmark would be a fifth thing
+            competing for attention on a screen nobody has time to read. The
+            line earns its keep on the store listing and the pitch reel, where
+            someone is actually deciding whether to use this. */}
+        <Text style={styles.subtitle}>כל מה שיהודי צריך</Text>
       </Animated.View>
 
       <Animated.View style={[styles.spinnerWrap, { opacity: spinnerOpacity }]}>
@@ -112,6 +119,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: 0.5,
+  },
+  subtitle: {
+    marginTop: 2,
+    fontSize: 15,
+    color: '#8FB3E0',
+    letterSpacing: 0.8,
   },
   spinnerWrap: {
     position: 'absolute',
