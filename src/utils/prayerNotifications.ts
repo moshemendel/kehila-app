@@ -40,6 +40,29 @@ export function prayerChannelId(alarmSound: boolean | undefined): string {
   return alarmSound ? CHANNEL_PRAYERS_ALARM : CHANNEL_PRAYERS;
 }
 
+/**
+ * Identifiers this module owns. Everything scheduled here is given one of
+ * these prefixes explicitly; reminders scheduled elsewhere (events,
+ * announcements) get auto-generated ids, so a prefix test tells the two apart
+ * and lets a prayer reschedule leave other people's notifications alone.
+ */
+function isPrayerOwned(identifier: string): boolean {
+  return identifier.startsWith('prayer-') || identifier.startsWith('shiur-');
+}
+
+/**
+ * What the last completed run scheduled. PrayerNotificationScheduler re-runs
+ * on every foreground resume (to catch the day rolling over) and on any change
+ * to synagogues/settings/favourites, but the answer is usually identical —
+ * and the work is dozens of sequential native calls, enough to visibly stall
+ * the JS thread and make navigation feel stuck for seconds.
+ *
+ * Null on a cold start on purpose: notifications outlive the process, so the
+ * first run of a session cannot assume what is already queued and always does
+ * the full pass.
+ */
+let lastScheduleSignature: string | null = null;
+
 // ─── Permissions ──────────────────────────────────────────────────────────────
 export async function requestNotificationPermissions(): Promise<boolean> {
   if (Platform.OS === 'android') {
@@ -142,8 +165,6 @@ export async function schedulePrayerNotifications(
   settings:   NotifSettings,
   favorites:  FavoritesMap,
 ): Promise<void> {
-  await Notifications.cancelAllScheduledNotificationsAsync();
-
   const dayNum = todayDayNumber();
   const now    = new Date();
   const nowMs  = now.getTime();
@@ -233,7 +254,10 @@ export async function schedulePrayerNotifications(
     }
   }
 
-  // ── Fire all collected notifications ─────────────────────────────────────
+  // ── Work out what actually needs scheduling ──────────────────────────────
+  const channelId = prayerChannelId(settings.alarmSound);
+  const toSchedule: Array<{ identifier: string; title: string; body: string; seconds: number }> = [];
+
   for (const [identifier, { title, body, timeMin }] of pending) {
     const triggerMin  = timeMin - settings.minutesBefore;
     const triggerDate = new Date(now);
@@ -242,21 +266,69 @@ export async function schedulePrayerNotifications(
     const secondsUntil = Math.floor((triggerDate.getTime() - nowMs) / 1000);
     if (secondsUntil <= 0) continue;
 
-    await Notifications.scheduleNotificationAsync({
-      identifier,
-      content: { title, body, sound: 'default' },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: secondsUntil,
-        repeats: false,
-        ...(Platform.OS === 'android'
-          ? { channelId: prayerChannelId(settings.alarmSound) }
-          : {}),
-      },
-    });
+    toSchedule.push({ identifier, title, body, seconds: secondsUntil });
   }
+
+  // Bail before touching the bridge at all when this run would reproduce the
+  // previous one. Times are bucketed to the minute so that resuming the app
+  // a few seconds later — the common case — still counts as unchanged rather
+  // than redoing everything because `secondsUntil` ticked down.
+  const signature = [
+    channelId,
+    ...toSchedule
+      .map((n) => `${n.identifier}@${Math.round((nowMs + n.seconds * 1000) / 60_000)}`)
+      .sort(),
+  ].join('|');
+  if (signature === lastScheduleSignature) return;
+
+  // ── Replace this module's own notifications ──────────────────────────────
+  // Cancel and schedule in parallel: each call is a round trip to the native
+  // scheduler, and awaiting dozens of them in series is what made returning
+  // to the app feel frozen.
+  await cancelAllPrayerNotifications();
+
+  await Promise.all(
+    toSchedule.map((n) =>
+      Notifications.scheduleNotificationAsync({
+        identifier: n.identifier,
+        content: { title: n.title, body: n.body, sound: 'default' },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: n.seconds,
+          repeats: false,
+          ...(Platform.OS === 'android' ? { channelId } : {}),
+        },
+      }).catch(() => {}),
+    ),
+  );
+
+  lastScheduleSignature = signature;
 }
 
+/**
+ * Cancel only what this module scheduled.
+ *
+ * This used to be cancelAllScheduledNotificationsAsync(), which also wiped the
+ * community-event and synagogue-announcement reminders — and those keep their
+ * own AsyncStorage record of what is scheduled, so reconcileReminders saw a
+ * matching signature, concluded nothing needed doing, and never rebuilt them.
+ * Every prayer reschedule silently destroyed them; since a reschedule runs on
+ * every foreground resume, in practice they did not survive the app being
+ * backgrounded.
+ *
+ * Prayer notifications carry deterministic `prayer-*` / `shiur-*` identifiers
+ * while event reminders get auto-generated ones, so ownership is decidable.
+ */
 export async function cancelAllPrayerNotifications(): Promise<void> {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  lastScheduleSignature = null;
+  try {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    await Promise.all(
+      scheduled
+        .filter((n) => isPrayerOwned(n.identifier))
+        .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier).catch(() => {})),
+    );
+  } catch {
+    // Never let notification bookkeeping take the app down.
+  }
 }

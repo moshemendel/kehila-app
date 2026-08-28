@@ -76,13 +76,13 @@ export default function AppLoadingScreen() {
   return (
     <View style={styles.root}>
       <Animated.View style={[styles.logoBlock, logoStyle]}>
+        <Text style={styles.title}>Kehila</Text>
         <Image
           source={require('../../assets/icon.png')}
           style={styles.icon}
           resizeMode="contain"
         />
         <Text style={styles.title}>קהילה</Text>
-        <Text style={styles.subtitle}>מעלה אדומים</Text>
       </Animated.View>
 
       <Animated.View style={[styles.spinnerWrap, { opacity: spinnerOpacity }]}>
@@ -101,22 +101,17 @@ const styles = StyleSheet.create({
   },
   logoBlock: { alignItems: 'center' },
   icon: {
-    width: 96,
-    height: 96,
+    width: 120,
+    height: 120,
     borderRadius: 22,
   },
   title: {
-    marginTop: 18,
-    fontSize: 26,
+    marginTop: 6,
+    marginBottom: 6,
+    fontSize: 32,
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: 0.5,
-  },
-  subtitle: {
-    marginTop: 4,
-    fontSize: 13,
-    color: '#8FB3E0',
-    letterSpacing: 1.5,
   },
   spinnerWrap: {
     position: 'absolute',
