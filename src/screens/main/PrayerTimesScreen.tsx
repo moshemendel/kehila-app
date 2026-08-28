@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity,
+  View, Text, FlatList, StyleSheet, TouchableOpacity,
   ActivityIndicator, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -84,6 +84,128 @@ function currentTimeString(): string {
 }
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
+/**
+ * One prayer-time row, memoised.
+ *
+ * A weekday resolves to roughly 176 of these across the city's 69 synagogues,
+ * and each card is a couple of dozen native views. Built inline they were all
+ * constructed in one synchronous pass; behind a FlatList only the handful on
+ * screen exist, and memo lets a re-render skip any row whose slot, clock
+ * minute and day are unchanged.
+ */
+const PrayerSlotRow = React.memo(function PrayerSlotRow({
+  slot, nowMin, viewDay, onOpen,
+}: {
+  slot:    PrayerSlot;
+  nowMin:  number;
+  viewDay: 'today' | 'tomorrow';
+  onOpen:  (syn: Synagogue) => void;
+}) {
+  const color       = PRAYER_COLOR[slot.type];
+  const minutesLeft = slot.timeMinutes - nowMin;
+  // Don't show countdowns for tomorrow — they'd show "עוד 14 שעות" which is useless
+  const countdown   = viewDay === 'today' && !slot.isPast ? formatCountdown(minutesLeft) : '';
+  const isVeryClose = viewDay === 'today' && !slot.isPast && minutesLeft <= 15;
+  // Only meaningful for today's upcoming slots — a countdown to
+  // tomorrow's shacharit says nothing about whether you can walk there.
+  const reach = (viewDay === 'today' && !slot.isPast)
+    ? reachInTime(slot.distanceKm, minutesLeft)
+    : { kind: 'unknown' as const, walkMin: 0, driveMin: 0 };
+  const cantWalk = reach.kind === 'drive-only' || reach.kind === 'late';
+
+  return (
+    <TouchableOpacity
+      style={s.card}
+      onPress={() => onOpen(slot.synagogue)}
+      activeOpacity={0.82}
+    >
+      {/* Left color bar */}
+      <View style={[s.colorBar, { backgroundColor: color }]} />
+
+      <View style={s.cardBody}>
+        {/* Top row: name + prayer chip */}
+        <View style={s.cardTop}>
+          <Text style={s.synName} numberOfLines={1}>{slot.synagogue.name}</Text>
+          <View style={[s.prayerChip, { backgroundColor: color + '20', borderColor: color + '50' }]}>
+            <Text style={[s.prayerChipTxt, { color }]}>{PRAYER_HE[slot.type]}</Text>
+          </View>
+        </View>
+
+        {/* Middle row: address + distance */}
+        <View style={s.cardMid}>
+          <Ionicons name="location-outline" size={11} color={Colors.textMuted} />
+          <Text style={s.synAddr} numberOfLines={1}>{slot.synagogue.address.he ?? slot.synagogue.address.en ?? ''}</Text>
+          {slot.distanceKm !== null && (
+            <Text style={s.distTxt}>{formatDist(slot.distanceKm)}</Text>
+          )}
+        </View>
+
+        {/* Travel row — both modes, so the choice is the reader's.
+            For short hops these come out level: driving carries a
+            fixed overhead for reaching the car and parking, which is
+            real and usually forgotten. The walking figure greys out
+            when there isn't time to walk, so the icons carry the
+            state and the badge below only has to name it once. */}
+        {reach.kind !== 'unknown' && (
+          <View style={s.travelRow}>
+            <Ionicons name="walk-outline" size={12}
+              color={cantWalk ? Colors.textMuted : Colors.textSecondary} />
+            <Text style={[s.travelTxt, cantWalk && s.travelTxtOff]}>
+              {formatMinutes(reach.walkMin)}
+            </Text>
+            <Text style={s.travelSep}>·</Text>
+            <Ionicons name="car-outline" size={12}
+              color={reach.kind === 'late' ? Colors.textMuted : Colors.textSecondary} />
+            <Text style={[s.travelTxt, reach.kind === 'late' && s.travelTxtOff]}>
+              {formatMinutes(reach.driveMin)}
+            </Text>
+          </View>
+        )}
+
+        {/* Bottom row: time + countdown */}
+        <View style={s.cardBottom}>
+          <Text style={[s.timeText, { color }]}>{slot.time}</Text>
+          {countdown !== '' && (
+            <View style={[s.countdownBadge, isVeryClose && { backgroundColor: color + '18', borderColor: color }]}>
+              <Ionicons name="time-outline" size={11}
+                color={isVeryClose ? color : Colors.textMuted} />
+              <Text style={[s.countdownTxt, isVeryClose && { color, fontWeight: '800' }]}>
+                {countdown}
+              </Text>
+            </View>
+          )}
+
+          {/* Flagged, never filtered out. The distance is a straight
+              line and the estimate can be wrong — the congregant may
+              know a shortcut, or be driving. Warning respects that;
+              hiding the row would not. */}
+          {reach.kind === 'late' && (
+            <View style={s.reachLate}>
+              <Ionicons name="alert-circle-outline" size={11} color={Colors.danger} />
+              <Text style={s.reachLateTxt}>לא תספיק</Text>
+            </View>
+          )}
+          {reach.kind === 'drive-only' && (
+            <View style={s.reachTight}>
+              <Ionicons name="car-outline" size={11} color={Colors.warning} />
+              <Text style={s.reachTightTxt}>ברכב בלבד</Text>
+            </View>
+          )}
+          {reach.kind === 'walk-tight' && (
+            <View style={s.reachTight}>
+              <Ionicons name="walk-outline" size={11} color={Colors.warning} />
+              <Text style={s.reachTightTxt}>בקושי תספיק</Text>
+            </View>
+          )}
+        </View>
+      </View>
+
+      <Ionicons name="chevron-back-outline" size={16} color={Colors.textMuted}
+        style={{ marginRight: 4 }} />
+    </TouchableOpacity>
+  );
+});
+
 export default function PrayerTimesScreen() {
   useAnalyticsTrack('prayer_times');
   const cityId = useCityId();
@@ -252,6 +374,22 @@ export default function PrayerTimesScreen() {
     });
   }, [allSlots, filter, sort, selNusach, selNeighborhood]);
 
+  // Stable identities, or React.memo on the row never holds.
+  const slotKey = useCallback(
+    (slot: PrayerSlot, i: number) => `${slot.synagogue.id}-${slot.type}-${slot.time}-${i}`,
+    [],
+  );
+  const openSyn = useCallback(
+    (syn: Synagogue) => navigation.navigate('SynagogueDetail', { synagogue: syn }),
+    [navigation],
+  );
+  const renderSlot = useCallback(
+    ({ item }: { item: PrayerSlot }) => (
+      <PrayerSlotRow slot={item} nowMin={nowMin} viewDay={viewDay} onOpen={openSyn} />
+    ),
+    [nowMin, viewDay, openSyn],
+  );
+
   return (
     <View style={s.container}>
       {/* Header */}
@@ -346,114 +484,15 @@ export default function PrayerTimesScreen() {
           </Text>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={{ padding: Spacing.md }}>
-          {sorted.map((slot, i) => {
-            const color       = PRAYER_COLOR[slot.type];
-            const minutesLeft = slot.timeMinutes - nowMin;
-            // Don't show countdowns for tomorrow — they'd show "עוד 14 שעות" which is useless
-            const countdown   = viewDay === 'today' && !slot.isPast ? formatCountdown(minutesLeft) : '';
-            const isVeryClose = viewDay === 'today' && !slot.isPast && minutesLeft <= 15;
-            // Only meaningful for today's upcoming slots — a countdown to
-            // tomorrow's shacharit says nothing about whether you can walk there.
-            const reach = (viewDay === 'today' && !slot.isPast)
-              ? reachInTime(slot.distanceKm, minutesLeft)
-              : { kind: 'unknown' as const, walkMin: 0, driveMin: 0 };
-            const cantWalk = reach.kind === 'drive-only' || reach.kind === 'late';
-
-            return (
-              <TouchableOpacity
-                key={`${slot.synagogue.id}-${slot.type}-${slot.time}-${i}`}
-                style={s.card}
-                onPress={() => navigation.navigate('SynagogueDetail', { synagogue: slot.synagogue })}
-                activeOpacity={0.82}
-              >
-                {/* Left color bar */}
-                <View style={[s.colorBar, { backgroundColor: color }]} />
-
-                <View style={s.cardBody}>
-                  {/* Top row: name + prayer chip */}
-                  <View style={s.cardTop}>
-                    <Text style={s.synName} numberOfLines={1}>{slot.synagogue.name}</Text>
-                    <View style={[s.prayerChip, { backgroundColor: color + '20', borderColor: color + '50' }]}>
-                      <Text style={[s.prayerChipTxt, { color }]}>{PRAYER_HE[slot.type]}</Text>
-                    </View>
-                  </View>
-
-                  {/* Middle row: address + distance */}
-                  <View style={s.cardMid}>
-                    <Ionicons name="location-outline" size={11} color={Colors.textMuted} />
-                    <Text style={s.synAddr} numberOfLines={1}>{slot.synagogue.address.he ?? slot.synagogue.address.en ?? ''}</Text>
-                    {slot.distanceKm !== null && (
-                      <Text style={s.distTxt}>{formatDist(slot.distanceKm)}</Text>
-                    )}
-                  </View>
-
-                  {/* Travel row — both modes, so the choice is the reader's.
-                      For short hops these come out level: driving carries a
-                      fixed overhead for reaching the car and parking, which is
-                      real and usually forgotten. The walking figure greys out
-                      when there isn't time to walk, so the icons carry the
-                      state and the badge below only has to name it once. */}
-                  {reach.kind !== 'unknown' && (
-                    <View style={s.travelRow}>
-                      <Ionicons name="walk-outline" size={12}
-                        color={cantWalk ? Colors.textMuted : Colors.textSecondary} />
-                      <Text style={[s.travelTxt, cantWalk && s.travelTxtOff]}>
-                        {formatMinutes(reach.walkMin)}
-                      </Text>
-                      <Text style={s.travelSep}>·</Text>
-                      <Ionicons name="car-outline" size={12}
-                        color={reach.kind === 'late' ? Colors.textMuted : Colors.textSecondary} />
-                      <Text style={[s.travelTxt, reach.kind === 'late' && s.travelTxtOff]}>
-                        {formatMinutes(reach.driveMin)}
-                      </Text>
-                    </View>
-                  )}
-
-                  {/* Bottom row: time + countdown */}
-                  <View style={s.cardBottom}>
-                    <Text style={[s.timeText, { color }]}>{slot.time}</Text>
-                    {countdown !== '' && (
-                      <View style={[s.countdownBadge, isVeryClose && { backgroundColor: color + '18', borderColor: color }]}>
-                        <Ionicons name="time-outline" size={11}
-                          color={isVeryClose ? color : Colors.textMuted} />
-                        <Text style={[s.countdownTxt, isVeryClose && { color, fontWeight: '800' }]}>
-                          {countdown}
-                        </Text>
-                      </View>
-                    )}
-
-                    {/* Flagged, never filtered out. The distance is a straight
-                        line and the estimate can be wrong — the congregant may
-                        know a shortcut, or be driving. Warning respects that;
-                        hiding the row would not. */}
-                    {reach.kind === 'late' && (
-                      <View style={s.reachLate}>
-                        <Ionicons name="alert-circle-outline" size={11} color={Colors.danger} />
-                        <Text style={s.reachLateTxt}>לא תספיק</Text>
-                      </View>
-                    )}
-                    {reach.kind === 'drive-only' && (
-                      <View style={s.reachTight}>
-                        <Ionicons name="car-outline" size={11} color={Colors.warning} />
-                        <Text style={s.reachTightTxt}>ברכב בלבד</Text>
-                      </View>
-                    )}
-                    {reach.kind === 'walk-tight' && (
-                      <View style={s.reachTight}>
-                        <Ionicons name="walk-outline" size={11} color={Colors.warning} />
-                        <Text style={s.reachTightTxt}>בקושי תספיק</Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-
-                <Ionicons name="chevron-back-outline" size={16} color={Colors.textMuted}
-                  style={{ marginRight: 4 }} />
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        <FlatList
+          data={sorted}
+          keyExtractor={slotKey}
+          renderItem={renderSlot}
+          contentContainerStyle={{ padding: Spacing.md }}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+        />
       )}
     </View>
   );
