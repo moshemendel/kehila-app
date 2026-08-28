@@ -11,8 +11,17 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth, db } from './firebase';
 import { AppUser, UserRole } from '../types';
+
+/**
+ * Where AuthContext keeps the last-known account document, so a cold start
+ * can render immediately instead of holding the splash open for a Firestore
+ * round-trip. Keyed by uid, so two accounts on one device never read each
+ * other's copy.
+ */
+export const appUserCacheKey = (uid: string) => `@appuser_${uid}`;
 import { clearPushToken } from './pushNotifications';
 
 export async function registerWithEmail(
@@ -80,6 +89,12 @@ export async function signInWithGoogleCredential(idToken: string): Promise<User>
 export async function logout(): Promise<void> {
   // Must run before signOut — deleting the token doc requires still being authenticated.
   await clearPushToken().catch(() => {});
+  // Drop the cached account document too. Nothing else would read it (the key
+  // is uid-scoped, so a different account signing in on this device cannot see
+  // it), but leaving someone's name, roles and city on disk after they have
+  // explicitly signed out is not what signing out should mean.
+  const uid = auth.currentUser?.uid;
+  if (uid) await AsyncStorage.removeItem(appUserCacheKey(uid)).catch(() => {});
   await signOut(auth);
   // Also clears the native Google session — otherwise GoogleSignin.signIn() silently
   // re-authenticates with the same cached account next time instead of showing the

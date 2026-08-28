@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
 import { auth } from '../services/firebase';
-import { getUserDoc, reloadAuthUser } from '../services/auth';
+import { getUserDoc, reloadAuthUser, appUserCacheKey } from '../services/auth';
 import { updateUserCity, updateUserHomeCity } from '../services/users';
 import { getGuestCityId, setGuestCityId } from '../services/guestCity';
 import { initAnalytics, clearAnalytics } from '../services/analytics';
@@ -94,7 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const doc = await getUserDoc(user.uid);
       setAppUser(doc);
-      if (doc) initAnalytics(user.uid, doc.cityId);
+      if (doc) {
+        initAnalytics(user.uid, doc.cityId);
+        AsyncStorage.setItem(appUserCacheKey(user.uid), JSON.stringify(doc)).catch(() => {});
+      }
     } catch {
       // Firebase not configured yet — ignore
     }
@@ -178,8 +182,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setLoading(false);
         } else {
           setIsGuest(false);
-          await loadAppUser(user);
-          setLoading(false);
+          // Nothing at all renders until `loading` clears (RootNavigator gates
+          // the whole app on it), so waiting on a Firestore round-trip here
+          // meant every cold start for a signed-in user held the splash open
+          // for a full network fetch. The account doc barely changes between
+          // launches, so the last-known copy is shown immediately and the
+          // fresh one swapped in behind it.
+          //
+          // Restoring it before clearing `loading` also matters for
+          // correctness, not just speed: useCityId() falls back to 'city-1'
+          // while appUser is null, so rendering first and filling in after
+          // would start every city-scoped listener against the wrong city and
+          // restart them all a moment later.
+          const cachedRaw = await AsyncStorage.getItem(appUserCacheKey(user.uid)).catch(() => null);
+          if (cachedRaw) {
+            try {
+              const cachedUser = JSON.parse(cachedRaw) as AppUser;
+              setAppUser(cachedUser);
+              initAnalytics(user.uid, cachedUser.cityId);
+              setLoading(false);
+              loadAppUser(user); // refresh in the background
+            } catch {
+              await loadAppUser(user);
+              setLoading(false);
+            }
+          } else {
+            // First launch after install — nothing cached yet, so this one
+            // still waits.
+            await loadAppUser(user);
+            setLoading(false);
+          }
         }
       });
     } catch {

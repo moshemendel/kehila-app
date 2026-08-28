@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useCityId } from '../hooks/useCityId';
 import { useCity } from '../hooks/useCity';
 import { useZmanimSettings } from '../context/ZmanimSettingsContext';
+import AppLoadingScreen from '../components/AppLoadingScreen';
 import { useShabbatLock } from '../hooks/useShabbatLock';
 import ShabbatClosedScreen from '../screens/ShabbatClosedScreen';
 import CompleteCityScreen from '../screens/auth/CompleteCityScreen';
@@ -89,13 +90,7 @@ export default function RootNavigator() {
   const [devForceLock, setDevForceLock] = useState(false);
   const isLocked = (lock.locked || devForceLock) && !devBypass;
 
-  if (loading) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
-  }
+  if (loading) return <AppLoadingScreen />;
 
   // A brand-new account created without a city (currently only reachable via
   // Google sign-in, which has no city-collection step of its own) must pick
@@ -281,7 +276,6 @@ export default function RootNavigator() {
 }
 
 const styles = StyleSheet.create({
-  loader: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background },
   // __DEV__-only — lets a developer preview the Shabbat lock screen without
   // waiting for a real candle-lighting moment. Never renders in a real build.
   devLockBtn: {
