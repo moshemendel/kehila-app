@@ -16,8 +16,25 @@ service cloud.firestore {
     function userDoc() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
+    // An account's roles are the ARRAY when it has one, falling back to the
+    // singular field for profiles predating it.
+    //
+    // Reading only `role` quietly broke every multi-role account. The admin UI
+    // assigns a set, but `role` holds one value — computePrimaryRole collapses
+    // the set to its highest-priority member — so a gabbai who is also an
+    // event_manager is stored as role: 'event_manager', and every gabbai grant
+    // here evaluated false. They kept seeing their synagogues in the management
+    // screen, which filters on managedSynagogueIds without consulting a role at
+    // all, and their saves were rejected.
+    //
+    // Safe to authorise from: the array is already treated as privilege-bearing
+    // by the users rules above — self-edits cannot touch it, and creates cannot
+    // seed it — so it is exactly as trustworthy as the singular field.
+    function userRoles() {
+      return userDoc().get('roles', [userDoc().role]);
+    }
     function hasRole(role) {
-      return isSignedIn() && userDoc().role == role;
+      return isSignedIn() && role in userRoles();
     }
     // City-wide manager roles (kosher_manager, event_manager, eruv_manager,
     // mikveh_manager) previously granted access in every city — fine for a
@@ -26,7 +43,7 @@ service cloud.firestore {
     // createUser.ts / UsersPage.tsx's handleRoleSave), so this needs no
     // backfill — mirrors isCityAdminOf's exact pattern for city_admin.
     function hasCityRole(role, targetCityId) {
-      return isSignedIn() && userDoc().role == role && userDoc().homeCityId == targetCityId;
+      return isSignedIn() && role in userRoles() && userDoc().homeCityId == targetCityId;
     }
     // A mikveh's own doc is the source of truth for its cityId — used to
     // city-scope mikveh_manager's access to the appointments/appointmentSlots
