@@ -27,7 +27,23 @@ import { ReportEntityType } from '../types';
  * are merely visiting.
  */
 export interface ListingPermissions {
-  canEdit: (entityType: ReportEntityType, entityId: string, entityCityId: string, createdBy?: string) => boolean;
+  /**
+   * The management screen this account should land on for this listing, or
+   * null when it has no business editing it at all.
+   *
+   * A route rather than a boolean because "can edit" is not one capability for
+   * a business. A kosher_manager reviews certificates across the whole city; an
+   * owner runs one shop's hours, photos and promotions. Answering yes/no and
+   * sending everyone to the same screen handed a kosher_manager owner-level
+   * control of every business in the city — the two roles are scoped
+   * differently and belong on different screens.
+   */
+  editRouteFor: (
+    entityType: ReportEntityType,
+    entityId: string,
+    entityCityId: string,
+    createdBy?: string,
+  ) => string | null;
 }
 
 const ADMIN_ROLES = ['city_admin', 'super_admin', 'dev'];
@@ -50,36 +66,49 @@ export function usePermissions(): ListingPermissions {
     const isAdminOf           = (c: string) => isSuperAdmin || isCityAdminOf(c);
     const hasCityRole         = (r: string, c: string) => hasRole(r) && homeCityId === c;
 
-    function canEdit(
+    function editRouteFor(
       entityType: ReportEntityType,
       entityId: string,
       entityCityId: string,
       createdBy?: string,
-    ): boolean {
+    ): string | null {
       // Demo mode never reaches Firestore, so there is nothing for the rules to
       // reject — showing the management UI is the point of the demo.
-      if (isDemo) return roles.some((r) => ADMIN_ROLES.includes(r));
-      if (isGuest || !appUser) return false;
+      const admin = isDemo
+        ? roles.some((r) => ADMIN_ROLES.includes(r))
+        : isAdminOf(entityCityId);
+      if (!isDemo && (isGuest || !appUser)) return null;
 
       switch (entityType) {
         case 'synagogue':
-          return isAdminOf(entityCityId) || (hasRole('gabbai') && synIds.includes(entityId));
+          return admin || (hasRole('gabbai') && synIds.includes(entityId))
+            ? 'ManageSynagogue' : null;
+
         case 'business':
-          return isAdminOf(entityCityId)
-            || hasCityRole('kosher_manager', entityCityId)
-            || (hasRole('business_manager') && bizIds.includes(entityId));
+          // ManageBusinessScreen is the shop's own screen — hours, gallery,
+          // promotions — and scopes itself to managedRestaurantIds for every
+          // role, a kosher_manager included. Being assigned the business is
+          // what makes someone its operator, whatever else they are.
+          if (admin || bizIds.includes(entityId)) return 'ManageBusiness';
+          // City-wide kashrut review reaches every business, but only its
+          // certificates and mashgiach — a different screen, not a wider one.
+          if (hasCityRole('kosher_manager', entityCityId)) return 'ManageKosher';
+          return null;
+
         case 'mikveh':
-          return isAdminOf(entityCityId) || hasCityRole('mikveh_manager', entityCityId);
+          return admin || hasCityRole('mikveh_manager', entityCityId)
+            ? 'ManageMikveh' : null;
         case 'gemach':
           // Whoever submitted a gemach keeps the right to correct it.
-          return isAdminOf(entityCityId) || (!!createdBy && createdBy === uid);
+          return admin || (!!createdBy && createdBy === uid) ? 'ManageGemach' : null;
         case 'event':
-          return isAdminOf(entityCityId) || hasCityRole('event_manager', entityCityId);
+          return admin || hasCityRole('event_manager', entityCityId)
+            ? 'ManageEvents' : null;
         default:
-          return false;
+          return null;
       }
     }
 
-    return { canEdit };
+    return { editRouteFor };
   }, [appUser, isDemo, isGuest]);
 }

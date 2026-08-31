@@ -1542,11 +1542,6 @@ export default function ManageSynagogueScreen() {
   // saw. Any deep link into one entity gets this, which is what lets a manager
   // edit and check the result without walking the stack in both directions.
   const deepLinked = useRef(!!focusId);
-  useEffect(() => {
-    if (!focusId) return;
-    const hit = synagogues.find((x: any) => x.id === focusId);
-    if (hit) setSelected(hit);
-  }, [focusId, synagogues]);
   const [adding,   setAdding]   = useState(false);
   const [creating, setCreating] = useState(false);
   const isAdmin = ['city_admin', 'super_admin', 'dev'].includes(appUser?.role ?? '');
@@ -1592,6 +1587,17 @@ export default function ManageSynagogueScreen() {
   const visible = synagogues
     .filter((s) => isAdmin || managed.includes(s.id))
     .filter((s) => !search || s.name.includes(search) || (s.address.he ?? s.address.en ?? '').includes(search));
+
+  // Matched against `visible`, not the whole collection: `visible` is where this
+  // screen encodes who may edit what, and a deep link that searched past it
+  // would hand someone an editor the list would never have offered them. A
+  // kosher_manager reached this screen that way and got owner-level access to
+  // every business in the city.
+  useEffect(() => {
+    if (!focusId) return;
+    const hit = visible.find((x: any) => x.id === focusId);
+    if (hit) setSelected(hit);
+  }, [focusId, visible]);
 
   useLayoutEffect(() => {
     // Reuses the native header (title + back button) to show which synagogue is

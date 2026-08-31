@@ -168,11 +168,6 @@ export default function ManageBusinessScreen() {
     if (deepLinked.current) navigation.goBack();
     else setSelected(null);
   };
-  useEffect(() => {
-    if (!focusId) return;
-    const hit = businesses.find((x: any) => x.id === focusId);
-    if (hit) setSelected(hit);
-  }, [focusId, businesses]);
 
   // Native back (header button, hardware back, swipe gesture) should return to
   // the list first, not pop this whole screen off the stack — beforeRemove is
@@ -201,6 +196,17 @@ export default function ManageBusinessScreen() {
   const visible = businesses
     .filter((r) => isAdmin || managed.includes(r.id))
     .filter((r) => !search || r.name.includes(search) || r.address.includes(search));
+
+  // Matched against `visible`, not the whole collection: `visible` is where this
+  // screen encodes who may edit what, and a deep link that searched past it
+  // would hand someone an editor the list would never have offered them. A
+  // kosher_manager reached this screen that way and got owner-level access to
+  // every business in the city.
+  useEffect(() => {
+    if (!focusId) return;
+    const hit = visible.find((x: any) => x.id === focusId);
+    if (hit) setSelected(hit);
+  }, [focusId, visible]);
 
   function handleDeleteBusiness(rest: Business) {
     Alert.alert('מחיקת עסק', `למחוק את "${rest.name}"?`, [

@@ -6,15 +6,6 @@ import { ReportEntityType } from '../types';
 import { Colors, Spacing } from '../utils/theme';
 import { usePermissions } from '../hooks/usePermissions';
 
-/** Same mapping ManageReportsScreen uses to send a reviewer to the right editor. */
-const EDIT_ROUTE: Record<ReportEntityType, string> = {
-  synagogue: 'ManageSynagogue',
-  business:  'ManageBusiness',
-  mikveh:    'ManageMikveh',
-  event:     'ManageEvents',
-  gemach:    'ManageGemach',
-};
-
 interface Props {
   entityType: ReportEntityType;
   entityId: string;
@@ -43,18 +34,21 @@ interface Props {
  * the missing entry point, so edit and verify happen without leaving the page.
  *
  * Visibility is not a permission check — firestore.rules is. usePermissions
- * mirrors those rules so the button appears exactly where the save will land.
+ * mirrors those rules so the button appears exactly where the save will land,
+ * and picks the screen: a business has two, and which one an account belongs on
+ * depends on whether it runs that shop or reviews the city's kashrut.
  */
 export default function EditListingButton({
   entityType, entityId, entityCityId, createdBy,
   color = Colors.primary, variant = 'link', iconColor = Colors.textMuted,
 }: Props) {
   const navigation = useNavigation<any>();
-  const { canEdit } = usePermissions();
+  const { editRouteFor } = usePermissions();
 
-  if (!canEdit(entityType, entityId, entityCityId, createdBy)) return null;
+  const route = editRouteFor(entityType, entityId, entityCityId, createdBy);
+  if (!route) return null;
 
-  const open = () => navigation.navigate(EDIT_ROUTE[entityType], { focusId: entityId });
+  const open = () => navigation.navigate(route, { focusId: entityId });
 
   if (variant === 'icon') {
     return (
