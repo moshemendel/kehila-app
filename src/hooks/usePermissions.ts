@@ -3,6 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import { ReportEntityType } from '../types';
 import { CONTENT_ROLES } from '../utils/roles';
 
+export interface EditDestination {
+  route: string;
+  /** Shown only when there is more than one, so the choice names itself. */
+  label: string;
+}
+
 /**
  * Can the signed-in account edit this listing?
  *
@@ -29,22 +35,24 @@ import { CONTENT_ROLES } from '../utils/roles';
  */
 export interface ListingPermissions {
   /**
-   * The management screen this account should land on for this listing, or
-   * null when it has no business editing it at all.
+   * Every management screen this account may open for this listing — empty
+   * when it has no business editing it at all.
    *
-   * A route rather than a boolean because "can edit" is not one capability for
-   * a business. A kosher_manager reviews certificates across the whole city; an
-   * owner runs one shop's hours, photos and promotions. Answering yes/no and
-   * sending everyone to the same screen handed a kosher_manager owner-level
-   * control of every business in the city — the two roles are scoped
-   * differently and belong on different screens.
+   * A list, because an account can hold more than one capability over the same
+   * listing and they do not live on the same screen. A kosher_manager reviews
+   * certificates across the city; an owner runs one shop's hours, gallery and
+   * promotions. Someone who is both, on their own shop, may do both — the
+   * rules already grant the union of the field groups — and answering with a
+   * single destination silently dropped whichever came second, so the kashrut
+   * manager who owned a business could edit everything about it except its
+   * kashrut.
    */
-  editRouteFor: (
+  editRoutesFor: (
     entityType: ReportEntityType,
     entityId: string,
     entityCityId: string,
     createdBy?: string,
-  ) => string | null;
+  ) => EditDestination[];
 }
 
 
@@ -72,49 +80,56 @@ export function usePermissions(): ListingPermissions {
     // same function for this file's purposes.
     const managesContentIn    = (c: string) => isAdminOf(c) || hasCityRole('content_admin', c);
 
-    function editRouteFor(
+    function editRoutesFor(
       entityType: ReportEntityType,
       entityId: string,
       entityCityId: string,
       createdBy?: string,
-    ): string | null {
+    ): EditDestination[] {
       // Demo mode never reaches Firestore, so there is nothing for the rules to
       // reject — showing the management UI is the point of the demo.
       const admin = isDemo
         ? roles.some((r) => CONTENT_ROLES.includes(r as never))
         : managesContentIn(entityCityId);
-      if (!isDemo && (isGuest || !appUser)) return null;
+      if (!isDemo && (isGuest || !appUser)) return [];
 
       switch (entityType) {
         case 'synagogue':
           return admin || (hasRole('gabbai') && synIds.includes(entityId))
-            ? 'ManageSynagogue' : null;
+            ? [{ route: 'ManageSynagogue', label: 'עריכת בית הכנסת' }] : [];
 
-        case 'business':
-          // ManageBusinessScreen is the shop's own screen — hours, gallery,
-          // promotions — and scopes itself to managedRestaurantIds for every
-          // role, a kosher_manager included. Being assigned the business is
-          // what makes someone its operator, whatever else they are.
-          if (admin || bizIds.includes(entityId)) return 'ManageBusiness';
-          // City-wide kashrut review reaches every business, but only its
-          // certificates and mashgiach — a different screen, not a wider one.
-          if (hasCityRole('kosher_manager', entityCityId)) return 'ManageKosher';
-          return null;
+        case 'business': {
+          const out: EditDestination[] = [];
+          // The shop's own screen — hours, gallery, promotions. Being listed in
+          // managedRestaurantIds is what makes an account its operator, whatever
+          // else it is, which is the rule ManageBusinessScreen already applies
+          // to itself.
+          if (admin || bizIds.includes(entityId)) {
+            out.push({ route: 'ManageBusiness', label: 'עריכת פרטי העסק' });
+          }
+          // City-wide certificate review reaches every business, but only its
+          // certificates, mashgiach and the identity they are issued against.
+          if (admin || hasCityRole('kosher_manager', entityCityId)) {
+            out.push({ route: 'ManageKosher', label: 'עריכת כשרות' });
+          }
+          return out;
+        }
 
         case 'mikveh':
           return admin || hasCityRole('mikveh_manager', entityCityId)
-            ? 'ManageMikveh' : null;
+            ? [{ route: 'ManageMikveh', label: 'עריכת המקווה' }] : [];
         case 'gemach':
           // Whoever submitted a gemach keeps the right to correct it.
-          return admin || (!!createdBy && createdBy === uid) ? 'ManageGemach' : null;
+          return admin || (!!createdBy && createdBy === uid)
+            ? [{ route: 'ManageGemach', label: 'עריכת הגמ"ח' }] : [];
         case 'event':
           return admin || hasCityRole('event_manager', entityCityId)
-            ? 'ManageEvents' : null;
+            ? [{ route: 'ManageEvents', label: 'עריכת האירוע' }] : [];
         default:
-          return null;
+          return [];
       }
     }
 
-    return { editRouteFor };
+    return { editRoutesFor };
   }, [appUser, isDemo, isGuest]);
 }

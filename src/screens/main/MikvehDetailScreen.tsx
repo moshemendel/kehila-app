@@ -92,6 +92,37 @@ export default function MikvehDetailScreen() {
       .catch(() => setLoading(false));
   }, [mikvehId]);
 
+  // The listing's actions live in the stack header, matching SynagogueDetail —
+  // one place across the app for "something is wrong here" and "I manage this".
+  // Above the loading guard below, so the hook count cannot change between
+  // renders.
+  React.useLayoutEffect(() => {
+    if (!mikveh) return;
+    navigation.setOptions({
+      title: mikveh.name,
+      headerRight: () => (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <EditListingButton
+            variant="icon"
+            iconColor={Colors.white}
+            entityType="mikveh"
+            entityId={mikveh.id}
+            entityCityId={mikveh.cityId}
+          />
+          <ReportListingButton
+            variant="icon"
+            iconColor={Colors.white}
+            cityId={mikveh.cityId}
+            entityType="mikveh"
+            entityId={mikveh.id}
+            entityName={mikveh.name}
+            color={Colors.mikveh}
+          />
+        </View>
+      ),
+    });
+  }, [navigation, mikveh]);
+
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -128,29 +159,11 @@ export default function MikvehDetailScreen() {
   // ─── Render ─────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
-      {/* Floating report control — these screens have no header bar, so it sits
-          over the cover image where a header would be. */}
-      <View style={styles.reportFab} pointerEvents="box-none">
-        <EditListingButton
-          variant="overlay"
-          entityType="mikveh"
-          entityId={mikveh.id}
-          entityCityId={mikveh.cityId}
-        />
-        <ReportListingButton
-          variant="overlay"
-          cityId={mikveh.cityId}
-          entityType="mikveh"
-          entityId={mikveh.id}
-          entityName={mikveh.name}
-          color={Colors.mikveh}
-        />
-      </View>
       <StatusBar style="dark" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: top + 8, paddingBottom: bottom + 32 }}
+        contentContainerStyle={{ paddingTop: 8, paddingBottom: bottom + 32 }}
       >
 
         {/* ══ Main card ═══════════════════════════════════════════════════════ */}
@@ -379,7 +392,6 @@ export default function MikvehDetailScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  reportFab: { position: 'absolute', top: 44, left: 14, zIndex: 20, flexDirection: 'row', gap: 8 },
 
   container: { flex: 1, backgroundColor: Colors.background },
   loader:    { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background, gap: 12 },

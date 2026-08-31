@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import ReportListingButton from '../../components/ReportListingButton';
@@ -58,6 +58,7 @@ function formatDate(iso: string): string {
 export default function BusinessDetailScreen() {
   const { go: navigateTo, sheet: navSheet } = useNavigateTo();
   const route           = useRoute<any>();
+  const navigation      = useNavigation<any>();
   const { top, bottom } = useSafeAreaInsets();
 
   const { businessId } = route.params as { businessId: string };
@@ -71,6 +72,37 @@ export default function BusinessDetailScreen() {
       .then((r) => { setBusiness(r); setLoading(false); })
       .catch(() => setLoading(false));
   }, [businessId]);
+
+  // The listing's actions live in the stack header, matching SynagogueDetail —
+  // one place across the app for "something is wrong here" and "I manage this".
+  // Above the loading guard below, so the hook count cannot change between
+  // renders.
+  React.useLayoutEffect(() => {
+    if (!business) return;
+    navigation.setOptions({
+      title: business.name,
+      headerRight: () => (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <EditListingButton
+            variant="icon"
+            iconColor={Colors.white}
+            entityType="business"
+            entityId={business.id}
+            entityCityId={business.cityId}
+          />
+          <ReportListingButton
+            variant="icon"
+            iconColor={Colors.white}
+            cityId={business.cityId}
+            entityType="business"
+            entityId={business.id}
+            entityName={business.name}
+            color={Colors.kosher}
+          />
+        </View>
+      ),
+    });
+  }, [navigation, business]);
 
   // ── Loading / error ─────────────────────────────────────────────────────────
   if (loading) {
@@ -120,24 +152,6 @@ export default function BusinessDetailScreen() {
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
-      {/* Floating report control — these screens have no header bar, so it sits
-          over the cover image where a header would be. */}
-      <View style={styles.reportFab} pointerEvents="box-none">
-        <EditListingButton
-          variant="overlay"
-          entityType="business"
-          entityId={business.id}
-          entityCityId={business.cityId}
-        />
-        <ReportListingButton
-          variant="overlay"
-          cityId={business.cityId}
-          entityType="business"
-          entityId={business.id}
-          entityName={business.name}
-          color={Colors.kosher}
-        />
-      </View>
       {/* Dark status-bar icons on this screen's light background */}
       <StatusBar style="dark" />
 
@@ -171,7 +185,7 @@ export default function BusinessDetailScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: top + 8, paddingBottom: bottom + 32 }}
+        contentContainerStyle={{ paddingTop: 8, paddingBottom: bottom + 32 }}
       >
 
         {/* ══ Main info card ═══════════════════════════════════════════════ */}
@@ -486,7 +500,6 @@ function CertCard({
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  reportFab: { position: 'absolute', top: 44, left: 14, zIndex: 20, flexDirection: 'row', gap: 8 },
 
   container: { flex: 1, backgroundColor: Colors.background },
   loader:    { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background, gap: 12 },

@@ -157,18 +157,21 @@ export default function RootNavigator() {
         options={{ ...HEADER, title: 'בית הכנסת', contentStyle: stackContentStyle }}
       />
 
-      {/* Business detail — custom header baked into the screen (overlaid on gallery image) */}
+      {/* These two ran without the stack header, floating their own report and
+          edit controls over the cover instead. That left them with no way back:
+          nothing in either screen called goBack, so leaving depended entirely
+          on the Android system button — and on iOS, on knowing the edge swipe.
+          They now carry the same header as SynagogueDetail, which is also where
+          the app puts a listing's actions everywhere else. */}
       <Root.Screen
         name="BusinessDetail"
         component={BusinessDetailScreen}
-        options={{ headerShown: false }}
+        options={{ ...HEADER, title: 'בית עסק', contentStyle: stackContentStyle }}
       />
-
-      {/* Mikveh detail — custom header, same Facebook-style card design */}
       <Root.Screen
         name="MikvehDetail"
         component={MikvehDetailScreen}
-        options={{ headerShown: false }}
+        options={{ ...HEADER, title: 'מקווה', contentStyle: stackContentStyle }}
       />
 
       {/* Appointment booking — user-facing slot picker */}

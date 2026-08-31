@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { ReportEntityType } from '../types';
@@ -34,21 +34,32 @@ interface Props {
  * the missing entry point, so edit and verify happen without leaving the page.
  *
  * Visibility is not a permission check — firestore.rules is. usePermissions
- * mirrors those rules so the button appears exactly where the save will land,
- * and picks the screen: a business has two, and which one an account belongs on
- * depends on whether it runs that shop or reviews the city's kashrut.
+ * mirrors those rules so the button appears exactly where the save will land.
+ *
+ * It can answer with more than one destination. An account that reviews the
+ * city's kashrut and also owns one shop holds both capabilities over that shop,
+ * and the rules grant it the union of the field groups — but the two live on
+ * different screens, so a single-destination answer silently dropped one of
+ * them. Where both apply, the button asks which.
  */
 export default function EditListingButton({
   entityType, entityId, entityCityId, createdBy,
   color = Colors.primary, variant = 'link', iconColor = Colors.textMuted,
 }: Props) {
   const navigation = useNavigation<any>();
-  const { editRouteFor } = usePermissions();
+  const { editRoutesFor } = usePermissions();
 
-  const route = editRouteFor(entityType, entityId, entityCityId, createdBy);
-  if (!route) return null;
+  const routes = editRoutesFor(entityType, entityId, entityCityId, createdBy);
+  if (routes.length === 0) return null;
 
-  const open = () => navigation.navigate(route, { focusId: entityId });
+  const go = (route: string) => navigation.navigate(route, { focusId: entityId });
+  const open = () => {
+    if (routes.length === 1) { go(routes[0].route); return; }
+    Alert.alert('מה לערוך?', undefined, [
+      ...routes.map((r) => ({ text: r.label, onPress: () => go(r.route) })),
+      { text: 'ביטול', style: 'cancel' as const },
+    ]);
+  };
 
   if (variant === 'icon') {
     return (
