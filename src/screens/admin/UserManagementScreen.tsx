@@ -10,6 +10,8 @@ import { useSynagoguesFeed } from '../../context/SynagoguesContext';
 import { useBusinessesFeed } from '../../context/BusinessesContext';
 import { useCityId } from '../../hooks/useCityId';
 import { AppUser, UserRole } from '../../types';
+import { useAuth } from '../../context/AuthContext';
+import { rolesOf, ADMIN_ROLES } from '../../utils/roles';
 
 // Priority only used for DB write (single role field kept for auth checks)
 const ROLE_PRIORITY: UserRole[] = [
@@ -39,6 +41,30 @@ type UserDraft = {
 };
 
 type SubListState = { syn: boolean; rest: boolean };
+
+/**
+ * The roles that carry everything beneath them.
+ *
+ * Deliberately not "everything lower in ROLE_PRIORITY" — that list orders which
+ * label to show on the pill, not what implies what. event_manager sits above
+ * kosher_manager there, but an events manager holds no kashrut authority; those
+ * are parallel specialisms, not rungs. Only these four genuinely subsume.
+ */
+const BLANKET_ROLES: UserRole[] = ['super_admin', 'dev', 'city_admin', 'content_admin'];
+
+/**
+ * Roles already covered by a blanket role the account holds — בכלל מאתיים מנה.
+ * Offering them as a live choice is noise: ticking gabbai for a city_admin who
+ * already reaches every synagogue changes nothing about what they can do.
+ *
+ * Greyed rather than cleared, so demoting someone out of the blanket role
+ * brings back whatever they held underneath instead of silently losing it.
+ */
+function subsumedRoles(roles: UserRole[]): Set<UserRole> {
+  const top = ROLE_PRIORITY.findIndex((r) => roles.includes(r));
+  if (top === -1 || !BLANKET_ROLES.includes(ROLE_PRIORITY[top])) return new Set();
+  return new Set(ROLE_PRIORITY.slice(top + 1));
+}
 
 function computePrimaryRole(roles: UserRole[]): UserRole {
   for (const r of ROLE_PRIORITY) {
@@ -70,6 +96,7 @@ function initDraft(user: AppUser): UserDraft {
 }
 
 export default function UserManagementScreen() {
+  const { appUser } = useAuth();
   const cityId = useCityId();
   const { synagogues } = useSynagoguesFeed();
   const { businesses } = useBusinessesFeed();
@@ -89,7 +116,19 @@ export default function UserManagementScreen() {
       .finally(() => setLoading(false));
   }, [cityId]);
 
-  const filtered = users.filter((u) =>
+  // Mirrors the users update rule: the viewer's own account is off limits to
+  // them, and a city_admin may not touch an account that already holds
+  // authority. Both were listed anyway, offering an editor whose save the
+  // server would refuse — so the list now shows only who this viewer can act on.
+  const viewerRoles   = rolesOf(appUser);
+  const viewerIsSuper = viewerRoles.includes('super_admin') || viewerRoles.includes('dev');
+  const editable = users.filter((u) => {
+    if (u.uid === appUser?.uid) return false;
+    if (viewerIsSuper) return true;
+    return !rolesOf(u).some((r) => ADMIN_ROLES.includes(r as UserRole));
+  });
+
+  const filtered = editable.filter((u) =>
     u.displayName?.includes(search) || u.email?.includes(search)
   );
 
@@ -199,7 +238,7 @@ export default function UserManagementScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.subtitle}>{loading ? '...' : `${users.length} משתמשים רשומים`}</Text>
+        <Text style={styles.subtitle}>{loading ? '...' : `${editable.length} משתמשים`}</Text>
       </View>
 
       <View style={styles.searchBar}>
@@ -225,6 +264,7 @@ export default function UserManagementScreen() {
             const subList    = getSubList(user.uid);
             const pillInfo   = getPillInfo(draft);
 
+            const subsumed     = subsumedRoles(draft.roles);
             const showSynList  = draft.roles.includes('gabbai') && synagogues.length > 0;
             const showRestList = draft.roles.includes('business_manager') && businesses.length > 0;
 
@@ -260,6 +300,7 @@ export default function UserManagementScreen() {
                       {ROLES.map((r) => {
                         const active     = draft.roles.includes(r.key);
                         const isListRole = LIST_ROLES.has(r.key);
+                        const covered    = !active && subsumed.has(r.key);
                         const itemCount  = r.key === 'gabbai'
                           ? draft.managedSynagogueIds.length
                           : r.key === 'business_manager'
@@ -278,9 +319,10 @@ export default function UserManagementScreen() {
                                 styles.roleChip,
                                 fullFill   && { backgroundColor: r.color, borderColor: r.color },
                                 borderOnly && { borderColor: r.color, borderWidth: 2, backgroundColor: r.color + '15' },
+                                covered    && styles.roleChipCovered,
                               ]}
                               onPress={() => toggleRole(user, r.key)}
-                              disabled={isSaving}
+                              disabled={isSaving || covered}
                             >
                               <Ionicons
                                 name={r.icon as any}
@@ -418,6 +460,7 @@ const styles = StyleSheet.create({
   editorLabel:       { fontSize: 12, fontWeight: '700', color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
   rolesGrid:         { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: Spacing.md, paddingTop: 8 },
   chipWrapper:       { position: 'relative' },
+  roleChipCovered: { opacity: 0.35 },
   roleChip:          { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.full, borderWidth: 1.5, borderColor: Colors.border },
   roleChipText:      { fontSize: 11, fontWeight: '600', color: Colors.textSecondary },
   chipBadge:         { position: 'absolute', top: -7, right: -7, backgroundColor: Colors.danger, borderRadius: 10, minWidth: 18, height: 18, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 1.5, borderColor: Colors.background },
