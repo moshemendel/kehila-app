@@ -413,7 +413,9 @@ export default function SynagogueDetailScreen() {
 
   return (
     <View style={st.container}>
-      <StatusBar style="dark" />
+      {/* The stack header runs under the status bar, so its icons sit on
+          the section colour — light, like every other headered screen. */}
+        <StatusBar style="light" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

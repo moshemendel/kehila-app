@@ -13,6 +13,14 @@ export const Colors = {
 
   // ── Gold accent ─────────────────────────────────────────────────────────
   gold:         '#B8922A',   // ceremonial gold (buttons, borders)
+  // Darker pair for surfaces carrying white text. The bright section colours
+  // read well as accents but not as backgrounds: white on gold measures 2.92:1,
+  // under even the 3:1 allowed for large text, and the gemach brown lands at
+  // 4.19:1 — fine for a bold title, short of the 4.5:1 body-text bar. These are
+  // the same hues taken down in lightness until they clear 4.5:1.
+  goldDeep:     '#907221',   // eruv header      — 4.55:1 on white
+  gemach:       '#B06B3A',   // gemach accent
+  gemachDeep:   '#A56537',   // gemach header    — 4.65:1 on white
   goldBright:   '#F0C84C',   // bright gold (star favorites, highlights)
   goldMuted:    '#C9A84C',   // muted warm gold (zmanim screen values)
 

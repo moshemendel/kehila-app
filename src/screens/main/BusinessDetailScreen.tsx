@@ -108,7 +108,9 @@ export default function BusinessDetailScreen() {
   if (loading) {
     return (
       <View style={styles.loader}>
-        <StatusBar style="dark" />
+        {/* The stack header runs under the status bar, so its icons sit on
+          the section colour — light, like every other headered screen. */}
+        <StatusBar style="light" />
         <ActivityIndicator size="large" color={Colors.kosher} />
       </View>
     );
@@ -116,7 +118,7 @@ export default function BusinessDetailScreen() {
   if (!business) {
     return (
       <View style={styles.loader}>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <Ionicons name="alert-circle-outline" size={52} color={Colors.textMuted} />
         <Text style={styles.notFound}>המסעדה לא נמצאה</Text>
       </View>
@@ -153,7 +155,7 @@ export default function BusinessDetailScreen() {
   return (
     <View style={styles.container}>
       {/* Dark status-bar icons on this screen's light background */}
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
 
       {/* ── Certificate full-screen viewer ─────────────────────────────── */}
       <Modal

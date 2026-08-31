@@ -38,12 +38,27 @@ import { SHOW_DEV_TOOLS } from '../utils/devTools';
 
 const Root = createNativeStackNavigator();
 
+/**
+ * A screen's header wears its section's colour.
+ *
+ * Every section already has one — the management rows in ProfileScreen and the
+ * cards in each list have used them all along — so a blue bar over a green
+ * kashrut screen was the odd part, not the coloured ones. The header is the
+ * largest block of colour on the screen, which makes it the cheapest way to say
+ * where you are before a word is read.
+ *
+ * Not every accent survives being a background. White on the ceremonial gold
+ * measures 2.92:1, under even the 3:1 allowed for large text, so the eruv and
+ * gemach headers use the deepened pair added alongside them in theme.ts rather
+ * than the accent itself.
+ */
 const HEADER = {
-  headerStyle: { backgroundColor: Colors.primary },
   headerTintColor: Colors.white,
   headerTitleStyle: { fontWeight: '700' as const },
   headerBackTitle: 'חזור',
+  headerStyle: { backgroundColor: Colors.primary },
 };
+const header = (backgroundColor: string) => ({ ...HEADER, headerStyle: { backgroundColor } });
 
 // Login/Register presented as an on-demand modal. Auto-dismisses itself the
 // moment the user becomes authenticated (or enters demo), so the caller never
@@ -154,7 +169,7 @@ export default function RootNavigator() {
       <Root.Screen
         name="SynagogueDetail"
         component={SynagogueDetailScreen}
-        options={{ ...HEADER, title: 'בית הכנסת', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.primary), title: 'בית הכנסת', contentStyle: stackContentStyle }}
       />
 
       {/* These two ran without the stack header, floating their own report and
@@ -166,26 +181,26 @@ export default function RootNavigator() {
       <Root.Screen
         name="BusinessDetail"
         component={BusinessDetailScreen}
-        options={{ ...HEADER, title: 'בית עסק', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.kosher), title: 'בית עסק', contentStyle: stackContentStyle }}
       />
       <Root.Screen
         name="MikvehDetail"
         component={MikvehDetailScreen}
-        options={{ ...HEADER, title: 'מקווה', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.mikveh), title: 'מקווה', contentStyle: stackContentStyle }}
       />
 
       {/* Appointment booking — user-facing slot picker */}
       <Root.Screen
         name="AppointmentBooking"
         component={AppointmentBookingScreen}
-        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.mikveh }, title: 'קביעת תור', contentStyle: { paddingBottom: 0 } }}
+        options={{ ...header(Colors.mikveh), title: 'קביעת תור', contentStyle: { paddingBottom: 0 } }}
       />
 
       {/* Kashrut updates feed */}
       <Root.Screen
         name="KashrutUpdates"
         component={KashrutUpdatesScreen}
-        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.success }, title: 'עדכוני כשרות', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.kosher), title: 'עדכוני כשרות', contentStyle: stackContentStyle }}
       />
 
       {/* Event detail */}
@@ -199,7 +214,7 @@ export default function RootNavigator() {
       <Root.Screen
         name="MyEvents"
         component={MyEventsScreen}
-        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.events }, title: 'האירועים שלי', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.events), title: 'האירועים שלי', contentStyle: stackContentStyle }}
       />
 
       {/* Selichot lives in the tab navigator, not here: as a root-stack screen
@@ -212,57 +227,57 @@ export default function RootNavigator() {
       <Root.Screen
         name="ManageSynagogue"
         component={ManageSynagogueScreen}
-        options={{ ...HEADER, title: 'ניהול בית כנסת', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.primary), title: 'ניהול בית כנסת', contentStyle: stackContentStyle }}
       />
       <Root.Screen
         name="ManageBusiness"
         component={ManageBusinessScreen}
-        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.kosher }, title: 'ניהול בתי עסק', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.kosher), title: 'ניהול בתי עסק', contentStyle: stackContentStyle }}
       />
       <Root.Screen
         name="ManageKosher"
         component={ManageKosherScreen}
-        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.success }, title: 'ניהול כשרות', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.kosher), title: 'ניהול כשרות', contentStyle: stackContentStyle }}
       />
       <Root.Screen
         name="ManageMikveh"
         component={ManageMikvehScreen}
-        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.mikveh }, title: 'ניהול מקוואות', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.mikveh), title: 'ניהול מקוואות', contentStyle: stackContentStyle }}
       />
       <Root.Screen
         name="ManageAppointments"
         component={ManageAppointmentsScreen}
-        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.mikveh }, title: 'ניהול תורים', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.mikveh), title: 'ניהול תורים', contentStyle: stackContentStyle }}
       />
       <Root.Screen
         name="ManageEvents"
         component={ManageEventsScreen}
-        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.events }, title: 'ניהול אירועים', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.events), title: 'ניהול אירועים', contentStyle: stackContentStyle }}
       />
       <Root.Screen
         name="UserManagement"
         component={UserManagementScreen}
-        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.danger }, title: 'ניהול משתמשים', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.danger), title: 'ניהול משתמשים', contentStyle: stackContentStyle }}
       />
       <Root.Screen
         name="ManageEruv"
         component={ManageEruvScreen}
-        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.gold }, title: 'ניהול עירוב', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.goldDeep), title: 'ניהול עירוב', contentStyle: stackContentStyle }}
       />
       <Root.Screen
         name="ManageCities"
         component={ManageCitiesScreen}
-        options={{ ...HEADER, title: 'ניהול ערים', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.primary), title: 'ניהול ערים', contentStyle: stackContentStyle }}
       />
       <Root.Screen
         name="ManageReports"
         component={ManageReportsScreen}
-        options={{ ...HEADER, headerStyle: { backgroundColor: Colors.danger }, title: 'דיווחים על מידע שגוי', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.danger), title: 'דיווחים על מידע שגוי', contentStyle: stackContentStyle }}
       />
       <Root.Screen
         name="ManageGemach"
         component={ManageGemachScreen}
-        options={{ ...HEADER, headerStyle: { backgroundColor: '#B06B3A' }, title: 'ניהול גמ"חים', contentStyle: stackContentStyle }}
+        options={{ ...header(Colors.gemachDeep), title: 'ניהול גמ"חים', contentStyle: stackContentStyle }}
       />
 
       {/* Zmanim settings — city + method selection */}
