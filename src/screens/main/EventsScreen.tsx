@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useAnalyticsTrack } from '../../services/analytics';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -9,12 +9,46 @@ import FilterBar from '../../components/FilterBar';
 import { useEventsFeed } from '../../context/EventsContext';
 import { useSynagogueEventReminders } from '../../context/SynagogueEventRemindersContext';
 import { Colors, Spacing, Radius } from '../../utils/theme';
-import { EventCategory } from '../../types';
+import { EventCategory, CommunityEvent } from '../../types';
 
 const CATEGORY_LABELS: Record<string, string> = {
   alert: '🚨 התראות', shiur: '📚 שיעורים', community: '👥 קהילה',
   holiday: '✡ חגים', charity: '❤️ צדקה', youth: '🧑 נוער', announcement: '📢 הודעות',
 };
+
+/**
+ * One event card, memoised.
+ *
+ * EventCard is about thirty native views, and unlike the synagogue and prayer
+ * lists this one has no natural ceiling — events accumulate as the community
+ * uses the app, so the cost here grows over time rather than being fixed by
+ * the size of the city. Behind a FlatList only the visible cards exist, and
+ * memo keeps a re-render from rebuilding the ones that have not changed.
+ */
+const EventRow = React.memo(function EventRow({
+  event, unread, fav, onOpen, onToggleFav, onDismiss,
+}: {
+  event:       CommunityEvent;
+  unread:      boolean;
+  fav:         boolean;
+  onOpen:      (e: CommunityEvent) => void;
+  onToggleFav: (e: CommunityEvent) => void;
+  onDismiss:   (id: string) => void;
+}) {
+  return (
+    <View style={styles.cardWrap}>
+      {/* Unread dot — blue pip on the right edge */}
+      {unread && <View style={styles.unreadDot} />}
+      <EventCard
+        event={event}
+        isFavorite={fav}
+        onToggleFavorite={() => onToggleFav(event)}
+        onPress={() => onOpen(event)}
+        onDismiss={() => onDismiss(event.id)}
+      />
+    </View>
+  );
+});
 
 export default function EventsScreen() {
   useAnalyticsTrack('events');
@@ -32,6 +66,26 @@ export default function EventsScreen() {
 
   const [filters,           setFilters]           = useState<Record<string, string[]>>({ category: [] });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+
+  // Stable identities, or React.memo on the row never holds.
+  const eventKey    = useCallback((e: CommunityEvent) => e.id, []);
+  const openEvent   = useCallback(
+    (e: CommunityEvent) => navigation.navigate('EventDetail', { eventId: e.id }),
+    [navigation],
+  );
+  const renderEvent = useCallback(
+    ({ item }: { item: CommunityEvent }) => (
+      <EventRow
+        event={item}
+        unread={!isRead(item.id)}
+        fav={isFavorite(item.id)}
+        onOpen={openEvent}
+        onToggleFav={toggleFavorite}
+        onDismiss={dismiss}
+      />
+    ),
+    [isRead, isFavorite, openEvent, toggleFavorite, dismiss],
+  );
 
   const unreadAlerts = events.filter((e) => e.isAlert && !isRead(e.id));
 
@@ -99,29 +153,37 @@ export default function EventsScreen() {
       ) : error ? (
         <Text style={styles.errorText}>שגיאה בטעינת הנתונים: {error}</Text>
       ) : (
-        <ScrollView contentContainerStyle={{ padding: Spacing.md }}>
-          {/* A full rendering of these used to live here. It moved to
-              MyEventsScreen, which merges them with starred city events
-              instead of keeping a second, separately-maintained list — this
-              stays as a slim pointer to that screen. */}
-          {!showFavoritesOnly && remindedEvents.length > 0 && (
-            <TouchableOpacity
-              style={styles.synBanner}
-              onPress={() => navigation.navigate('MyEvents')}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="notifications" size={16} color={Colors.events} />
-              <Text style={styles.synBannerTxt}>
-                {remindedEvents.length === 1
-                  ? 'תזכורת אחת מבית כנסת'
-                  : `${remindedEvents.length} תזכורות מבתי כנסת`}
-                {' · לצפייה בהכל'}
-              </Text>
-              <Ionicons name="chevron-back-outline" size={16} color={Colors.textMuted} />
-            </TouchableOpacity>
-          )}
-
-          {visible.length === 0 && (
+        <FlatList
+          data={visible}
+          keyExtractor={eventKey}
+          renderItem={renderEvent}
+          contentContainerStyle={{ padding: Spacing.md }}
+          initialNumToRender={6}
+          maxToRenderPerBatch={6}
+          windowSize={7}
+          ListHeaderComponent={
+            /* A full rendering of these used to live here. It moved to
+               MyEventsScreen, which merges them with starred city events
+               instead of keeping a second, separately-maintained list — this
+               stays as a slim pointer to that screen. */
+            !showFavoritesOnly && remindedEvents.length > 0 ? (
+              <TouchableOpacity
+                style={styles.synBanner}
+                onPress={() => navigation.navigate('MyEvents')}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="notifications" size={16} color={Colors.events} />
+                <Text style={styles.synBannerTxt}>
+                  {remindedEvents.length === 1
+                    ? 'תזכורת אחת מבית כנסת'
+                    : `${remindedEvents.length} תזכורות מבתי כנסת`}
+                  {' · לצפייה בהכל'}
+                </Text>
+                <Ionicons name="chevron-back-outline" size={16} color={Colors.textMuted} />
+              </TouchableOpacity>
+            ) : null
+          }
+          ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons
                 name={showFavoritesOnly ? 'star-outline' : 'calendar-outline'}
@@ -135,24 +197,8 @@ export default function EventsScreen() {
                 <Text style={styles.emptySub}>סמן אירוע עם ★ כדי לקבל תזכורת</Text>
               )}
             </View>
-          )}
-          {visible.map((e) => {
-            const unread = !isRead(e.id);
-            return (
-              <View key={e.id} style={styles.cardWrap}>
-                {/* Unread dot — blue pip on the right edge */}
-                {unread && <View style={styles.unreadDot} />}
-                <EventCard
-                  event={e}
-                  isFavorite={isFavorite(e.id)}
-                  onToggleFavorite={() => toggleFavorite(e)}
-                  onPress={() => navigation.navigate('EventDetail', { eventId: e.id })}
-                  onDismiss={() => dismiss(e.id)}
-                />
-              </View>
-            );
-          })}
-        </ScrollView>
+          }
+        />
       )}
     </View>
   );
