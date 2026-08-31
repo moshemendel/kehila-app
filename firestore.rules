@@ -78,9 +78,29 @@ service cloud.firestore {
     function isAdminOf(targetCityId) {
       return isSuperAdminRole() || isCityAdminOf(targetCityId);
     }
+    // content_admin — a city_admin's deputy for everything the app publishes,
+    // and for nothing else. Same reach over synagogues, businesses, mikvaot,
+    // events, eruv and gemachs; no reach at all over accounts or the city
+    // record, which is the whole point of the role existing.
+    //
+    // A second city_admin would have meant ranking two accounts of one role
+    // against each other — storing which is senior, and walking that
+    // relationship on every check, at a document read apiece. Splitting on
+    // authority-over-people instead makes the deputy just a role: everything
+    // that looked like it needed a hierarchy (cannot demote the one who
+    // appointed them, cannot appoint more admins) is simply absent here.
+    function isContentAdminOf(targetCityId) {
+      return isSignedIn() && hasRole('content_admin') && userDoc().homeCityId == targetCityId;
+    }
+    // Every use of isAdminOf() below gates content. Accounts and the city
+    // record are gated by isCityAdminOf/isSuperAdminRole directly and stay out
+    // of reach — which is why this can be a blanket substitution.
+    function managesContentIn(targetCityId) {
+      return isAdminOf(targetCityId) || isContentAdminOf(targetCityId);
+    }
     function managesSynagogue(synId, synCityId) {
       return isSignedIn() && (
-        isAdminOf(synCityId) ||
+        managesContentIn(synCityId) ||
         (hasRole('gabbai') && synId in userDoc().managedSynagogueIds)
       );
     }
@@ -127,7 +147,7 @@ service cloud.firestore {
     }
     function managesBusiness(bizId, bizCityId) {
       return isSignedIn() && (
-        isAdminOf(bizCityId) ||
+        managesContentIn(bizCityId) ||
         hasCityRole('kosher_manager', bizCityId) ||
         (hasRole('business_manager') && bizId in userDoc().managedRestaurantIds)
       );
@@ -204,7 +224,7 @@ service cloud.firestore {
       // management screens, which anything talking to Firestore directly could
       // ignore. Now the fields a caller may change are the union of the groups
       // it qualifies for, and hasOnly() rejects a write reaching past them.
-      allow update: if isAdminOf(resource.data.cityId) ||
+      allow update: if managesContentIn(resource.data.cityId) ||
         ((hasCityRole('kosher_manager', resource.data.cityId) || operatesBusiness(bizId))
          && request.resource.data.diff(resource.data).affectedKeys()
               .hasOnly(bizWritableKeys(bizId, resource.data.cityId)));
@@ -214,15 +234,15 @@ service cloud.firestore {
       // active state); a listing goes away when its certification is revoked
       // for good. managesBusiness() would have let an operator delete their own
       // record outright, taking the certificate history with it.
-      allow delete: if isAdminOf(resource.data.cityId)
+      allow delete: if managesContentIn(resource.data.cityId)
                     || hasCityRole('kosher_manager', resource.data.cityId);
     }
 
     // ── Mikvaot ──────────────────────────────────────────────────────────────
     match /mikvaot/{mikId} {
       allow read: if true;
-      allow create: if isAdminOf(request.resource.data.cityId) || hasCityRole('mikveh_manager', request.resource.data.cityId);
-      allow update, delete: if isAdminOf(resource.data.cityId) || hasCityRole('mikveh_manager', resource.data.cityId);
+      allow create: if managesContentIn(request.resource.data.cityId) || hasCityRole('mikveh_manager', request.resource.data.cityId);
+      allow update, delete: if managesContentIn(resource.data.cityId) || hasCityRole('mikveh_manager', resource.data.cityId);
 
       // Appointment docs store userId — reads restricted to the owner or a
       // mikveh manager/admin. Regular users get slot occupancy from the
@@ -280,32 +300,32 @@ service cloud.firestore {
     // ── Kashrut config ───────────────────────────────────────────────────────
     match /kashrutConfig/{cityId} {
       allow read: if true;
-      allow write: if isAdminOf(cityId) || hasCityRole('kosher_manager', cityId);
+      allow write: if managesContentIn(cityId) || hasCityRole('kosher_manager', cityId);
     }
 
     // ── Kashrut updates feed ─────────────────────────────────────────────────
     match /kashrutUpdates/{id} {
       allow read: if true;
-      allow create: if isAdminOf(request.resource.data.cityId) || hasCityRole('kosher_manager', request.resource.data.cityId);
-      allow update, delete: if isAdminOf(resource.data.cityId) || hasCityRole('kosher_manager', resource.data.cityId);
+      allow create: if managesContentIn(request.resource.data.cityId) || hasCityRole('kosher_manager', request.resource.data.cityId);
+      allow update, delete: if managesContentIn(resource.data.cityId) || hasCityRole('kosher_manager', resource.data.cityId);
     }
 
     // ── Community events ──────────────────────────────────────────────────────
     match /events/{eventId} {
       allow read: if true;
-      allow create: if isSignedIn() && (isAdminOf(request.resource.data.cityId) || hasCityRole('event_manager', request.resource.data.cityId));
-      allow update, delete: if isAdminOf(resource.data.cityId) || hasCityRole('event_manager', resource.data.cityId) ||
+      allow create: if isSignedIn() && (managesContentIn(request.resource.data.cityId) || hasCityRole('event_manager', request.resource.data.cityId));
+      allow update, delete: if managesContentIn(resource.data.cityId) || hasCityRole('event_manager', resource.data.cityId) ||
         (isSignedIn() && resource.data.createdBy == request.auth.uid);
     }
 
     // ── Pending (gabay-submitted) events ─────────────────────────────────────
     match /pending_events/{docId} {
-      allow read: if isAdminOf(resource.data.cityId) || hasCityRole('event_manager', resource.data.cityId);
+      allow read: if managesContentIn(resource.data.cityId) || hasCityRole('event_manager', resource.data.cityId);
       allow create: if isSignedIn() && (
-        isAdminOf(request.resource.data.cityId) || hasCityRole('event_manager', request.resource.data.cityId) || hasRole('gabbai')
+        managesContentIn(request.resource.data.cityId) || hasCityRole('event_manager', request.resource.data.cityId) || hasRole('gabbai')
       );
-      allow update: if isAdminOf(resource.data.cityId) || hasCityRole('event_manager', resource.data.cityId);
-      allow delete: if isAdminOf(resource.data.cityId);
+      allow update: if managesContentIn(resource.data.cityId) || hasCityRole('event_manager', resource.data.cityId);
+      allow delete: if managesContentIn(resource.data.cityId);
     }
 
     // ── Analytics events ──────────────────────────────────────────────────────
@@ -361,23 +381,23 @@ service cloud.firestore {
     // ── Eruv status ───────────────────────────────────────────────────────────
     match /eruvStatus/{cityId} {
       allow read: if true;
-      allow write: if isAdminOf(cityId) || hasCityRole('eruv_manager', cityId);
+      allow write: if managesContentIn(cityId) || hasCityRole('eruv_manager', cityId);
     }
 
     // ── Eruv reports ──────────────────────────────────────────────────────────
     match /eruvReports/{reportId} {
-      allow read: if isAdminOf(resource.data.cityId) || hasCityRole('eruv_manager', resource.data.cityId);
+      allow read: if managesContentIn(resource.data.cityId) || hasCityRole('eruv_manager', resource.data.cityId);
       allow create: if isSignedIn()
         && request.resource.data.userId == request.auth.uid;
-      allow update: if isAdminOf(resource.data.cityId) || hasCityRole('eruv_manager', resource.data.cityId);
-      allow delete: if isAdminOf(resource.data.cityId);
+      allow update: if managesContentIn(resource.data.cityId) || hasCityRole('eruv_manager', resource.data.cityId);
+      allow delete: if managesContentIn(resource.data.cityId);
     }
 
     // ── Gemachs — public read; admin or the original submitter can write ─────
     match /gemachs/{gemachId} {
       allow read: if true;
-      allow create: if isAdminOf(request.resource.data.cityId);
-      allow update, delete: if isAdminOf(resource.data.cityId) ||
+      allow create: if managesContentIn(request.resource.data.cityId);
+      allow update, delete: if managesContentIn(resource.data.cityId) ||
         (isSignedIn() && resource.data.createdBy == request.auth.uid);
     }
 
@@ -386,7 +406,7 @@ service cloud.firestore {
     // even though it wasn't in the originally-called-out collection list.)
     match /pending_gemachs/{docId} {
       allow create: if isSignedIn();
-      allow read, update, delete: if isAdminOf(resource.data.cityId);
+      allow read, update, delete: if managesContentIn(resource.data.cityId);
     }
 
     // ── Content reports — users flagging wrong info on a public listing ───────
@@ -424,9 +444,9 @@ service cloud.firestore {
         && request.auth.token.email_verified == true
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.status == 'open';
-      allow read, update: if isAdminOf(resource.data.cityId) || managesReported();
+      allow read, update: if managesContentIn(resource.data.cityId) || managesReported();
       // Deleting destroys the audit trail — admins only, managers just resolve.
-      allow delete: if isAdminOf(resource.data.cityId);
+      allow delete: if managesContentIn(resource.data.cityId);
     }
 
   }

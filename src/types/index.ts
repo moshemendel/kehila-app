@@ -36,6 +36,10 @@ export interface PendingGemach {
 export type UserRole =
   | "user"
   | "gabbai"
+  // A city_admin's deputy for published content, with no authority over
+  // accounts — see isContentAdminOf in firestore.rules for why that split
+  // exists instead of a second, subordinate city_admin.
+  | "content_admin"
   | "business_manager"
   | "kosher_manager"
   | "mikveh_manager"

@@ -15,6 +15,7 @@ import { Business } from '../../types';
 import LocationEditModal from '../../components/LocationEditModal';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
 import TimeRangePicker from '../../components/TimeRangePicker';
+import { managesContent } from '../../utils/roles';
 
 const DAYS: [string, string][] = [
   ['sunday','ראשון'],['monday','שני'],['tuesday','שלישי'],
@@ -212,7 +213,7 @@ export default function ManageBusinessScreen() {
   }, [navigation, selected]);
 
   const roles = appUser?.roles ?? (appUser?.role ? [appUser.role] : []);
-  const isAdmin = roles.some((r) => ['city_admin', 'super_admin', 'dev'].includes(r));
+  const isAdmin = managesContent(appUser);
   // Unlike ManageKosherScreen (city-wide kashrut cert review), this screen edits a
   // business's general info — here a kosher_manager is scoped to only the businesses
   // a city_admin explicitly granted them via managedRestaurantIds, same as business_manager.

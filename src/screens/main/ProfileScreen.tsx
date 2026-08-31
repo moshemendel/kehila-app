@@ -25,12 +25,14 @@ import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { UserRole, City } from '../../types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CityPicker from '../../components/CityPicker';
+import { managesContent, isAdminRole as isAdminRoleOf } from '../../utils/roles';
 
 const IS_EXPO_GO = Constants.executionEnvironment === 'storeClient';
 
 const ROLE_LABELS: Record<UserRole, string> = {
   user: 'משתמש רגיל',
   gabbai: 'גבאי',
+  content_admin: 'מנהל תוכן',
   business_manager: 'מנהל עסק',
   kosher_manager: 'מנהל כשרות במועצה',
   mikveh_manager: 'מנהל מקוואות',
@@ -44,6 +46,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
 const ROLE_COLORS: Record<UserRole, string> = {
   user:               Colors.textSecondary,
   gabbai:             Colors.primaryLight,
+  content_admin:      Colors.warning,
   business_manager: Colors.kosher,
   kosher_manager:     Colors.success,
   mikveh_manager:     Colors.mikveh,
@@ -117,7 +120,11 @@ export default function ProfileScreen() {
   const roles = appUser?.roles ?? [role];
   const isManager = roles.some((r) => r !== 'user');
   const alerts = useManagerAlertsFeed();
-  const isAdminRole = roles.some((r) => ['city_admin', 'super_admin', 'dev'].includes(r));
+  // Two flags, not one. The content rows below open to a content_admin; the
+  // account and city rows do not, which is the entire distinction the role
+  // draws.
+  const canManageContent = managesContent(appUser);
+  const isAdminRole      = isAdminRoleOf(appUser);
 
   const cityId = useCityId();
   const { city } = useCity(cityId);
@@ -250,35 +257,35 @@ export default function ProfileScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>ניהול</Text>
             <View style={styles.card}>
-              {(roles.includes('gabbai') || isAdminRole) && (
+              {(roles.includes('gabbai') || canManageContent) && (
                 <MenuRow icon="business-outline" label="ניהול בית כנסת" color={Colors.primaryLight}
                   onPress={() => openManage('ManageSynagogue')} />
               )}
-              {(roles.includes('business_manager') || isAdminRole) && (
+              {(roles.includes('business_manager') || canManageContent) && (
                 <MenuRow icon="restaurant-outline" label="ניהול בתי עסק" color={Colors.kosher}
                   onPress={() => openManage('ManageBusiness')} />
               )}
-              {(roles.includes('kosher_manager') || isAdminRole) && (
+              {(roles.includes('kosher_manager') || canManageContent) && (
                 <MenuRow icon="shield-checkmark-outline" label="ניהול כשרות" color={Colors.success}
                   onPress={() => openManage('ManageKosher')} />
               )}
-              {(roles.includes('event_manager') || isAdminRole) && (
+              {(roles.includes('event_manager') || canManageContent) && (
                 <MenuRow icon="megaphone-outline" label="ניהול אירועים והודעות" color={Colors.events}
                   badge={alerts.pendingEvents > 0 ? String(alerts.pendingEvents) : undefined}
                   onPress={() => openManage('ManageEvents',
                     alerts.pendingEvents > 0 ? { initialTab: 'pending' } : undefined)} />
               )}
-              {(roles.includes('mikveh_manager') || isAdminRole) && (
+              {(roles.includes('mikveh_manager') || canManageContent) && (
                 <MenuRow icon="water-outline" label="ניהול מקוואות" color={Colors.mikveh}
                   onPress={() => openManage('ManageMikveh')} />
               )}
-              {isAdminRole && (
+              {canManageContent && (
                 <MenuRow icon="gift-outline" label='ניהול גמ"חים' color="#B06B3A"
                   badge={alerts.pendingGemachs > 0 ? String(alerts.pendingGemachs) : undefined}
                   onPress={() => openManage('ManageGemach',
                     alerts.pendingGemachs > 0 ? { initialTab: 'pending' } : undefined)} />
               )}
-              {(roles.includes('eruv_manager') || isAdminRole) && (
+              {(roles.includes('eruv_manager') || canManageContent) && (
                 <MenuRow icon="shield-outline" label="ניהול עירוב" color={Colors.gold}
                   badge={alerts.eruvReports > 0 ? String(alerts.eruvReports) : undefined}
                   onPress={() => openManage('ManageEruv',

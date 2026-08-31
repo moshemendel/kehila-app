@@ -26,6 +26,7 @@ import TimePicker from '../../components/TimePicker';
 import MultiDateCalendar from '../../components/MultiDateCalendar';
 import { synagogueSelichotStart } from '../../utils/selichot';
 import { splitAnnouncements } from '../../utils/synagogueAnnouncements';
+import { managesContent } from '../../utils/roles';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -989,7 +990,7 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
   syn: Synagogue; onBack: () => void; isDemo: boolean; userId: string; userName: string;
 }) {
   const { appUser } = useAuth();
-  const isAdmin = ['city_admin', 'super_admin', 'dev'].includes(appUser?.role ?? '');
+  const isAdmin = managesContent(appUser);
   const { options: nusachOptions, addOption: addNusach, labelFor: nusachLabel } = useNusachOptions(syn.cityId);
   const [showAddNusach, setShowAddNusach] = useState(false);
   const [newNusachText, setNewNusachText] = useState('');
@@ -1544,7 +1545,7 @@ export default function ManageSynagogueScreen() {
   const deepLinked = useRef(!!focusId);
   const [adding,   setAdding]   = useState(false);
   const [creating, setCreating] = useState(false);
-  const isAdmin = ['city_admin', 'super_admin', 'dev'].includes(appUser?.role ?? '');
+  const isAdmin = managesContent(appUser);
   const managed = appUser?.managedSynagogueIds ?? [];
   const { options: nusachOptions } = useNusachOptions(cityId);
 

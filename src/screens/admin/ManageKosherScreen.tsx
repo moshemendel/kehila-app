@@ -22,6 +22,7 @@ import ImageGalleryEditor from '../../components/ImageGalleryEditor';
 import AddItemModal from '../../components/AddItemModal';
 import BottomSheetModal from '../../components/BottomSheetModal';
 import Dropdown from '../../components/Dropdown';
+import { managesContent } from '../../utils/roles';
 
 const KOSHER_LEVELS: { key: KosherLevel; label: string }[] = [
   { key: 'mehadrin',       label: 'מהדרין' },
@@ -725,7 +726,7 @@ export default function ManageKosherScreen() {
   const [creating, setCreating] = useState(false);
 
   const roles = appUser?.roles ?? (appUser?.role ? [appUser.role] : []);
-  const isAdmin = roles.some((r) => ['city_admin', 'super_admin', 'dev'].includes(r));
+  const isAdmin = managesContent(appUser);
   // Kosher certification review is a city-wide responsibility, not tied to specific
   // assigned businesses — mirrors managesBusiness() in firestore.rules, which already
   // grants kosher_manager access to every business regardless of managedRestaurantIds.

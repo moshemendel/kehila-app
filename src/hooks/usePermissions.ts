@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { ReportEntityType } from '../types';
+import { CONTENT_ROLES } from '../utils/roles';
 
 /**
  * Can the signed-in account edit this listing?
@@ -46,7 +47,7 @@ export interface ListingPermissions {
   ) => string | null;
 }
 
-const ADMIN_ROLES = ['city_admin', 'super_admin', 'dev'];
+
 
 export function usePermissions(): ListingPermissions {
   const { appUser, isDemo, isGuest } = useAuth();
@@ -65,6 +66,11 @@ export function usePermissions(): ListingPermissions {
     const isCityAdminOf       = (c: string) => hasRole('city_admin') && homeCityId === c;
     const isAdminOf           = (c: string) => isSuperAdmin || isCityAdminOf(c);
     const hasCityRole         = (r: string, c: string) => hasRole(r) && homeCityId === c;
+    // Mirrors managesContentIn() in firestore.rules: a content_admin has a
+    // city_admin's reach over everything the app publishes, and none of their
+    // authority over accounts. Nothing here gates accounts, so the two are the
+    // same function for this file's purposes.
+    const managesContentIn    = (c: string) => isAdminOf(c) || hasCityRole('content_admin', c);
 
     function editRouteFor(
       entityType: ReportEntityType,
@@ -75,8 +81,8 @@ export function usePermissions(): ListingPermissions {
       // Demo mode never reaches Firestore, so there is nothing for the rules to
       // reject — showing the management UI is the point of the demo.
       const admin = isDemo
-        ? roles.some((r) => ADMIN_ROLES.includes(r))
-        : isAdminOf(entityCityId);
+        ? roles.some((r) => CONTENT_ROLES.includes(r as never))
+        : managesContentIn(entityCityId);
       if (!isDemo && (isGuest || !appUser)) return null;
 
       switch (entityType) {

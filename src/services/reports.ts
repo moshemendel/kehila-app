@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { AppUser, ContentReport, ReportEntityType, ReportReason } from '../types';
+import { rolesOf, managesContent } from '../utils/roles';
 
 const COL = 'contentReports';
 
@@ -97,8 +98,8 @@ const IN_LIMIT = 30;
 export function buildReportQueries(cityId: string, user: AppUser | null): Query[] {
   if (!cityId || !user) return [];
 
-  const roles: string[] = user.roles ?? (user.role ? [user.role] : []);
-  const isAdmin = roles.some((r) => ['city_admin', 'super_admin', 'dev'].includes(r));
+  const roles = rolesOf(user);
+  const isAdmin = managesContent(user);
   const col = collection(db, COL);
 
   // Admins can read every report in the city, so one unscoped query is safe.

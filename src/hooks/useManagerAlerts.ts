@@ -4,6 +4,7 @@ import { db } from '../services/firebase';
 import { buildReportQueries } from '../services/reports';
 import { useCityId } from './useCityId';
 import { useAuth } from '../context/AuthContext';
+import { managesContent } from '../utils/roles';
 
 export interface ManagerAlerts {
   /** Open content reports this user can act on. */
@@ -36,7 +37,7 @@ export function useManagerAlerts(): ManagerAlerts {
   const [alerts, setAlerts] = useState<ManagerAlerts>(EMPTY);
 
   const roles: string[] = appUser?.roles ?? (appUser?.role ? [appUser.role] : []);
-  const isAdmin = roles.some((r) => ['city_admin', 'super_admin', 'dev'].includes(r));
+  const isAdmin = managesContent(appUser);
   const isEventMgr = roles.includes('event_manager');
   const isEruvMgr = roles.includes('eruv_manager');
   // Recomputed as a string so the effect doesn't re-run on every render.

@@ -79,7 +79,11 @@ export default function SearchScreen() {
 
   const restResults = useMemo(() => {
     if (!q || !show('businesses') || isComingSoon('kashrut')) return [];
-    return businesses.filter(r =>
+    // isHidden means the rabbanut certificate is deactivated. BusinessesScreen
+    // has always filtered on it; search did not, so a business pulled for a
+    // kashrut problem stayed findable by name — the one kind of stale
+    // information this app must not serve.
+    return businesses.filter(r => !r.isHidden).filter(r =>
       hit(q, r.name, r.neighborhood, r.address, r.description, r.category, ...(r.categories ?? [])));
   }, [q, filter, businesses]);
 
