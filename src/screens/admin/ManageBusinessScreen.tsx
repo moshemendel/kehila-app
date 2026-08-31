@@ -9,6 +9,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useBusinessesFeed } from '../../context/BusinessesContext';
 import { useAuth } from '../../context/AuthContext';
+import { useCityId } from '../../hooks/useCityId';
 import { updateBusiness, deleteBusiness } from '../../services/businesses';
 import { Business } from '../../types';
 import LocationEditModal from '../../components/LocationEditModal';
@@ -25,7 +26,19 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 // ─── Edit form ────────────────────────────────────────────────────────────────
-function EditForm({ rest, onBack }: { rest: Business; onBack: () => void }) {
+function EditForm({ rest, onBack, canEditIdentity }: {
+  rest: Business;
+  onBack: () => void;
+  /**
+   * Name, address and pinned location are the fields a kashrut certificate is
+   * issued against, so they belong to the authority that issued it — an owner
+   * asks the kashrut manager to correct a misspelt name rather than moving the
+   * certificate to another premises themselves. The rules enforce this; these
+   * inputs go read-only to match, so nobody types into a field whose save will
+   * bounce.
+   */
+  canEditIdentity: boolean;
+}) {
   const [form,       setForm]       = useState<Business>({ ...rest });
   const [saving,     setSaving]     = useState(false);
   const [editingLoc, setEditingLoc] = useState(false);
@@ -55,14 +68,25 @@ function EditForm({ rest, onBack }: { rest: Business; onBack: () => void }) {
         <View style={s.section}>
           <Text style={s.sectionTitle}>פרטים כלליים</Text>
           <View style={s.card}>
-            {([['name','שם העסק'],['address','כתובת'],['phone','טלפון'],['website','אתר אינטרנט']] as [keyof Business, string][]).map(([key, label]) => (
-              <View key={key} style={s.fieldRow}>
-                <Text style={s.fieldLabel}>{label}</Text>
-                <TextInput scrollEnabled={false} style={s.fieldInput} value={(form[key] as string) ?? ''}
-                  onChangeText={(v) => setForm((p) => ({ ...p, [key]: v }))}
-                  textAlign="right" autoCapitalize="none" />
-              </View>
-            ))}
+            {([['name','שם העסק'],['address','כתובת'],['phone','טלפון'],['website','אתר אינטרנט']] as [keyof Business, string][]).map(([key, label]) => {
+              const locked = !canEditIdentity && (key === 'name' || key === 'address');
+              return (
+                <View key={key} style={s.fieldRow}>
+                  <Text style={s.fieldLabel}>{label}</Text>
+                  <TextInput scrollEnabled={false}
+                    style={[s.fieldInput, locked && s.fieldInputLocked]}
+                    value={(form[key] as string) ?? ''}
+                    editable={!locked}
+                    onChangeText={(v) => setForm((p) => ({ ...p, [key]: v }))}
+                    textAlign="right" autoCapitalize="none" />
+                </View>
+              );
+            })}
+            {!canEditIdentity && (
+              <Text style={s.identityNote}>
+                שם וכתובת קשורים לתעודת הכשרות — לתיקון יש לפנות לאחראי הכשרות
+              </Text>
+            )}
           </View>
         </View>
 
@@ -99,7 +123,8 @@ function EditForm({ rest, onBack }: { rest: Business; onBack: () => void }) {
         <View style={s.section}>
           <Text style={s.sectionTitle}>מיקום</Text>
           <View style={s.card}>
-            <TouchableOpacity style={s.locBtn} onPress={() => setEditingLoc(true)}>
+            <TouchableOpacity style={[s.locBtn, !canEditIdentity && s.locBtnLocked]}
+              disabled={!canEditIdentity} onPress={() => setEditingLoc(true)}>
               <Ionicons name={form.latitude ? 'location' : 'location-outline'} size={18} color={Colors.warning} />
               <View style={{ flex: 1 }}>
                 <Text style={s.locBtnTitle}>{form.latitude ? 'מיקום מוצמד' : 'הוסף מיקום מדויק'}</Text>
@@ -191,7 +216,12 @@ export default function ManageBusinessScreen() {
   // Unlike ManageKosherScreen (city-wide kashrut cert review), this screen edits a
   // business's general info — here a kosher_manager is scoped to only the businesses
   // a city_admin explicitly granted them via managedRestaurantIds, same as business_manager.
+  const cityId  = useCityId();
   const managed = appUser?.managedRestaurantIds ?? [];
+  // Mirrors hasCityRole('kosher_manager', …) in firestore.rules: the authority
+  // is pinned to the manager's home city, not their browsing preference.
+  const isKosherManager = roles.includes('kosher_manager')
+    && appUser?.homeCityId === cityId;
 
   const visible = businesses
     .filter((r) => isAdmin || managed.includes(r.id))
@@ -225,7 +255,8 @@ export default function ManageBusinessScreen() {
   }
 
   if (selected) {
-    return <EditForm rest={selected} onBack={onBackFromItem} />;
+    return <EditForm rest={selected} onBack={onBackFromItem}
+             canEditIdentity={isAdmin || isKosherManager} />;
   }
 
   return (
@@ -311,6 +342,8 @@ const s = StyleSheet.create({
   fieldRow: { borderBottomWidth: 1, borderBottomColor: Colors.border, paddingVertical: Spacing.sm },
   fieldLabel: { fontSize: 11, color: Colors.textMuted, marginBottom: 2 },
   fieldInput: { fontSize: 15, color: Colors.text, paddingVertical: 2 },
+  fieldInputLocked: { color: Colors.textMuted },
+  identityNote: { fontSize: 12, color: Colors.textMuted, lineHeight: 17, paddingTop: Spacing.xs },
   alertInput: { backgroundColor: '#FEF5E7', borderRadius: Radius.sm, padding: Spacing.sm, marginTop: 4, borderWidth: 1, borderColor: Colors.warning, minHeight: 60, textAlignVertical: 'top' },
   hoursRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.sm, borderBottomWidth: 1, borderBottomColor: Colors.border, gap: Spacing.md },
   dayLabel: { fontSize: 14, fontWeight: '600', color: Colors.text, width: 50 },
@@ -318,6 +351,7 @@ const s = StyleSheet.create({
   saveBtn:     { backgroundColor: Colors.kosher, borderRadius: Radius.md, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   saveBtnText: { fontSize: 16, fontWeight: '700', color: Colors.white },
   locBtn:      { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10 },
+  locBtnLocked: { opacity: 0.45 },
   locBtnTitle: { fontSize: 14, fontWeight: '600', color: Colors.text },
   locBtnSub:   { fontSize: 11, color: Colors.textMuted },
 });

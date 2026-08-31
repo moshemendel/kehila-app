@@ -86,6 +86,45 @@ service cloud.firestore {
     }
     // kosher_manager: city-wide cert access
     // business_manager: only their assigned businesses (stored in managedRestaurantIds)
+    // Being listed in managedRestaurantIds is what makes an account a shop's
+    // operator, whatever else it is — the rule ManageBusinessScreen already
+    // applies to itself, including to a kosher_manager, who is scoped there to
+    // the businesses a city_admin explicitly assigned them. Only admins can
+    // write that array, so membership is a real grant.
+    function operatesBusiness(bizId) {
+      return isSignedIn() && bizId in userDoc().get('managedRestaurantIds', []);
+    }
+    // A kashrut certificate is issued to a named business at an address, so the
+    // fields it is issued against belong to the authority that issued it, not
+    // to the shop. An owner correcting a misspelt name asks the kashrut
+    // manager; they cannot quietly move the certificate to another premises.
+    function bizIdentityKeys() {
+      return ['name', 'address', 'neighborhood', 'latitude', 'longitude',
+              'category', 'categories', 'businessType'];
+    }
+    function bizKashrutKeys() {
+      // isHidden belongs here: ManageKosherScreen drives it from the rabbanut
+      // certificate's active state, so an owner able to write it could unhide a
+      // business the rabbanut had pulled.
+      return ['kosherCertificates', 'mashgiachName', 'mashgiachPhone', 'isHidden'];
+    }
+    // The shop's own day-to-day: what an owner runs and a kashrut reviewer has
+    // no reason to touch.
+    function bizOperationsKeys() {
+      return ['openingHours', 'imageUrl', 'images', 'phone', 'website',
+              'description', 'contacts', 'isOpen', 'activeAlert'];
+    }
+    // updateBusiness() stamps this on every write, so any permitted change
+    // carries it.
+    function bizAlwaysKeys() { return ['updatedAt']; }
+    // The union of every group the caller qualifies for. An account holding
+    // both roles over one business gets both sets — no special case, it simply
+    // satisfies both conditions.
+    function bizWritableKeys(bizId, bizCityId) {
+      return bizAlwaysKeys()
+           + (hasCityRole('kosher_manager', bizCityId) ? bizIdentityKeys() + bizKashrutKeys() : [])
+           + (operatesBusiness(bizId) ? bizOperationsKeys() : []);
+    }
     function managesBusiness(bizId, bizCityId) {
       return isSignedIn() && (
         isAdminOf(bizCityId) ||
@@ -157,7 +196,19 @@ service cloud.firestore {
     match /businesses/{bizId} {
       allow read: if true;
       allow create: if managesBusiness(bizId, request.resource.data.cityId);
-      allow update, delete: if managesBusiness(bizId, resource.data.cityId);
+      // Whole-document write was the gap. managesBusiness() is a yes/no on the
+      // business, so it let a shop owner write kosherCertificates — forging a
+      // mehadrin badge on their own listing — and let a city's kashrut reviewer
+      // rewrite the hours and gallery of every business in it. Neither is what
+      // either role is for; the split existed only as a convention between two
+      // management screens, which anything talking to Firestore directly could
+      // ignore. Now the fields a caller may change are the union of the groups
+      // it qualifies for, and hasOnly() rejects a write reaching past them.
+      allow update: if isAdminOf(resource.data.cityId) ||
+        ((hasCityRole('kosher_manager', resource.data.cityId) || operatesBusiness(bizId))
+         && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(bizWritableKeys(bizId, resource.data.cityId)));
+      allow delete: if managesBusiness(bizId, resource.data.cityId);
     }
 
     // ── Mikvaot ──────────────────────────────────────────────────────────────
