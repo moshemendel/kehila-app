@@ -9,6 +9,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import ReportListingButton from '../../components/ReportListingButton';
+import EditListingButton from '../../components/EditListingButton';
 import { useNavigateTo } from '../../hooks/useNavigateTo';
 import { Mikveh, DayKey } from '../../types';
 import { getMikveh } from '../../services/mikvaot';
@@ -130,6 +131,12 @@ export default function MikvehDetailScreen() {
       {/* Floating report control — these screens have no header bar, so it sits
           over the cover image where a header would be. */}
       <View style={styles.reportFab} pointerEvents="box-none">
+        <EditListingButton
+          variant="overlay"
+          entityType="mikveh"
+          entityId={mikveh.id}
+          entityCityId={mikveh.cityId}
+        />
         <ReportListingButton
           variant="overlay"
           cityId={mikveh.cityId}
@@ -372,7 +379,7 @@ export default function MikvehDetailScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  reportFab: { position: 'absolute', top: 44, left: 14, zIndex: 20 },
+  reportFab: { position: 'absolute', top: 44, left: 14, zIndex: 20, flexDirection: 'row', gap: 8 },
 
   container: { flex: 1, backgroundColor: Colors.background },
   loader:    { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background, gap: 12 },

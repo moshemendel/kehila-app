@@ -9,6 +9,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigateTo } from '../../hooks/useNavigateTo';
 import ReportListingButton from '../../components/ReportListingButton';
+import EditListingButton from '../../components/EditListingButton';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { PrayerTimeSlot, Shiur, Synagogue, SynagogueAnnouncement } from '../../types';
 import { getSynagogue } from '../../services/synagogues';
@@ -17,6 +18,7 @@ import { shouldShowSelichot, daysUntilSelichot } from '../../utils/selichot';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
 import { ZmanimResult } from '../../utils/zmanim';
 import { useFavorites } from '../../context/FavoritesContext';
+import { useSynagoguesFeed } from '../../context/SynagoguesContext';
 import { useSynagogueEventReminders } from '../../context/SynagogueEventRemindersContext';
 import { splitAnnouncements } from '../../utils/synagogueAnnouncements';
 import FavoritePrayerModal, { ModalOptions } from '../../components/FavoritePrayerModal';
@@ -252,8 +254,21 @@ export default function SynagogueDetailScreen() {
   // Support two navigation patterns:
   // 1. { synagogue: Synagogue } — from SynagogueListScreen (full object passed)
   // 2. { synagogueId: string }  — from EventDetailScreen (fetches on mount)
-  const [syn, setSyn]         = React.useState<Synagogue | null>(route.params.synagogue ?? null);
+  const [fetched, setFetched] = React.useState<Synagogue | null>(route.params.synagogue ?? null);
   const [loading, setLoading] = React.useState(!route.params.synagogue);
+
+  // The passed-in object is a snapshot taken when the list was tapped, so on
+  // its own it goes stale the moment anyone edits this synagogue — including
+  // the manager who just edited it from this very screen and came back to
+  // check their work. The city's synagogues are already live here via one
+  // shared listener, so the live copy wins whenever it has this one, and the
+  // passed object stays as the thing that renders instantly on arrival and the
+  // fallback for the id-only entry point.
+  const { synagogues } = useSynagoguesFeed();
+  const syn = React.useMemo(
+    () => synagogues.find((x) => x.id === (fetched?.id ?? route.params.synagogueId)) ?? fetched,
+    [synagogues, fetched, route.params.synagogueId],
+  );
   const cityId              = useCityId();
   const todayZmanim         = useTodayZmanim(cityId);
   const { isFavorite, getFavoriteSetting, setFavorite, removeFavorite } = useFavorites();
@@ -265,7 +280,7 @@ export default function SynagogueDetailScreen() {
     const id: string | undefined = route.params.synagogueId;
     if (!id) { setLoading(false); return; }
     getSynagogue(id)
-      .then((s) => { if (s) setSyn(s); })
+      .then((s) => { if (s) setFetched(s); })
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -313,15 +328,24 @@ export default function SynagogueDetailScreen() {
     if (!syn) return;
     navigation.setOptions({
       headerRight: () => (
-        <ReportListingButton
-          variant="icon"
-          iconColor={Colors.white}
-          cityId={syn.cityId}
-          entityType="synagogue"
-          entityId={syn.id}
-          entityName={syn.name}
-          color={primaryNusachColor(syn)}
-        />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <EditListingButton
+            variant="icon"
+            iconColor={Colors.white}
+            entityType="synagogue"
+            entityId={syn.id}
+            entityCityId={syn.cityId}
+          />
+          <ReportListingButton
+            variant="icon"
+            iconColor={Colors.white}
+            cityId={syn.cityId}
+            entityType="synagogue"
+            entityId={syn.id}
+            entityName={syn.name}
+            color={primaryNusachColor(syn)}
+          />
+        </View>
       ),
     });
   }, [navigation, syn]);

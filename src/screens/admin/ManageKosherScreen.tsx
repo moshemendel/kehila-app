@@ -711,11 +711,14 @@ export default function ManageKosherScreen() {
   // item once the list has loaded so the manager lands straight on it.
   const route = useRoute<any>();
   const focusId = route.params?.focusId as string | undefined;
-  // Arriving from a report means the list was never on screen — back should
-  // return to the reports queue, not drop the user into a list they never saw.
-  const cameFromReport = useRef(!!focusId);
+  // Arriving with a focusId means the list was never on screen — back should
+  // return wherever the jump came from (the reports queue, or the listing's own
+  // public page via its edit button), not drop the user into a list they never
+  // saw. Any deep link into one entity gets this, which is what lets a manager
+  // edit and check the result without walking the stack in both directions.
+  const deepLinked = useRef(!!focusId);
   const onBackFromItem = () => {
-    if (cameFromReport.current) navigation.goBack();
+    if (deepLinked.current) navigation.goBack();
     else setSelected(null);
   };
   useEffect(() => {
@@ -799,7 +802,7 @@ export default function ManageKosherScreen() {
   // the single event React Navigation fires for all three of those triggers.
   useEffect(() => {
     return navigation.addListener('beforeRemove', (e) => {
-      if (!selected || cameFromReport.current) return;
+      if (!selected || deepLinked.current) return;
       e.preventDefault();
       setSelected(null);
     });

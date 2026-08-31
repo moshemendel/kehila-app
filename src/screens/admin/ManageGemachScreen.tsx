@@ -62,7 +62,7 @@ export default function ManageGemachScreen() {
   // Arriving from a report means the list was never on screen — closing the
   // form (or saving) should return to the reports queue, not to a list the
   // manager never asked for.
-  const cameFromReport = useRef(!!focusId);
+  const deepLinked = useRef(!!focusId);
   const [pending,  setPending]  = useState<PendingGemach[]>([]);
   const [loading,  setLoading]  = useState(true);
   // Arriving from the profile badge means they came for the pending queue.
@@ -142,7 +142,7 @@ export default function ManageGemachScreen() {
     setFormOpen(false);
     setEditId(null);
     setForm(EMPTY_FORM);
-    if (cameFromReport.current) navigation.goBack();
+    if (deepLinked.current) navigation.goBack();
   }
 
   function setField<K extends keyof typeof EMPTY_FORM>(key: K, val: (typeof EMPTY_FORM)[K]) {
@@ -257,7 +257,7 @@ export default function ManageGemachScreen() {
   // the list was never on screen (see closeForm).
   useEffect(() => {
     return navigation.addListener('beforeRemove', (e: any) => {
-      if (!formOpen || cameFromReport.current) return;
+      if (!formOpen || deepLinked.current) return;
       e.preventDefault();
       closeForm();
     });

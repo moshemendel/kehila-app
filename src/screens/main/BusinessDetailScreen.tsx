@@ -9,6 +9,7 @@ import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import ReportListingButton from '../../components/ReportListingButton';
+import EditListingButton from '../../components/EditListingButton';
 import { useNavigateTo } from '../../hooks/useNavigateTo';
 import { Business, KosherCertificate } from '../../types';
 import { getBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../../services/businesses';
@@ -122,6 +123,12 @@ export default function BusinessDetailScreen() {
       {/* Floating report control — these screens have no header bar, so it sits
           over the cover image where a header would be. */}
       <View style={styles.reportFab} pointerEvents="box-none">
+        <EditListingButton
+          variant="overlay"
+          entityType="business"
+          entityId={business.id}
+          entityCityId={business.cityId}
+        />
         <ReportListingButton
           variant="overlay"
           cityId={business.cityId}
@@ -479,7 +486,7 @@ function CertCard({
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  reportFab: { position: 'absolute', top: 44, left: 14, zIndex: 20 },
+  reportFab: { position: 'absolute', top: 44, left: 14, zIndex: 20, flexDirection: 'row', gap: 8 },
 
   container: { flex: 1, backgroundColor: Colors.background },
   loader:    { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background, gap: 12 },
