@@ -36,6 +36,14 @@ service cloud.firestore {
     function hasRole(role) {
       return isSignedIn() && role in userRoles();
     }
+    // The three roles that carry authority over other accounts. Granting any of
+    // them, or editing an account that already holds one, is reserved for
+    // super_admin — a city_admin may staff their city but not mint peers or
+    // superiors, and not quietly demote one.
+    function grantsAuthority(data) {
+      return data.get('role', 'user') in ['city_admin', 'super_admin', 'dev']
+          || data.get('roles', []).hasAny(['city_admin', 'super_admin', 'dev']);
+    }
     // City-wide manager roles (kosher_manager, event_manager, eruv_manager,
     // mikveh_manager) previously granted access in every city — fine for a
     // single-city pilot, but a real privilege gap once there's more than one.
@@ -99,11 +107,29 @@ service cloud.firestore {
         && (!('role' in request.resource.data) || request.resource.data.role == 'user')
         && (!('managedSynagogueIds' in request.resource.data) || request.resource.data.managedSynagogueIds.size() == 0)
         && (!('managedRestaurantIds' in request.resource.data) || request.resource.data.managedRestaurantIds.size() == 0);
-      // A city_admin can manage any field of a user within their own homeCityId scope,
-      // but cannot themselves reassign a user's homeCityId — moving someone to a
-      // different city's administration is a super_admin-only action.
-      allow update: if isSuperAdminRole() ||
+      // NOBODY EDITS THEIR OWN PRIVILEGES. Both management branches below
+      // exclude the caller's own document, which is what the third branch is
+      // for: it lets anyone maintain their own profile while forbidding role,
+      // roles and the managed-id arrays outright.
+      //
+      // This was open. A city_admin matched the second branch on their own
+      // document — they are, trivially, a city_admin of their own homeCityId —
+      // and that branch permitted every field except homeCityId. Writing
+      // role: 'super_admin' to themselves was a one-step escalation from one
+      // city to every city. The same shape let them demote another city_admin,
+      // or appoint one, with no super_admin involved.
+      //
+      // A city_admin can manage users within their own homeCityId scope, but
+      // cannot reassign a user's homeCityId — moving someone to a different
+      // city's administration is a super_admin-only action.
+      allow update: if (isSuperAdminRole() && request.auth.uid != userId) ||
         (isCityAdminOf(resource.data.homeCityId) &&
+         request.auth.uid != userId &&
+         // Neither the account as it stands nor as it would be may hold
+         // authority: the first stops a peer being demoted, the second stops
+         // one being created.
+         !grantsAuthority(resource.data) &&
+         !grantsAuthority(request.resource.data) &&
          !('homeCityId' in request.resource.data.diff(resource.data).affectedKeys())) ||
         (isSignedIn() && request.auth.uid == userId &&
          !('role' in request.resource.data.diff(resource.data).affectedKeys()) &&
