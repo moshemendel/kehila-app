@@ -11,6 +11,7 @@ import { useShabbatLock } from '../hooks/useShabbatLock';
 import ShabbatClosedScreen from '../screens/ShabbatClosedScreen';
 import CompleteCityScreen from '../screens/auth/CompleteCityScreen';
 import CityGpsPrompt from '../components/CityGpsPrompt';
+import FirstRunAuthPrompt from '../components/FirstRunAuthPrompt';
 import AuthNavigator from './AuthNavigator';
 import MainTabNavigator from './MainTabNavigator';
 import SynagogueDetailScreen  from '../screens/main/SynagogueDetailScreen';
@@ -134,13 +135,17 @@ export default function RootNavigator() {
     );
   }
 
-  // No login wall — the app opens in guest mode (מצב אורח). Login is reached
-  // on demand via the "Auth" modal (from Profile or a contextual prompt).
+  // Still no login wall — the app opens in guest mode (מצב אורח) and stays
+  // usable there. FirstRunAuthPrompt only puts the choice once, on the first
+  // launch after install, because landing straight in guest mode means nobody
+  // is ever asked. Login also stays reachable on demand via the "Auth" modal
+  // (from Profile or a contextual prompt).
   const stackContentStyle = { paddingBottom: bottom };
 
   return (
     <>
     <CityGpsPrompt />
+    <FirstRunAuthPrompt />
     {SHOW_DEV_TOOLS && (
       <TouchableOpacity
         style={styles.devLockBtn}
