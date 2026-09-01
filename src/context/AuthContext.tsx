@@ -7,6 +7,7 @@ import { updateUserCity, updateUserHomeCity } from '../services/users';
 import { getGuestCityId, setGuestCityId } from '../services/guestCity';
 import { initAnalytics, clearAnalytics } from '../services/analytics';
 import { AppUser } from '../types';
+import { mark } from '../utils/startupTrace';
 
 export const DEMO_USER: AppUser = {
   uid: 'demo',
@@ -175,10 +176,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (!isDemoRef.current) { setAppUser(null); setIsGuest(false); }
           // Sign in anonymously so guests can receive eruv push notifications
           signInAnonymously(auth).catch(() => {});
+          mark('auth resolved (guest)');
           setLoading(false);
         } else if (user.isAnonymous) {
           // Guest: Firebase user exists but no Firestore account
           if (!isDemoRef.current) { setAppUser(null); setIsGuest(true); }
+          mark('auth resolved (anonymous)');
           setLoading(false);
         } else {
           setIsGuest(false);
@@ -200,6 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               const cachedUser = JSON.parse(cachedRaw) as AppUser;
               setAppUser(cachedUser);
               initAnalytics(user.uid, cachedUser.cityId);
+              mark('auth resolved (cached account)');
               setLoading(false);
               loadAppUser(user); // refresh in the background
             } catch {
@@ -210,6 +214,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // First launch after install — nothing cached yet, so this one
             // still waits.
             await loadAppUser(user);
+            mark('auth resolved (fetched account)');
             setLoading(false);
           }
         }

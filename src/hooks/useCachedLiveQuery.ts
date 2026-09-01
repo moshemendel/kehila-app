@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { mark } from '../utils/startupTrace';
 
 /**
  * Shows the last-known result of a live query instantly, then lets the live
@@ -37,7 +38,13 @@ export function useCachedLiveQuery<T>(
     AsyncStorage.getItem(cacheKey).then((raw) => {
       if (cancelled) return;
       if (raw) {
-        try { setCached(JSON.parse(raw)); } catch { /* corrupt cache — ignore, wait for live */ }
+        try {
+          const parsed = JSON.parse(raw);
+          mark(`cache hit ${cacheKey} (${Array.isArray(parsed) ? parsed.length : '?'} items)`);
+          setCached(parsed);
+        } catch { /* corrupt cache — ignore, wait for live */ }
+      } else {
+        mark(`cache miss ${cacheKey}`);
       }
       setCacheChecked(true);
     });

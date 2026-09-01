@@ -36,6 +36,7 @@ import ZmanimSettingsScreen   from '../screens/main/ZmanimSettingsScreen';
 import GemachSubmitScreen     from '../screens/main/GemachSubmitScreen';
 import { Colors } from '../utils/theme';
 import { SHOW_DEV_TOOLS } from '../utils/devTools';
+import { mark } from '../utils/startupTrace';
 
 const Root = createNativeStackNavigator();
 
@@ -112,6 +113,7 @@ export default function RootNavigator() {
   const showSplash = useSplashHold(loading);
 
   if (showSplash) return <AppLoadingScreen />;
+  mark('splash cleared — first real screen');
 
   // A brand-new account created without a city (currently only reachable via
   // Google sign-in, which has no city-collection step of its own) must pick
