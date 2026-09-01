@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, Radius, Shadow } from '../utils/theme';
+import { Colors, Spacing, Radius, Shadow, CardShell } from '../utils/theme';
 import { useNavigateTo } from '../hooks/useNavigateTo';
 import { Business } from '../types';
 import { updateBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../services/businesses';
@@ -126,7 +126,7 @@ export default function BusinessCard({ business, distLabel, canManage, onPress, 
 }
 
 const styles = StyleSheet.create({
-  card:          { backgroundColor: Colors.cardBackground, borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md, ...Shadow.card },
+  card:          { ...CardShell },
   alertBanner:   { backgroundColor: Colors.warning, borderRadius: Radius.sm, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, marginBottom: Spacing.sm },
   alertText:     { color: Colors.white, fontSize: 12, fontWeight: '600', flex: 1 },
   header:        { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.sm, gap: Spacing.sm },

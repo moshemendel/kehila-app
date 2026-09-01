@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCity } from '../../hooks/useCity';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
 import { useFavorites } from '../../context/FavoritesContext';
-import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
+import { Colors, Spacing, Radius, Shadow, CardShell } from '../../utils/theme';
 import { haversineKm, formatDist } from '../../utils/location';
 import { getSlotLabel } from '../../utils/prayerUtils';
 import { Synagogue } from '../../types';
@@ -514,13 +514,7 @@ const s = StyleSheet.create({
   sortTxtActive: { color: Colors.white },
 
   // ── List cards ────────────────────────────────────────────────────────────
-  card: {
-    backgroundColor: Colors.cardBackground,
-    borderRadius: Radius.md,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
-    ...Shadow.card,
-  },
+  card: { ...CardShell },
   cardFav: { borderWidth: 1.5, borderColor: Colors.goldBright + '55', backgroundColor: '#FFFDF0' },
   cardRow:  { flexDirection: 'row', alignItems: 'center' },
   cardLeft: { flex: 1 },

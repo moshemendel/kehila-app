@@ -11,7 +11,7 @@ import { useSynagoguesFeed } from '../../context/SynagoguesContext';
 import { useCityId } from '../../hooks/useCityId';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
-import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
+import { Colors, Spacing, Radius, Shadow, CardShellFlush } from '../../utils/theme';
 import { Synagogue } from '../../types';
 import {
   parseTimeToMinutes, nowInMinutes, hebrewDayOfWeek, tomorrowDayOfWeek,
@@ -522,7 +522,7 @@ const s = StyleSheet.create({
   emptyTitle:   { fontSize: 18, fontWeight: '700', color: Colors.textSecondary },
   emptySubtitle:{ fontSize: 14, color: Colors.textMuted },
 
-  card:         { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.cardBackground, borderRadius: Radius.md, marginBottom: 10, overflow: 'hidden', ...Shadow.card },
+  card:         { ...CardShellFlush, flexDirection: 'row', alignItems: 'center' },
   colorBar:     { width: 4, alignSelf: 'stretch' },
   cardBody:     { flex: 1, paddingHorizontal: Spacing.sm, paddingVertical: 10, gap: 4 },
 

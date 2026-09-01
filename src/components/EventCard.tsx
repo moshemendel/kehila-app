@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, Radius, Shadow } from '../utils/theme';
+import { Colors, Spacing, Radius, Shadow, CardShell } from '../utils/theme';
 import { CommunityEvent, EventCategory } from '../types';
 
 const CATEGORY_CONFIG: Record<EventCategory, { icon: string; color: string; label: string }> = {
@@ -151,13 +151,7 @@ export default function EventCard({ event, onPress, isFavorite, onToggleFavorite
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.cardBackground,
-    borderRadius: Radius.md,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-    ...Shadow.card,
-  },
+  card: { ...CardShell },
   cardAlert:    { borderLeftWidth: 4, borderLeftColor: Colors.danger },
   cardFavorite: { borderLeftWidth: 4, borderLeftColor: Colors.goldBright },
 

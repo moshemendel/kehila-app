@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, Radius, Shadow } from '../utils/theme';
+import { Colors, Spacing, Radius, Shadow, CardShell } from '../utils/theme';
 import { useNavigateTo } from '../hooks/useNavigateTo';
 import { Mikveh, DayKey } from '../types';
 import { updateMikveh } from '../services/mikvaot';
@@ -102,7 +102,7 @@ export default function MikvehCard({ mikveh, distLabel, canManage, onPress, card
 }
 
 const styles = StyleSheet.create({
-  card:      { backgroundColor: Colors.cardBackground, borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md, ...Shadow.card },
+  card:      { ...CardShell },
   header:    { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm, marginBottom: Spacing.sm },
   emoji:     { fontSize: 30 },
   info:      { flex: 1 },

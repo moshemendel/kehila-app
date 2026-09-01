@@ -10,7 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../services/firebase';
-import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
+import { Colors, Spacing, Radius, Shadow, CardShell } from '../../utils/theme';
 import { useGemachs } from '../../hooks/useGemachs';
 import { useCityId } from '../../hooks/useCityId';
 import { useCity } from '../../hooks/useCity';
@@ -290,14 +290,11 @@ const s = StyleSheet.create({
 
   // Card
   card: {
-    backgroundColor: Colors.cardBackground,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    ...Shadow.card,
+    ...CardShell,
   },
-  cardInactive: { opacity: 0.6, borderStyle: 'dashed' },
+  // Carries its own border: the shared shell has none, and borderStyle alone
+  // draws nothing without a width.
+  cardInactive: { opacity: 0.6, borderWidth: 1, borderColor: Colors.border, borderStyle: 'dashed' },
   ownInactiveTag: { fontSize: 11, fontWeight: '700', color: Colors.danger, marginBottom: 6 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   categoryBadge: {

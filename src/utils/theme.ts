@@ -86,3 +86,33 @@ export const Shadow = {
     elevation: 3,
   },
 };
+
+/**
+ * The shell every list card wears: background, corner, padding, the gap to the
+ * next one, and the shadow. What goes *inside* a card is its own business —
+ * this is only the part that should look the same everywhere.
+ *
+ * It was already the same in three places and quietly different in three
+ * others: the synagogue rows sat Spacing.sm apart while everything else used
+ * Spacing.md, the prayer rows used a bare 10, and the gemach cards had a larger
+ * corner and a border no other card carried. Nothing chose those differences;
+ * they accumulated because each card declared its own shell.
+ */
+export const CardShell = {
+  backgroundColor: Colors.cardBackground,
+  borderRadius:    Radius.md,
+  padding:         Spacing.md,
+  marginBottom:    Spacing.md,
+  ...Shadow.card,
+};
+
+/**
+ * The same shell for a card with something running to its edge — the prayer
+ * rows' coloured spine, a full-bleed image. Padding moves inside, and overflow
+ * is clipped so the corner still rounds over whatever reaches it.
+ */
+export const CardShellFlush = {
+  ...CardShell,
+  padding:  0,
+  overflow: 'hidden' as const,
+};
