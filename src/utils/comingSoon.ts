@@ -17,7 +17,7 @@
  *                     it invites "the app says a different time than the shul".
  */
 export const COMING_SOON = {
-  kashrut:        false,
+  kashrut:        true,
   mikvehBooking:  true,
   zmanimSettings: true,
 } as const;
