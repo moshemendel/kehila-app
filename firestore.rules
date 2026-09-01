@@ -30,8 +30,16 @@ service cloud.firestore {
     // Safe to authorise from: the array is already treated as privilege-bearing
     // by the users rules above — self-edits cannot touch it, and creates cannot
     // seed it — so it is exactly as trustworthy as the singular field.
+    // ONE document read. The previous form passed [userDoc().role] as the
+    // default, and CEL evaluates a default eagerly — so every role check cost
+    // two reads whether or not the array was there. Every user document now
+    // carries `roles`, backfilled, so a literal default does.
+    //
+    // Reads are not a style question here: a single-document request may make
+    // ten, and going over is returned as permission-denied, indistinguishable
+    // from a rule that simply said no.
     function userRoles() {
-      return userDoc().get('roles', [userDoc().role]);
+      return userDoc().get('roles', ['user']);
     }
     function hasRole(role) {
       return isSignedIn() && role in userRoles();
@@ -61,16 +69,16 @@ service cloud.firestore {
     }
     // city_admin, super_admin, dev — full management access
     function isAdminRole() {
-      return isSignedIn() && userDoc().role in ['city_admin', 'super_admin', 'dev'];
+      return isSignedIn() && userRoles().hasAny(['city_admin', 'super_admin', 'dev']);
     }
     // super_admin/dev are unscoped — they administer every city
     function isSuperAdminRole() {
-      return isSignedIn() && userDoc().role in ['super_admin', 'dev'];
+      return isSignedIn() && userRoles().hasAny(['super_admin', 'dev']);
     }
     // A city_admin's homeCityId is their permanent admin scope (never the personal,
     // freely-switchable cityId) — this checks they administer exactly targetCityId.
     function isCityAdminOf(targetCityId) {
-      return isSignedIn() && userDoc().role == 'city_admin' && userDoc().homeCityId == targetCityId;
+      return isSignedIn() && hasRole('city_admin') && userDoc().homeCityId == targetCityId;
     }
     // Combines a super_admin's unscoped reach with a city_admin's city-scoped
     // reach — the scoped drop-in replacement for isAdminRole() wherever a
@@ -89,14 +97,19 @@ service cloud.firestore {
     // authority-over-people instead makes the deputy just a role: everything
     // that looked like it needed a hierarchy (cannot demote the one who
     // appointed them, cannot appoint more admins) is simply absent here.
-    function isContentAdminOf(targetCityId) {
-      return isSignedIn() && hasRole('content_admin') && userDoc().homeCityId == targetCityId;
-    }
     // Every use of isAdminOf() below gates content. Accounts and the city
     // record are gated by isCityAdminOf/isSuperAdminRole directly and stay out
     // of reach — which is why this can be a blanket substitution.
+    //
+    // Written as one roles lookup plus one homeCityId lookup rather than
+    // isAdminOf() || isContentAdminOf(), which re-read the same document five
+    // times between them.
     function managesContentIn(targetCityId) {
-      return isAdminOf(targetCityId) || isContentAdminOf(targetCityId);
+      return isSignedIn() && (
+        userRoles().hasAny(['super_admin', 'dev']) ||
+        (userRoles().hasAny(['city_admin', 'content_admin'])
+         && userDoc().homeCityId == targetCityId)
+      );
     }
     function managesSynagogue(synId, synCityId) {
       return isSignedIn() && (
@@ -135,15 +148,19 @@ service cloud.firestore {
               'description', 'contacts', 'isOpen', 'activeAlert'];
     }
     // updateBusiness() stamps this on every write, so any permitted change
-    // carries it.
+    // carries it — granted alongside a group rather than on its own, so an
+    // account with no capability here cannot touch even this.
     function bizAlwaysKeys() { return ['updatedAt']; }
     // The union of every group the caller qualifies for. An account holding
     // both roles over one business gets both sets — no special case, it simply
     // satisfies both conditions.
     function bizWritableKeys(bizId, bizCityId) {
-      return bizAlwaysKeys()
-           + (hasCityRole('kosher_manager', bizCityId) ? bizIdentityKeys() + bizKashrutKeys() : [])
-           + (operatesBusiness(bizId) ? bizOperationsKeys() : []);
+      return (managesContentIn(bizCityId)
+                ? bizAlwaysKeys() + bizIdentityKeys() + bizKashrutKeys() + bizOperationsKeys() : [])
+           + (hasCityRole('kosher_manager', bizCityId)
+                ? bizAlwaysKeys() + bizIdentityKeys() + bizKashrutKeys() : [])
+           + (operatesBusiness(bizId)
+                ? bizAlwaysKeys() + bizOperationsKeys() : []);
     }
     function managesBusiness(bizId, bizCityId) {
       return isSignedIn() && (
@@ -224,10 +241,15 @@ service cloud.firestore {
       // management screens, which anything talking to Firestore directly could
       // ignore. Now the fields a caller may change are the union of the groups
       // it qualifies for, and hasOnly() rejects a write reaching past them.
-      allow update: if managesContentIn(resource.data.cityId) ||
-        ((hasCityRole('kosher_manager', resource.data.cityId) || operatesBusiness(bizId))
-         && request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(bizWritableKeys(bizId, resource.data.cityId)));
+      // The writable set is the whole answer: it is empty for an account with
+      // no capability here, and hasOnly([]) already refuses every real change.
+      // Asking the capabilities again to admit the caller only doubled the
+      // document reads — and the pair went over the ten-read ceiling, which
+      // Firestore returns as permission-denied, so a correctly-permitted
+      // kashrut manager was refused with the same error as a stranger.
+      allow update: if isSignedIn()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(bizWritableKeys(bizId, resource.data.cityId));
       // A listing exists because it is certified, so removing it is a kashrut
       // act, not an operational one — an operator closing for the season hides
       // the business (isHidden, already driven by the rabbanut certificate's
