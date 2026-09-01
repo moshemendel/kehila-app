@@ -304,7 +304,7 @@ const s = StyleSheet.create({
   },
   categoryText: { fontSize: 11, fontWeight: '700', color: GEMACH_COLOR },
   neighborhood: { fontSize: 11, color: Colors.textMuted },
-  cardName:  { fontSize: 17, fontWeight: '800', color: Colors.text, marginBottom: 4 },
+  cardName:  { fontSize: 16, fontWeight: '700', color: Colors.text, marginBottom: 4 },
   cardDesc:  { fontSize: 13, color: Colors.textSecondary, lineHeight: 18, marginBottom: 8 },
   cardFooter: { gap: 6 },
   hoursRow:   { flexDirection: 'row', alignItems: 'center', gap: 4 },
