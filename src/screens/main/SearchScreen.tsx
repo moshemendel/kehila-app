@@ -53,6 +53,21 @@ const CHIPS: { key: FilterCat; label: string; icon: string; color: string }[] = 
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
+/**
+ * Results shown per section.
+ *
+ * Nobody reads the fortieth match — they type another letter, which is what
+ * search-as-you-type is for. Uncapped, a single Hebrew character matched most
+ * of the city across four collections at once, and the whole list was rebuilt
+ * on every keystroke. LocationPicker settled on the same number for the same
+ * reason.
+ *
+ * The count beside each section stays honest about what was found, so a capped
+ * list reads as "narrow this" rather than "it is not here" — which is the one
+ * way a cap can genuinely mislead.
+ */
+const MAX_PER_SECTION = 8;
+
 export default function SearchScreen() {
   const { top } = useSafeAreaInsets();
   const navigation = useNavigation<any>();
@@ -181,8 +196,8 @@ export default function SearchScreen() {
         ) : (
           <>
             {synResults.length > 0 && (
-              <Section icon="business-outline" label="בתי כנסת" color={Colors.primary} count={synResults.length}>
-                {synResults.map(syn => (
+              <Section icon="business-outline" label="בתי כנסת" color={Colors.primary} count={synResults.length} shown={Math.min(synResults.length, MAX_PER_SECTION)}>
+                {synResults.slice(0, MAX_PER_SECTION).map(syn => (
                   <TouchableOpacity
                     key={syn.id}
                     style={sc.card}
@@ -203,8 +218,8 @@ export default function SearchScreen() {
             )}
 
             {restResults.length > 0 && (
-              <Section icon="restaurant-outline" label="כשרות" color={Colors.kosher} count={restResults.length}>
-                {restResults.map(r => {
+              <Section icon="restaurant-outline" label="כשרות" color={Colors.kosher} count={restResults.length} shown={Math.min(restResults.length, MAX_PER_SECTION)}>
+                {restResults.slice(0, MAX_PER_SECTION).map(r => {
                   const cert  = r.kosherCertificates?.find(c => c.isActive);
                   const level = cert?.kosherLevel?.[0];
                   return (
@@ -229,8 +244,8 @@ export default function SearchScreen() {
             )}
 
             {evtResults.length > 0 && (
-              <Section icon="calendar-outline" label="אירועים" color={Colors.events} count={evtResults.length}>
-                {evtResults.map(ev => {
+              <Section icon="calendar-outline" label="אירועים" color={Colors.events} count={evtResults.length} shown={Math.min(evtResults.length, MAX_PER_SECTION)}>
+                {evtResults.slice(0, MAX_PER_SECTION).map(ev => {
                   const date = new Date(ev.startDate).toLocaleDateString('he-IL', {
                     weekday: 'short', day: 'numeric', month: 'short',
                   });
@@ -256,8 +271,8 @@ export default function SearchScreen() {
             )}
 
             {gemResults.length > 0 && (
-              <Section icon="gift-outline" label='גמ"ח' color="#B06B3A" count={gemResults.length}>
-                {gemResults.map(g => (
+              <Section icon="gift-outline" label='גמ"ח' color="#B06B3A" count={gemResults.length} shown={Math.min(gemResults.length, MAX_PER_SECTION)}>
+                {gemResults.slice(0, MAX_PER_SECTION).map(g => (
                   <View key={g.id} style={sc.card}>
                     <CircleIcon name="gift" bg="#B06B3A18" color="#B06B3A" />
                     <View style={sc.cardBody}>
@@ -294,8 +309,10 @@ function EmptyState({ icon, title, sub }: { icon: string; title: string; sub: st
   );
 }
 
-function Section({ icon, label, color, count, children }: {
-  icon: string; label: string; color: string; count: number; children: React.ReactNode;
+function Section({ icon, label, color, count, shown, children }: {
+  icon: string; label: string; color: string; count: number;
+  /** How many of `count` are actually rendered — omitted when all of them are. */
+  shown?: number; children: React.ReactNode;
 }) {
   return (
     <View style={sc.section}>
@@ -309,6 +326,9 @@ function Section({ icon, label, color, count, children }: {
         </View>
       </View>
       {children}
+      {shown !== undefined && shown < count && (
+        <Text style={sc.moreHint}>{`מציג ${shown} מתוך ${count} — הוסיפו מילה כדי לצמצם`}</Text>
+      )}
     </View>
   );
 }
@@ -370,6 +390,7 @@ const sc = StyleSheet.create({
 
   section:         { marginBottom: Spacing.lg },
   sectionHead:     { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: Spacing.sm },
+  moreHint:        { fontSize: 12, color: Colors.textMuted, textAlign: 'right', paddingTop: Spacing.xs },
   sectionIconCircle: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   sectionLabel:    { flex: 1, fontSize: 13, fontWeight: '700' },
   sectionBadge:    { borderRadius: Radius.full, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
