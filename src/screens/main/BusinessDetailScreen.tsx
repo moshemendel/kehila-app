@@ -11,8 +11,9 @@ import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import ReportListingButton from '../../components/ReportListingButton';
 import EditListingButton from '../../components/EditListingButton';
 import { useNavigateTo } from '../../hooks/useNavigateTo';
-import { Business, KosherCertificate } from '../../types';
+import { Business, KosherCertificate, DayKey } from '../../types';
 import { getBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../../services/businesses';
+import { businessHoursForDay } from '../../utils/appointmentSlots';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 
@@ -127,8 +128,8 @@ export default function BusinessDetailScreen() {
 
   // ── Derived data ─────────────────────────────────────────────────────────────
   const todayIdx      = new Date().getDay();
-  const todayKey      = DAY_KEYS[todayIdx] as keyof typeof business.openingHours;
-  const todayHours    = business.openingHours[todayKey] ?? '—';
+  const todayKey      = DAY_KEYS[todayIdx] as DayKey;
+  const todayHours    = businessHoursForDay(business, todayKey);
   const isClosedToday = todayHours.toLowerCase() === 'closed' || todayHours === 'סגור';
 
   // Flatten imageUrl + images[] → [moodImage, ...extraImages]
@@ -382,7 +383,7 @@ export default function BusinessDetailScreen() {
           <View style={styles.hoursCard}>
             {DAY_KEYS.map((key, i) => {
               const isToday = i === todayIdx;
-              const hours   = business.openingHours[key as keyof typeof business.openingHours] ?? '—';
+              const hours   = businessHoursForDay(business, key as DayKey);
               const closed  = hours.toLowerCase() === 'closed' || hours === 'סגור';
               return (
                 <View key={key} style={[styles.hoursRow, isToday && styles.hoursRowToday]}>

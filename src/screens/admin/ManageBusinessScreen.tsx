@@ -14,13 +14,10 @@ import { updateBusiness, deleteBusiness } from '../../services/businesses';
 import { Business } from '../../types';
 import LocationEditModal from '../../components/LocationEditModal';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
-import TimeRangePicker from '../../components/TimeRangePicker';
 import { managesContent } from '../../utils/roles';
+import HoursScheduleEditor from '../../components/HoursScheduleEditor';
+import { scheduleToOpeningHours } from '../../utils/appointmentSlots';
 
-const DAYS: [string, string][] = [
-  ['sunday','ראשון'],['monday','שני'],['tuesday','שלישי'],
-  ['wednesday','רביעי'],['thursday','חמישי'],['friday','שישי'],['saturday','שבת'],
-];
 
 const CATEGORY_LABELS: Record<string, string> = {
   meat: '🥩 בשרי', dairy: '🧀 חלבי', pareve: '🌿 פרווה', cafe: '☕ קפה', bakery: '🥐 מאפייה',
@@ -107,17 +104,18 @@ function EditForm({ rest, onBack, canEditIdentity }: {
 
         <View style={s.section}>
           <Text style={s.sectionTitle}>שעות פתיחה</Text>
-          <View style={s.card}>
-            {DAYS.map(([key, label]) => (
-              <View key={key} style={s.hoursRow}>
-                <Text style={s.dayLabel}>{label}</Text>
-                <TimeRangePicker
-                  value={(form.openingHours as any)[key] ?? ''}
-                  onChange={(v) => setForm((p) => ({ ...p, openingHours: { ...p.openingHours, [key]: v } }))}
-                />
-              </View>
-            ))}
-          </View>
+          {/* The same day-set editor the mikvaot use: a shop open the same
+              hours Sunday to Thursday says so once. openingHours is still
+              written from it on save, so a client on an older bundle keeps
+              showing something. */}
+          <HoursScheduleEditor
+            value={form.hoursSchedule ?? []}
+            onChange={(v) => setForm((p) => ({
+              ...p,
+              hoursSchedule: v,
+              openingHours: scheduleToOpeningHours(v),
+            }))}
+          />
         </View>
 
         {/* ── Location ── */}
@@ -346,8 +344,6 @@ const s = StyleSheet.create({
   fieldInputLocked: { color: Colors.textMuted },
   identityNote: { fontSize: 12, color: Colors.textMuted, lineHeight: 17, paddingTop: Spacing.xs },
   alertInput: { backgroundColor: '#FEF5E7', borderRadius: Radius.sm, padding: Spacing.sm, marginTop: 4, borderWidth: 1, borderColor: Colors.warning, minHeight: 60, textAlignVertical: 'top' },
-  hoursRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.sm, borderBottomWidth: 1, borderBottomColor: Colors.border, gap: Spacing.md },
-  dayLabel: { fontSize: 14, fontWeight: '600', color: Colors.text, width: 50 },
   hoursInput: { flex: 1, fontSize: 14, color: Colors.textSecondary, borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.sm, paddingHorizontal: Spacing.sm, paddingVertical: 4 },
   saveBtn:     { backgroundColor: Colors.kosher, borderRadius: Radius.md, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   saveBtnText: { fontSize: 16, fontWeight: '700', color: Colors.white },

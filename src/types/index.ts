@@ -258,7 +258,19 @@ export interface Business {
   phone?: string;
   website?: string;
   description?: string;        // optional business description / about text
+  /**
+   * Legacy per-day strings. Superseded by hoursSchedule, and still written
+   * alongside it as a derived mirror so a client running an older bundle keeps
+   * showing hours until it updates.
+   */
   openingHours: OpeningHours;
+  /**
+   * Opening hours as day-sets sharing one range — the same model the mikvaot
+   * use. A shop keeping identical hours Sunday to Thursday says so once instead
+   * of five times, and a Friday closing can be pinned to sunset rather than
+   * guessed at and re-entered every season.
+   */
+  hoursSchedule?: HoursBlock[];
   kosherCertificates: KosherCertificate[];
   latitude?: number;
   longitude?: number;

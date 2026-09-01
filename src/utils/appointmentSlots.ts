@@ -1,4 +1,4 @@
-import { DayKey, HoursBlock } from '../types';
+import { DayKey, HoursBlock, OpeningHours } from '../types';
 import { resolveSlotTime, formatAnchorFormula } from './prayerUtils';
 import { ZmanimResult } from './zmanim';
 
@@ -191,4 +191,38 @@ export function isSlotInPast(dateStr: string, timeStr: string): boolean {
   const nowMin  = now.getHours() * 60 + now.getMinutes();
   const slotMin = h * 60 + m;
   return slotMin <= nowMin;
+}
+
+/**
+ * A business's hours for one day, whichever model that business is on.
+ *
+ * hoursSchedule is the day-set model shared with the mikvaot; openingHours is
+ * the per-day strings that came before it. Both are read here so a listing that
+ * has not been re-saved since the change still shows its hours, and so display
+ * code never has to know which one it is looking at.
+ */
+export function businessHoursForDay(
+  business: { hoursSchedule?: HoursBlock[]; openingHours?: OpeningHours },
+  day: DayKey,
+  zmanim?: ZmanimResult | null,
+): string {
+  if (business.hoursSchedule?.length) return hoursTextForDay(business.hoursSchedule, day, zmanim);
+  const legacy = business.openingHours?.[day];
+  return legacy && legacy.trim() ? legacy : 'סגור';
+}
+
+/**
+ * hoursSchedule flattened back into per-day strings.
+ *
+ * Written alongside every save purely so a client on an older bundle — which
+ * reads openingHours and knows nothing of blocks — keeps showing hours until it
+ * picks up the update.
+ */
+export function scheduleToOpeningHours(schedule: HoursBlock[], zmanim?: ZmanimResult | null): OpeningHours {
+  const out: OpeningHours = {};
+  for (const day of DAY_KEYS) {
+    const text = hoursTextForDay(schedule, day, zmanim);
+    if (text !== 'סגור') out[day] = text;
+  }
+  return out;
 }

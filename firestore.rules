@@ -144,8 +144,8 @@ service cloud.firestore {
     // The shop's own day-to-day: what an owner runs and a kashrut reviewer has
     // no reason to touch.
     function bizOperationsKeys() {
-      return ['openingHours', 'imageUrl', 'images', 'phone', 'website',
-              'description', 'contacts', 'isOpen', 'activeAlert'];
+      return ['openingHours', 'hoursSchedule', 'imageUrl', 'images', 'phone',
+              'website', 'description', 'contacts', 'isOpen', 'activeAlert'];
     }
     // updateBusiness() stamps this on every write, so any permitted change
     // carries it — granted alongside a group rather than on its own, so an

@@ -6,6 +6,8 @@ import { useNavigateTo } from '../hooks/useNavigateTo';
 import { Business } from '../types';
 import { updateBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../services/businesses';
 import LocationEditModal from './LocationEditModal';
+import { businessHoursForDay } from '../utils/appointmentSlots';
+import { DayKey } from '../types';
 
 const KOSHER_LABELS: Record<string, string> = {
   mehadrin: 'מהדרין', regular: 'רגיל', chalav_israel: 'חלב ישראל',
@@ -22,8 +24,8 @@ interface Props {
 
 function getTodayHours(business: Business): string {
   const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const today = days[new Date().getDay()] as keyof typeof business.openingHours;
-  return business.openingHours[today] ?? '—';
+  const today = days[new Date().getDay()] as DayKey;
+  return businessHoursForDay(business, today);
 }
 
 export default function BusinessCard({ business, distLabel, canManage, onPress, cardStyle }: Props) {
