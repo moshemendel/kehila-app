@@ -154,13 +154,17 @@ service cloud.firestore {
     // The union of every group the caller qualifies for. An account holding
     // both roles over one business gets both sets — no special case, it simply
     // satisfies both conditions.
+    // concat(), not `+`. Rules compiles `+` between lists without complaint and
+    // then fails on it at evaluation time, and a failed expression is a denial —
+    // so the whole thing read as "you may not", identically to a rule that had
+    // simply said no.
     function bizWritableKeys(bizId, bizCityId) {
-      return (managesContentIn(bizCityId)
-                ? bizAlwaysKeys() + bizIdentityKeys() + bizKashrutKeys() + bizOperationsKeys() : [])
-           + (hasCityRole('kosher_manager', bizCityId)
-                ? bizAlwaysKeys() + bizIdentityKeys() + bizKashrutKeys() : [])
-           + (operatesBusiness(bizId)
-                ? bizAlwaysKeys() + bizOperationsKeys() : []);
+      return ['updatedAt']
+        .concat(managesContentIn(bizCityId)
+                  ? bizIdentityKeys().concat(bizKashrutKeys()).concat(bizOperationsKeys()) : [])
+        .concat(hasCityRole('kosher_manager', bizCityId)
+                  ? bizIdentityKeys().concat(bizKashrutKeys()) : [])
+        .concat(operatesBusiness(bizId) ? bizOperationsKeys() : []);
     }
     function managesBusiness(bizId, bizCityId) {
       return isSignedIn() && (
