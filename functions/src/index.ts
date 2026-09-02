@@ -13,6 +13,7 @@
  */
 
 import { onDocumentCreated } from 'firebase-functions/v2/firestore';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
@@ -231,3 +232,136 @@ export const onEruvReportCreated = onDocumentCreated(
     });
   },
 );
+
+// ── Account deletion ────────────────────────────────────────────────────────
+
+/**
+ * Deletes the caller's own account, and everything that is theirs.
+ *
+ * Google Play requires any app offering account creation to offer deletion from
+ * inside the app, not only by writing to a support address. It has to run here
+ * rather than on the client for two reasons: firestore.rules deliberately has
+ * no `allow delete` on users/{uid} — an account document is not the account
+ * holder's to remove, since deleting it would strip a role while leaving the
+ * login working — and Admin SDK privileges are the only way to reach the Auth
+ * record and the collections a user cannot query.
+ *
+ * WHAT IS DELETED AND WHAT IS KEPT is a real decision, not an implementation
+ * detail, and the confirmation screen in the app states it in the same terms:
+ *
+ *   deleted     the login itself, the profile, this person's devices, their
+ *               mikveh bookings (which also frees the slots for someone else),
+ *               their analytics trail, and any submission still awaiting
+ *               review — that last one is still theirs, nobody is relying on
+ *               it, and it carries their name.
+ *   kept, with  content already published to the community. A gemach the
+ *   the name    neighbourhood uses, an event people are attending, a report a
+ *   removed     manager is still working on — none of those stop mattering
+ *               because the person who filed them left, and quietly deleting
+ *               them would be a worse surprise than keeping them. The link to
+ *               the person is severed instead.
+ *
+ * Ordering matters: Firestore first, Auth last. If this dies halfway the user
+ * can sign in and retry, which is recoverable; deleting the login first would
+ * strand the data with no one able to reach it.
+ */
+const DELETED = 'deleted-account';
+
+/**
+ * Paged, because analyticsEvents is one row per screen view per user and a
+ * year-old account can hold thousands — reading them all into memory just to
+ * count them would be the one deletion that fails. Firestore caps a batch at 500.
+ */
+const PAGE = 400;
+
+async function drain(
+  query: admin.firestore.Query,
+  apply: (batch: admin.firestore.WriteBatch, ref: admin.firestore.DocumentReference) => void,
+): Promise<number> {
+  let total = 0;
+  for (;;) {
+    const snap = await query.limit(PAGE).get();
+    if (snap.empty) return total;
+    const batch = db.batch();
+    snap.docs.forEach((d) => apply(batch, d.ref));
+    await batch.commit();
+    total += snap.size;
+    // Only deletes and field-clearing updates are passed in, so a written row
+    // stops matching the query — an update that left it matching would spin here.
+    if (snap.size < PAGE) return total;
+  }
+}
+
+const deleteAll = (query: admin.firestore.Query) =>
+  drain(query, (batch, ref) => batch.delete(ref));
+
+const anonymiseAll = (query: admin.firestore.Query, fields: Record<string, unknown>) =>
+  drain(query, (batch, ref) => batch.update(ref, fields));
+
+export const deleteMyAccount = onCall({ region: REGION, timeoutSeconds: 300 }, async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) {
+    throw new HttpsError('unauthenticated', 'יש להתחבר כדי למחוק חשבון.');
+  }
+  // Guests are anonymous sessions with nothing to delete, and signing out is
+  // already the whole of it — but the Auth record would linger, so remove it.
+  const isAnonymous = request.auth?.token?.firebase?.sign_in_provider === 'anonymous';
+
+  const removed: Record<string, number> = {};
+  const kept: Record<string, number> = {};
+
+  if (!isAnonymous) {
+    // Bookings are released rather than merely unlinked: a held slot with no
+    // one behind it would block the next woman from booking that time.
+    //
+    // Walked per mikveh rather than as one collectionGroup('appointments')
+    // query, which would have been shorter and would have thrown. A collection
+    // GROUP query needs a collection-group-scoped index even for a single
+    // equality filter, and Firestore does not create those automatically — this
+    // project has no index config at all. It would have failed with
+    // FAILED_PRECONDITION at the one moment that matters, halfway through a
+    // deletion, on a path nobody exercises until a real user asks to leave.
+    // There are a handful of mikvaot per city, and this runs once per account.
+    const mikvaot = await db.collection('mikvaot').get();
+    let appointments = 0;
+    for (const mikveh of mikvaot.docs) {
+      const appts = await mikveh.ref.collection('appointments')
+        .where('userId', '==', uid).get();
+      for (const appt of appts.docs) {
+        const slotIds = (appt.data().slotIds as string[] | undefined) ?? [appt.id];
+        await Promise.all(slotIds.map((sid) =>
+          mikveh.ref.collection('appointmentSlots').doc(sid).delete().catch(() => undefined)));
+        await appt.ref.delete().catch(() => undefined);
+      }
+      appointments += appts.size;
+    }
+    removed.appointments = appointments;
+
+    removed.devices = await deleteAll(db.collection('pushTokens').where('uid', '==', uid));
+    removed.analytics = await deleteAll(db.collection('analyticsEvents').where('uid', '==', uid));
+    removed.pendingGemachs = await deleteAll(
+      db.collection('pending_gemachs').where('submittedBy', '==', uid));
+    removed.pendingEvents = await deleteAll(
+      db.collection('pending_events').where('submittedBy', '==', uid));
+
+    kept.gemachs = await anonymiseAll(
+      db.collection('gemachs').where('createdBy', '==', uid), { createdBy: DELETED });
+    kept.events = await anonymiseAll(
+      db.collection('events').where('createdBy', '==', uid), { createdBy: DELETED });
+    kept.eruvReports = await anonymiseAll(
+      db.collection('eruvReports').where('userId', '==', uid),
+      { userId: DELETED, userDisplayName: admin.firestore.FieldValue.delete() });
+    kept.contentReports = await anonymiseAll(
+      db.collection('contentReports').where('userId', '==', uid),
+      { userId: DELETED, userName: admin.firestore.FieldValue.delete() });
+
+    await db.collection('users').doc(uid).delete().catch(() => undefined);
+  }
+
+  // Last, so a failure anywhere above leaves an account that can sign in and
+  // try again rather than data nobody can reach.
+  await admin.auth().deleteUser(uid);
+
+  logger.info('account deleted', { uid, anonymous: isAnonymous, removed, kept });
+  return { removed, kept };
+});

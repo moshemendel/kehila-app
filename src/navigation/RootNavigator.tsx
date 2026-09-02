@@ -35,6 +35,7 @@ import ManageCitiesScreen     from '../screens/admin/ManageCitiesScreen';
 import ManageGemachScreen     from '../screens/admin/ManageGemachScreen';
 import ZmanimSettingsScreen   from '../screens/main/ZmanimSettingsScreen';
 import GemachSubmitScreen     from '../screens/main/GemachSubmitScreen';
+import DeleteAccountScreen   from '../screens/main/DeleteAccountScreen';
 import { Colors } from '../utils/theme';
 import { SHOW_DEV_TOOLS } from '../utils/devTools';
 import { mark } from '../utils/startupTrace';
@@ -308,6 +309,13 @@ export default function RootNavigator() {
       <Root.Screen
         name="GemachSubmit"
         component={GemachSubmitScreen}
+        options={{ headerShown: false }}
+      />
+
+      {/* Account deletion — required in-app by Play for any app with sign-up */}
+      <Root.Screen
+        name="DeleteAccount"
+        component={DeleteAccountScreen}
         options={{ headerShown: false }}
       />
     </Root.Navigator>

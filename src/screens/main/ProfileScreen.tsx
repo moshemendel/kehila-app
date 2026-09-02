@@ -491,7 +491,7 @@ export default function ProfileScreen() {
             utils/links.ts. These were previously onPress={() => {}}: buttons
             that looked live and did nothing. If none is set the whole card is
             omitted rather than left empty. */}
-        {(ABOUT_URL || SUPPORT_URL || PRIVACY_POLICY_URL) ? (
+        {(ABOUT_URL || SUPPORT_URL || PRIVACY_POLICY_URL || (!isGuest && !isDemo)) ? (
           <View style={styles.section}>
             <View style={styles.card}>
               {!!ABOUT_URL && (
@@ -505,6 +505,15 @@ export default function ProfileScreen() {
               {!!PRIVACY_POLICY_URL && (
                 <MenuRow icon="shield-outline" label="מדיניות פרטיות"
                   onPress={() => openLink(PRIVACY_POLICY_URL)} />
+              )}
+              {/* Play requires an in-app deletion path for any app offering
+                  sign-up, and requires it to be findable — so it sits in the
+                  open next to the policy that describes it, not behind the
+                  manager gate or three levels down. Guests and demo have no
+                  account to delete. */}
+              {!isGuest && !isDemo && (
+                <MenuRow icon="trash-outline" label="מחיקת חשבון" color={Colors.danger}
+                  onPress={() => navigation.navigate('DeleteAccount')} />
               )}
             </View>
           </View>
