@@ -16,6 +16,7 @@ import { getSynagogue } from '../../services/synagogues';
 import { useCityId } from '../../hooks/useCityId';
 import { shouldShowSelichot, daysUntilSelichot } from '../../utils/selichot';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
+import { useShabbatZmanim } from '../../hooks/useShabbatZmanim';
 import { ZmanimResult } from '../../utils/zmanim';
 import { useFavorites } from '../../context/FavoritesContext';
 import { useSynagoguesFeed } from '../../context/SynagoguesContext';
@@ -271,6 +272,7 @@ export default function SynagogueDetailScreen() {
   );
   const cityId              = useCityId();
   const todayZmanim         = useTodayZmanim(cityId);
+  const { friday: fridayZmanim, shabbat: shabbatZmanim } = useShabbatZmanim(cityId);
   const { isFavorite, getFavoriteSetting, setFavorite, removeFavorite } = useFavorites();
   const [modalVisible, setModalVisible] = React.useState(false);
   const { go: navigateTo, sheet: navSheet } = useNavigateTo();
@@ -610,25 +612,6 @@ export default function SynagogueDetailScreen() {
           </View>
         </View>
 
-        {/* ── Shabbat ───────────────────────────────────────────────────────── */}
-        {!!syn.shabbatSchedule && (
-          <View style={st.section}>
-            <View style={st.sectionHdr}>
-              <Ionicons name="moon-outline" size={18} color={nusachColor} />
-              <Text style={st.sectionTitle}>שבת</Text>
-            </View>
-            <View style={st.sectionCard}>
-              <SlotPrayerSection label={'קבלת שבת / מנחה ע"ש'} slots={syn.shabbatSchedule.minchaFriday} color={nusachColor} zmanim={todayZmanim} />
-              <SlotPrayerSection label="שחרית" slots={syn.shabbatSchedule.shacharit} color={nusachColor} zmanim={todayZmanim} />
-              <SlotPrayerSection label="מנחה"  slots={syn.shabbatSchedule.mincha}    color={nusachColor} zmanim={todayZmanim} />
-              <SlotPrayerSection label="ערבית" slots={syn.shabbatSchedule.maariv}    color={nusachColor} zmanim={todayZmanim} />
-              {!!syn.shabbatSchedule.notes && (
-                <Text style={st.shabbatNotes}>{syn.shabbatSchedule.notes}</Text>
-              )}
-            </View>
-          </View>
-        )}
-
         {/* ── Weekly schedule ───────────────────────────────────────────────── */}
         <View style={st.section}>
           <View style={st.sectionHdr}>
@@ -657,6 +640,29 @@ export default function SynagogueDetailScreen() {
             })}
           </View>
         </View>
+
+        {/* ── Shabbat ───────────────────────────────────────────────────────── */}
+        {/* Anchored times resolve against the day they fall on, not today:
+            kabbalat Shabbat to Friday's sunset, everything from shacharit on to
+            Shabbat's own. Reading them off today put "half an hour before
+            sunset" minutes out midweek and much further out across a season. */}
+        {!!syn.shabbatSchedule && (
+          <View style={st.section}>
+            <View style={st.sectionHdr}>
+              <Ionicons name="moon-outline" size={18} color={nusachColor} />
+              <Text style={st.sectionTitle}>שבת</Text>
+            </View>
+            <View style={st.sectionCard}>
+              <SlotPrayerSection label={'קבלת שבת / מנחה ע"ש'} slots={syn.shabbatSchedule.minchaFriday} color={nusachColor} zmanim={fridayZmanim} />
+              <SlotPrayerSection label="שחרית" slots={syn.shabbatSchedule.shacharit} color={nusachColor} zmanim={shabbatZmanim} />
+              <SlotPrayerSection label="מנחה"  slots={syn.shabbatSchedule.mincha}    color={nusachColor} zmanim={shabbatZmanim} />
+              <SlotPrayerSection label="ערבית" slots={syn.shabbatSchedule.maariv}    color={nusachColor} zmanim={shabbatZmanim} />
+              {!!syn.shabbatSchedule.notes && (
+                <Text style={st.shabbatNotes}>{syn.shabbatSchedule.notes}</Text>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* ── Selichot — seasonal, shown from a week before this shul starts ── */}
         {(syn.weeklySchedule?.selichot ?? []).length > 0 && shouldShowSelichot(syn) && (() => {
