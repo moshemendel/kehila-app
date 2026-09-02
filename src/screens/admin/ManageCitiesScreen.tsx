@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getAllCities, createCity, deleteCity } from '../../services/cities';
+import { invalidateCities } from '../../hooks/useCities';
 import { Colors, Spacing, Radius } from '../../utils/theme';
 import { City } from '../../types';
 
@@ -192,6 +193,7 @@ export default function ManageCitiesScreen() {
         latitude:  picked.latitude,
         longitude: picked.longitude,
       });
+      invalidateCities();
       setAddOpen(false);
       await load();
     } catch (e: any) {
@@ -210,7 +212,7 @@ export default function ManageCitiesScreen() {
         {
           text: 'מחק', style: 'destructive',
           onPress: async () => {
-            try { await deleteCity(city.id); await load(); }
+            try { await deleteCity(city.id); invalidateCities(); await load(); }
             catch (e: any) { Alert.alert('שגיאה', e.message); }
           },
         },
