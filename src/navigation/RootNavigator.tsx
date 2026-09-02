@@ -84,8 +84,13 @@ function AuthGate({ navigation, route }: any) {
       const { returnTo, returnParams } = route.params ?? {};
       if (returnTo) {
         navigation.navigate(returnTo, returnParams);
-      } else {
+      } else if (navigation.canGoBack()) {
         navigation.navigate('MainTabs', { screen: 'Home' });
+      } else {
+        // First launch: this screen is the stack's first route, so navigating
+        // would stack the tabs on top of it and leave a login screen behind
+        // the back button. Resetting drops it for good.
+        navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
       }
     }
   }, [firebaseUser, isGuest, isDemo, navigation, route.params]);

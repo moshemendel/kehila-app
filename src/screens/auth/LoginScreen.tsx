@@ -126,8 +126,13 @@ export default function LoginScreen({ navigation }: Props) {
   // what returns them to where they were.
   function leaveAuth() {
     const parent = navigation.getParent<any>();
-    if (parent?.canGoBack()) parent.goBack();
-    else parent?.navigate('MainTabs', { screen: 'Home' });
+    if (parent?.canGoBack()) { parent.goBack(); return; }
+    // Reset rather than navigate. As the first screen there is nothing behind
+    // this one, so navigate() would push the tabs ON TOP of the login screen
+    // and leave it sitting in the stack — the Android back button from Home
+    // would then return a guest to the form they had just declined. Resetting
+    // makes the tabs the only route, which is what "continue" means.
+    parent?.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
   }
 
   function handleContinueAsGuest() {
