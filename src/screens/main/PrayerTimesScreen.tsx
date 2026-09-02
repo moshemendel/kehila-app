@@ -206,6 +206,24 @@ const PrayerSlotRow = React.memo(function PrayerSlotRow({
   );
 });
 
+/**
+ * Narrowing presets, not a slider.
+ *
+ * Every other control on this screen is a chip — prayer type, nusach,
+ * neighbourhood, sort — and nobody picking a walking distance needs 1.3km. A
+ * handful of round numbers is faster to hit on a phone and says what it means.
+ */
+const RADIUS_OPTIONS: { key: string; label: string; km: number | null }[] = [
+  { key: 'r500', label: '500 מ׳',  km: 0.5 },
+  { key: 'r1',   label: '1 ק״מ',   km: 1 },
+  { key: 'r2',   label: '2 ק״מ',   km: 2 },
+];
+
+const WINDOW_OPTIONS: { key: string; label: string; min: number | null }[] = [
+  { key: 'w60',  label: 'בשעה הקרובה',   min: 60 },
+  { key: 'w180', label: 'ב-3 השעות',     min: 180 },
+];
+
 export default function PrayerTimesScreen() {
   useAnalyticsTrack('prayer_times');
   const cityId = useCityId();
@@ -221,6 +239,8 @@ export default function PrayerTimesScreen() {
   const [subFilters,   setSubFilters]   = useState<Record<string, string[]>>({ nusach: [], neighborhood: [] });
   const [nowMin,       setNowMin]       = useState(nowInMinutes());
   const [viewDay,      setViewDay]      = useState<'today' | 'tomorrow'>('today');
+  const [radiusKm,     setRadiusKm]     = useState<number | null>(null);
+  const [windowMin,    setWindowMin]    = useState<number | null>(null);
 
   // Tick every minute to refresh countdowns
   useEffect(() => {
@@ -360,19 +380,31 @@ export default function PrayerTimesScreen() {
   const selNusach       = subFilters.nusach;
   const selNeighborhood = subFilters.neighborhood;
 
+  // Everything the existing filters allow, before radius and time window. Kept
+  // separate so the screen can say how many those two removed rather than
+  // leaving someone to wonder where the rest went.
+  const matching = useMemo(() => allSlots
+    .filter((s) => !s.isPast)
+    .filter((s) => filter === 'all' || s.type === filter)
+    .filter((s) => selNusach.length === 0 || synNusachValues(s.synagogue).some((n) => selNusach.includes(n)))
+    .filter((s) => selNeighborhood.length === 0 || selNeighborhood.includes(s.synagogue.neighborhood ?? '')),
+    [allSlots, filter, selNusach, selNeighborhood]);
+
   const sorted = useMemo(() => {
-    const list = allSlots
-      .filter((s) => !s.isPast)
-      .filter((s) => filter === 'all' || s.type === filter)
-      .filter((s) => selNusach.length === 0 || synNusachValues(s.synagogue).some((n) => selNusach.includes(n)))
-      .filter((s) => selNeighborhood.length === 0 || selNeighborhood.includes(s.synagogue.neighborhood ?? ''));
+    const list = matching
+      // A synagogue with no coordinates is not far away, it is unknown — so a
+      // radius narrows to what it can judge and leaves the rest visible rather
+      // than hiding the one next door.
+      .filter((s) => radiusKm === null || s.distanceKm === null || s.distanceKm <= radiusKm)
+      // Meaningless on tomorrow's list, where everything is hours out.
+      .filter((s) => windowMin === null || viewDay === 'tomorrow' || (s.timeMinutes - nowMin) <= windowMin);
     return [...list].sort((a, b) => {
       if (sort === 'closest' && a.distanceKm !== null && b.distanceKm !== null) {
         if (Math.abs(a.distanceKm - b.distanceKm) > 0.01) return a.distanceKm - b.distanceKm;
       }
       return a.timeMinutes - b.timeMinutes;
     });
-  }, [allSlots, filter, sort, selNusach, selNeighborhood]);
+  }, [matching, sort, radiusKm, windowMin, viewDay, nowMin]);
 
   // Stable identities, or React.memo on the row never holds.
   const slotKey = useCallback(
@@ -470,18 +502,85 @@ export default function PrayerTimesScreen() {
         }
       />
 
+      {/* ── Narrowing: how far, and how soon ──────────────────────────────── */}
+      <View style={s.narrowRow}>
+        {RADIUS_OPTIONS.map((o) => {
+          const active = radiusKm === o.km;
+          return (
+            <TouchableOpacity
+              key={o.key}
+              style={[s.narrowChip, active && s.narrowChipOn]}
+              onPress={() => {
+                setRadiusKm(active ? null : o.km);
+                // Same prompt the "קרוב" sort uses — a radius without a
+                // location would silently match nothing.
+                if (!active && !userLoc) requestLocation();
+              }}
+            >
+              <Ionicons name="navigate-outline" size={12}
+                color={active ? Colors.white : Colors.primary} />
+              <Text style={[s.narrowChipTxt, active && s.narrowChipTxtOn]}>{o.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+        {viewDay === 'today' && WINDOW_OPTIONS.map((o) => {
+          const active = windowMin === o.min;
+          return (
+            <TouchableOpacity
+              key={o.key}
+              style={[s.narrowChip, active && s.narrowChipOn]}
+              onPress={() => setWindowMin(active ? null : o.min)}
+            >
+              <Ionicons name="time-outline" size={12}
+                color={active ? Colors.white : Colors.primary} />
+              <Text style={[s.narrowChipTxt, active && s.narrowChipTxtOn]}>{o.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* Says what the two narrowing chips removed, so a short list reads as
+          "narrowed" rather than "there is nothing". */}
+      {(radiusKm !== null || windowMin !== null) && matching.length > sorted.length && (
+        <Text style={s.narrowHint}>
+          {`מציג ${sorted.length} מתוך ${matching.length} תפילות`}
+        </Text>
+      )}
+
       {/* List */}
       {loading ? (
         <ActivityIndicator color={Colors.primary} style={{ marginTop: 40 }} size="large" />
       ) : sorted.length === 0 ? (
         <View style={s.emptyState}>
-          <Ionicons name="moon-outline" size={52} color={Colors.textMuted} />
-          <Text style={s.emptyTitle}>
-            {viewDay === 'today' ? 'כל התפילות הסתיימו' : 'אין תפילות למחר'}
-          </Text>
-          <Text style={s.emptySubtitle}>
-            {viewDay === 'today' ? 'לא נותרו תפילות להיום' : 'לא נמצאו זמני תפילה ליום זה'}
-          </Text>
+          {/* An empty list because the narrowing chips are set is a different
+              thing from a day whose prayers are over, and saying the wrong one
+              sends someone away believing there is nothing left. */}
+          {matching.length > 0 ? (
+            <>
+              <Ionicons name="funnel-outline" size={52} color={Colors.textMuted} />
+              <Text style={s.emptyTitle}>אין תפילות בטווח שנבחר</Text>
+              <Text style={s.emptySubtitle}>
+                {`${matching.length} תפילות נמצאו מחוץ לטווח`}
+              </Text>
+              <TouchableOpacity
+                style={s.clearNarrowBtn}
+                onPress={() => { setRadiusKm(null); setWindowMin(null); }}
+              >
+                <Ionicons name="close-circle-outline" size={15} color={Colors.primary} />
+                <Text style={s.clearNarrowTxt}>הצג הכל</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <Ionicons name="moon-outline" size={52} color={Colors.textMuted} />
+              <Text style={s.emptyTitle}>
+                {viewDay === 'today' ? 'כל התפילות הסתיימו' : 'אין תפילות למחר'}
+              </Text>
+              <Text style={s.emptySubtitle}>
+                {viewDay === 'today' ? 'לא נותרו תפילות להיום' : 'לא נמצאו זמני תפילה ליום זה'}
+              </Text>
+            </>
+          )}
         </View>
       ) : (
         <FlatList
@@ -524,6 +623,14 @@ const s = StyleSheet.create({
 
   card:         { ...CardShellFlush, flexDirection: 'row', alignItems: 'center' },
   colorBar:     { width: 4, alignSelf: 'stretch' },
+  narrowRow:    { flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: Spacing.md, paddingTop: Spacing.sm },
+  narrowChip:   { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: Colors.primary + '55', borderRadius: Radius.full, paddingHorizontal: 10, paddingVertical: 5 },
+  narrowChipOn: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  narrowChipTxt:   { fontSize: 12, fontWeight: '600', color: Colors.primary },
+  narrowChipTxtOn: { color: Colors.white },
+  narrowHint:   { fontSize: 12, color: Colors.textMuted, textAlign: 'right', paddingHorizontal: Spacing.md, paddingTop: Spacing.xs },
+  clearNarrowBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: Spacing.md, borderWidth: 1, borderColor: Colors.primary + '55', borderRadius: Radius.full, paddingHorizontal: 14, paddingVertical: 7 },
+  clearNarrowTxt: { fontSize: 13, fontWeight: '600', color: Colors.primary },
   cardBody:     { flex: 1, paddingHorizontal: Spacing.sm, paddingVertical: 10, gap: 4 },
 
   cardTop:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
