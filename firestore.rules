@@ -174,6 +174,20 @@ service cloud.firestore {
       );
     }
 
+    // ── App configuration — published by the app, read by the console ────────
+    // config/modules is the catalogue of what the app can run, generated from
+    // its own source by scripts/sync-modules.mjs. The console renders its
+    // per-city switches from it rather than keeping a second list.
+    //
+    // Readable by anyone: it names sections that are already visible in the
+    // app, so there is nothing here that a screenshot would not show. Writable
+    // by nobody through a client — it is generated, and the script publishes it
+    // with the Admin SDK, which does not pass through these rules at all.
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // ── Cities — public read; super_admin writes any city, city_admin only their own ──
     match /cities/{cityId} {
       allow read: if true;
