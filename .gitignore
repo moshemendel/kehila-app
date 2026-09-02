@@ -60,3 +60,9 @@ __pycache__/
 
 # firebase deploy cache
 .firebase/
+
+# build artifacts downloaded for testing — an AAB from EAS, the universal APK
+# Play Console generates from it. Hundreds of megabytes each, reproducible from
+# a commit, and nothing reads them from here.
+*.apk
+*.aab
