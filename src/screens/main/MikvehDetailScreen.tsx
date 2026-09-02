@@ -16,7 +16,7 @@ import { getMikveh } from '../../services/mikvaot';
 import { hoursTextForDay } from '../../utils/appointmentSlots';
 import { useAuth } from '../../context/AuthContext';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
-import { isComingSoon } from '../../utils/comingSoon';
+import { useModule } from '../../utils/modules';
 import { comingSoonAlert } from '../../components/ComingSoon';
 
 // ─── Layout constants (identical to BusinessDetailScreen) ───────────────────
@@ -50,6 +50,8 @@ export default function MikvehDetailScreen() {
   const { top, bottom } = useSafeAreaInsets();
   const { mikvehId }    = route.params as { mikvehId: string };
   const { isGuest }     = useAuth();
+  // A city can take bookings offline without losing the mikveh section itself.
+  const bookingSoon     = useModule('mikvehBooking') === 'soon';
 
   const [mikveh,  setMikveh]  = useState<Mikveh | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,7 +61,7 @@ export default function MikvehDetailScreen() {
     // Held back for the pilot: bookings only work once the balaniot are running
     // the other side of them, otherwise appointments go into a system nobody
     // reads. The phone number above stays — that's the working route today.
-    if (isComingSoon('mikvehBooking')) {
+    if (bookingSoon) {
       comingSoonAlert(
         'קביעת תור אונליין',
         'קביעת תור דרך האפליקציה תיפתח בקרוב.\nבינתיים ניתן לקבוע תור טלפונית מול המקווה.',
@@ -327,13 +329,13 @@ export default function MikvehDetailScreen() {
 
             {/* Online appointment booking button — always visible */}
             <TouchableOpacity
-              style={[styles.bookingBtn, isComingSoon('mikvehBooking') && styles.bookingBtnSoon]}
+              style={[styles.bookingBtn, bookingSoon && styles.bookingBtnSoon]}
               onPress={handleBookPress}
               activeOpacity={0.85}
             >
               <Ionicons name="calendar" size={20} color="#fff" />
               <Text style={styles.bookingBtnTxt}>קביעת תור אונליין</Text>
-              {isComingSoon('mikvehBooking') ? (
+              {bookingSoon ? (
                 <View style={styles.bookingSoonTag}><Text style={styles.bookingSoonTxt}>בקרוב</Text></View>
               ) : (
                 <Ionicons name="chevron-back" size={16} color="rgba(255,255,255,0.7)" />

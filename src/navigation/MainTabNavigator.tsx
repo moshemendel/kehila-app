@@ -30,18 +30,25 @@ import { useManagerAlertsFeed }             from '../context/ManagerAlertsContex
 import { useAppIconBadge }                  from '../hooks/useAppIconBadge';
 import BottomSheetModal                     from '../components/BottomSheetModal';
 import ComingSoonScreen, { ComingSoonBadge } from '../components/ComingSoon';
-import { isComingSoon }                     from '../utils/comingSoon';
+import { useModules, isOffered, isComingSoon, MODULE_INFO, ModuleKey } from '../utils/modules';
 import { isSelichotWindowOpen }             from '../utils/selichot';
 
-/** Stands in for the kashrut tab while the certificate data is being verified. */
-const KashrutComingSoon = () => (
-  <ComingSoonScreen
-    title="כשרות"
-    description={'מסעדות, עסקים ותעודות כשרות מתעדכנים כעת מול הרבנות.\nהמדור ייפתח לאחר אימות כל התעודות.'}
-    icon="restaurant-outline"
-    color={Colors.kosher}
-  />
-);
+/**
+ * Stands in for any tab a city is holding back, using that module's own copy.
+ * One component rather than one per section: the only difference between them
+ * is the text, and the text belongs beside the module list.
+ */
+function heldBack(key: ModuleKey) {
+  const info = MODULE_INFO[key];
+  return () => (
+    <ComingSoonScreen
+      title={info?.title ?? ''}
+      description={info?.description ?? ''}
+      icon={info?.icon ?? 'time-outline'}
+      color={info?.color ?? Colors.primary}
+    />
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────
 type TabName = keyof MainTabParamList;
@@ -69,6 +76,19 @@ const TAB_INFO: Record<TabName, TabInfo> = {
  * year regardless, so the Home card and deep links still reach it; it simply
  * isn't offered in the "עוד" popup for the eleven months it means nothing.
  */
+/** The optional sections, paired with what renders them. */
+const SECTION_TABS: { name: ModuleKey; screen: React.ComponentType<any> }[] = [
+  { name: 'Synagogues',  screen: SynagoguesScreen },
+  { name: 'PrayerTimes', screen: PrayerTimesScreen },
+  { name: 'Zmanim',      screen: ZmanimScreen },
+  { name: 'Businesses',  screen: BusinessesScreen },
+  { name: 'Mikveh',      screen: MikvehScreen },
+  { name: 'Events',      screen: EventsScreen },
+  { name: 'Eruv',        screen: EruvScreen },
+  { name: 'Gemach',      screen: GemachScreen },
+  { name: 'Selichot',    screen: SelichotScreen },
+];
+
 const ALL_TABS: TabName[] = [
   'Home','Search','Synagogues','PrayerTimes','Zmanim',
   'Businesses','Mikveh','Events','Eruv','Gemach','Selichot','Profile',
@@ -137,12 +157,15 @@ function EditModal({
     );
   };
 
+  const modules = useModules();
+
   return (
     <BottomSheetModal visible={visible} onClose={onClose} title="התאמה אישית" sheetStyle={ed.sheetPad}>
       <Text style={ed.subtitle}>בחר 4 כפתורים לסרגל ({sel.length}/4)</Text>
 
       <View style={ed.grid}>
-        {ALL_TABS.filter(n => n !== 'Selichot' || isSelichotWindowOpen()).map(name => {
+        {ALL_TABS.filter(n => isOffered(modules, n as ModuleKey))
+          .filter(n => n !== 'Selichot' || isSelichotWindowOpen()).map(name => {
           const info   = TAB_INFO[name];
           const inBar  = sel.includes(name);
           const locked = name === 'Home';
@@ -253,7 +276,13 @@ function KehilaTabBar({ state, navigation }: BottomTabBarProps) {
   // config — someone who pinned it during Elul shouldn't meet a dead tab in
   // Cheshvan.
   const inSeason  = isSelichotWindowOpen();
-  const visible   = ALL_TABS.filter(n => n !== 'Selichot' || inSeason);
+  const modules   = useModules();
+  // A module set to 'off' leaves every surface that could lead to it — the
+  // bar, the More sheet — rather than lingering as a label promising something
+  // this city does not intend to offer.
+  const visible   = ALL_TABS
+    .filter(n => isOffered(modules, n as ModuleKey))
+    .filter(n => n !== 'Selichot' || inSeason);
   const barShown  = (barTabs as TabName[]).filter(n => visible.includes(n));
   const moreTabs  = visible.filter(n => !(barShown as string[]).includes(n));
   // Only badge "עוד" for things that are actually inside it — otherwise the
@@ -329,7 +358,7 @@ function KehilaTabBar({ state, navigation }: BottomTabBarProps) {
                         )}
                       </View>
                       <Text style={pp.itemLabel}>{info.label}</Text>
-                      {name === 'Businesses' && isComingSoon('kashrut') && (
+                      {isComingSoon(modules, name as ModuleKey) && (
                         <ComingSoonBadge color={info.color} />
                       )}
                     </TouchableOpacity>
@@ -471,6 +500,7 @@ const pp = StyleSheet.create({
 
 // ─── Navigator ──────────────────────────────────────────────────
 export default function MainTabNavigator() {
+  const modules = useModules();
   return (
     <>
       <PrayerNotificationScheduler />
@@ -478,17 +508,21 @@ export default function MainTabNavigator() {
         screenOptions={{ headerShown: false }}
         tabBar={(props) => <KehilaTabBar {...props} />}
       >
+        {/* Home, Search and Profile are the app itself and are never optional.
+            The rest are registered only when the city offers them, and a module
+            held back gets the placeholder in place of its screen — the tab
+            stays, so the entry point is where people expect it. */}
         <Tab.Screen name="Home"        component={HomeScreen} />
         <Tab.Screen name="Search"      component={SearchScreen} />
-        <Tab.Screen name="Synagogues"  component={SynagoguesScreen} />
-        <Tab.Screen name="PrayerTimes" component={PrayerTimesScreen} />
-        <Tab.Screen name="Zmanim"      component={ZmanimScreen} />
-        <Tab.Screen name="Businesses" component={isComingSoon('kashrut') ? KashrutComingSoon : BusinessesScreen} />
-        <Tab.Screen name="Mikveh"      component={MikvehScreen} />
-        <Tab.Screen name="Events"      component={EventsScreen} />
-        <Tab.Screen name="Eruv"        component={EruvScreen} />
-        <Tab.Screen name="Gemach"      component={GemachScreen} />
-        <Tab.Screen name="Selichot"    component={SelichotScreen} />
+        {SECTION_TABS.map(({ name, screen }) =>
+          isOffered(modules, name) ? (
+            <Tab.Screen
+              key={name}
+              name={name as TabName}
+              component={isComingSoon(modules, name) ? heldBack(name) : screen}
+            />
+          ) : null,
+        )}
         <Tab.Screen name="Profile"     component={ProfileScreen} />
       </Tab.Navigator>
     </>

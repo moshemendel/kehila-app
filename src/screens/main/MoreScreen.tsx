@@ -8,7 +8,7 @@ import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { MainTabParamList } from '../../types';
 import { useEventsFeed } from '../../context/EventsContext';
 import { useAuth } from '../../context/AuthContext';
-import { isComingSoon } from '../../utils/comingSoon';
+import { useModules, isOffered, isComingSoon, ModuleKey } from '../../utils/modules';
 import { ComingSoonBadge } from '../../components/ComingSoon';
 
 type Nav = BottomTabNavigationProp<MainTabParamList>;
@@ -33,6 +33,7 @@ export default function MoreScreen() {
   const { top }     = useSafeAreaInsets();
   const { events }  = useEventsFeed();
   const { appUser } = useAuth();
+  const modules     = useModules();
 
   const alertCount  = events.filter((e) => e.isAlert).length;
 
@@ -52,7 +53,7 @@ export default function MoreScreen() {
 
       {/* Grid */}
       <View style={styles.grid}>
-        {MORE_ITEMS.map((item) => (
+        {MORE_ITEMS.filter((i) => isOffered(modules, i.tab as ModuleKey)).map((item) => (
           <TouchableOpacity
             key={item.tab}
             style={styles.card}
@@ -68,7 +69,7 @@ export default function MoreScreen() {
               )}
             </View>
             <Text style={styles.cardLabel}>{item.label}</Text>
-            {item.tab === 'Businesses' && isComingSoon('kashrut')
+            {isComingSoon(modules, item.tab as ModuleKey)
               ? <ComingSoonBadge color={item.color} style={{ marginTop: 4 }} />
               : <Text style={styles.cardSub}>{item.sublabel}</Text>}
           </TouchableOpacity>

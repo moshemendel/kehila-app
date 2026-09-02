@@ -71,6 +71,9 @@ export interface NusachOption {
   label: string;
 }
 
+import type { CityModules } from '../utils/modules';
+export type { CityModules };
+
 export interface City {
   id: string;
   name: string;
@@ -81,6 +84,13 @@ export interface City {
   elevation?: number; // meters above sea level — used for daily mountain-angle terrain scan
   nusachOptions?: NusachOption[];
   neighborhoods?: string[];
+  /**
+   * Which parts of the app this city offers: 'live', 'soon' or 'off' per
+   * module, with an absent key meaning live. Lets a city run without a gemach
+   * registry, or hold kashrut back until its certificates are verified, without
+   * a release. See utils/modules.ts.
+   */
+  modules?: CityModules;
 }
 
 // Zmanim anchors for relative prayer time slots

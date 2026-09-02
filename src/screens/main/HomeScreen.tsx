@@ -46,7 +46,7 @@ import { getJewishDayInfo, getUpcomingFast, getUpcomingYomTov } from '../../util
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { MainTabParamList }  from '../../types';
 import { calcZmanim, minToStr } from '../../utils/zmanim';
-import { isComingSoon } from '../../utils/comingSoon';
+import { useModules, isOffered, isComingSoon, ModuleKey } from '../../utils/modules';
 import { ComingSoonBadge } from '../../components/ComingSoon';
 import EmailVerificationBanner from '../../components/EmailVerificationBanner';
 
@@ -121,6 +121,7 @@ export default function HomeScreen() {
   );
   const nextSelichot = selichotNights[0] ?? null;
   const { settings: zmanimSettings }       = useZmanimSettings();
+  const modules                            = useModules();
   // Forces the date-derived widgets below (Shabbat/Yom Tov/fast/Hebrew-date cards)
   // to recompute when the app returns to the foreground — otherwise each one's
   // new Date() is only ever evaluated once at first mount for the whole session.
@@ -452,8 +453,9 @@ export default function HomeScreen() {
         contentContainerStyle={styles.quickRow}
         style={styles.quickRowWrap}
       >
-        {QUICK_LINKS.map(({ icon, customIcon, label, tab, color }) => {
-          const soon = tab === 'Businesses' && isComingSoon('kashrut');
+        {QUICK_LINKS.filter(({ tab }) => isOffered(modules, tab as ModuleKey))
+          .map(({ icon, customIcon, label, tab, color }) => {
+          const soon = isComingSoon(modules, tab as ModuleKey);
           const badgeCount =
             tab === 'Events'      ? unreadCount  :
             tab === 'Businesses' ? (soon ? 0 : kashrutCount) : 0;
@@ -537,7 +539,7 @@ export default function HomeScreen() {
         {/* Hidden while kashrut is בקרוב: the banner links into the feed, and a
             kashrut alert with no way to see which business it concerns is worse
             than no alert at all. */}
-        {kashrutTotal > 0 && !isComingSoon('kashrut') && (
+        {kashrutTotal > 0 && !isComingSoon(modules, 'Businesses') && (
           <TouchableOpacity
             style={[
               styles.kashrutBanner,

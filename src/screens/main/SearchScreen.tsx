@@ -13,7 +13,7 @@ import { useBusinessesFeed } from '../../context/BusinessesContext';
 import { useEvents } from '../../hooks/useEvents';
 import { useGemachs } from '../../hooks/useGemachs';
 import { Synagogue, Business, CommunityEvent, Gemach, GemachCategory } from '../../types';
-import { isComingSoon } from '../../utils/comingSoon';
+import { useModules, isOffered, isComingSoon, ModuleKey } from '../../utils/modules';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -43,13 +43,17 @@ type FilterCat = 'all' | 'synagogues' | 'businesses' | 'events' | 'gemachs';
 
 // Kashrut is dropped from search while it is בקרוב — a hit that opens a
 // placeholder screen is a dead end.
-const CHIPS: { key: FilterCat; label: string; icon: string; color: string }[] = ([
-  { key: 'all',         label: 'הכל',      icon: 'apps-outline',       color: Colors.primary  },
-  { key: 'synagogues',  label: 'בתי כנסת', icon: 'business-outline',   color: Colors.primary  },
-  { key: 'businesses',  label: 'כשרות',    icon: 'restaurant-outline', color: Colors.kosher   },
-  { key: 'events',      label: 'אירועים',  icon: 'calendar-outline',   color: Colors.events   },
-  { key: 'gemachs',     label: 'גמ"ח',     icon: 'gift-outline',       color: '#B06B3A'       },
-] as const).filter(c => !(c.key === 'businesses' && isComingSoon('kashrut'))) as any;
+/**
+ * Every category, with the module each one searches. Filtered per city inside
+ * the screen — this list is module scope, which has no city to ask.
+ */
+const CHIPS: { key: FilterCat; label: string; icon: string; color: string; module?: ModuleKey }[] = [
+  { key: 'all',         label: 'הכל',      icon: 'apps-outline',       color: Colors.primary },
+  { key: 'synagogues',  label: 'בתי כנסת', icon: 'business-outline',   color: Colors.primary, module: 'Synagogues' },
+  { key: 'businesses',  label: 'כשרות',    icon: 'restaurant-outline', color: Colors.kosher,  module: 'Businesses' },
+  { key: 'events',      label: 'אירועים',  icon: 'calendar-outline',   color: Colors.events,  module: 'Events' },
+  { key: 'gemachs',     label: 'גמ"ח',     icon: 'gift-outline',       color: '#B06B3A',      module: 'Gemach' },
+];
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
@@ -83,17 +87,18 @@ export default function SearchScreen() {
 
   const loading = lSyn || lBiz || lEvt || lGem;
   const q = query.trim();
+  const modules = useModules();
 
   const show = (cat: FilterCat) => filter === 'all' || filter === cat;
 
   const synResults = useMemo(() => {
-    if (!q || !show('synagogues')) return [];
+    if (!q || !show('synagogues') || !isOffered(modules, 'Synagogues') || isComingSoon(modules, 'Synagogues')) return [];
     return synagogues.filter(s =>
       hit(q, s.name, s.neighborhood, s.rabbiName, s.rabbi, s.address?.he, s.nusach?.join(' ')));
   }, [q, filter, synagogues]);
 
   const restResults = useMemo(() => {
-    if (!q || !show('businesses') || isComingSoon('kashrut')) return [];
+    if (!q || !show('businesses') || !isOffered(modules, 'Businesses') || isComingSoon(modules, 'Businesses')) return [];
     // isHidden means the rabbanut certificate is deactivated. BusinessesScreen
     // has always filtered on it; search did not, so a business pulled for a
     // kashrut problem stayed findable by name — the one kind of stale
@@ -103,13 +108,13 @@ export default function SearchScreen() {
   }, [q, filter, businesses]);
 
   const evtResults = useMemo(() => {
-    if (!q || !show('events')) return [];
+    if (!q || !show('events') || !isOffered(modules, 'Events') || isComingSoon(modules, 'Events')) return [];
     return events.filter(e =>
       hit(q, e.title, e.description, e.location, e.organizer, EVENT_LABEL[e.category]));
   }, [q, filter, events]);
 
   const gemResults = useMemo(() => {
-    if (!q || !show('gemachs')) return [];
+    if (!q || !show('gemachs') || !isOffered(modules, 'Gemach') || isComingSoon(modules, 'Gemach')) return [];
     return gemachs.filter(g =>
       hit(q, g.name, g.neighborhood, g.description, GEMACH_LABEL[g.category]));
   }, [q, filter, gemachs]);
@@ -149,7 +154,11 @@ export default function SearchScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={sc.chipsRow}
         >
-          {CHIPS.map(chip => {
+          {/* A category the city does not offer, or is still holding back, is
+              not a search filter — its results would lead to a dead end. */}
+          {CHIPS.filter(c => !c.module
+                          || (isOffered(modules, c.module) && !isComingSoon(modules, c.module)))
+            .map(chip => {
             const active = filter === chip.key;
             return (
               <TouchableOpacity

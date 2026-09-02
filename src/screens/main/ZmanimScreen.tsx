@@ -14,7 +14,7 @@ import { useZmanimSettings } from '../../context/ZmanimSettingsContext';
 import { useCity } from '../../hooks/useCity';
 import { useCityId } from '../../hooks/useCityId';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { isComingSoon } from '../../utils/comingSoon';
+import { useModule } from '../../utils/modules';
 import { comingSoonAlert } from '../../components/ComingSoon';
 
 const DEFAULT_LAT = 31.7767;
@@ -88,7 +88,7 @@ export default function ZmanimScreen() {
   const cityId = useCityId();
   const { top }  = useSafeAreaInsets();
   const { city } = useCity(cityId);
-  const methodLocked = isComingSoon('zmanimSettings');
+  const methodLocked = useModule('zmanimSettings') === 'soon';
 
   const [zmanim,        setZmanim]        = useState<ZmanimResult | null>(null);
   const [locationName,  setLocName]       = useState(DEFAULT_LOC);
