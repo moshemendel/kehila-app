@@ -264,6 +264,11 @@ function KehilaTabBar({ state, navigation }: BottomTabBarProps) {
     }).start();
   }, [moreOpen]);
 
+  // Above the early return below: a hook after it runs on some renders and not
+  // others, which is what "Rendered more hooks than during the previous render"
+  // means — the bar returns null on Home and renders everywhere else.
+  const modules = useModules();
+
   const currentRoute = state.routes[state.index].name as TabName;
 
   // Close popup whenever the active tab changes
@@ -276,7 +281,6 @@ function KehilaTabBar({ state, navigation }: BottomTabBarProps) {
   // config — someone who pinned it during Elul shouldn't meet a dead tab in
   // Cheshvan.
   const inSeason  = isSelichotWindowOpen();
-  const modules   = useModules();
   // A module set to 'off' leaves every surface that could lead to it — the
   // bar, the More sheet — rather than lingering as a label promising something
   // this city does not intend to offer.

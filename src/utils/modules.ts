@@ -1,6 +1,18 @@
 import { useCityId } from '../hooks/useCityId';
 import { useCity } from '../hooks/useCity';
 import { Colors } from './theme';
+import catalogue from './moduleCatalogue.json';
+import type { ModuleKey } from './moduleKeys';
+
+interface CatalogueEntry {
+  key: ModuleKey;
+  kind: 'section' | 'feature';
+  label: string;
+  hint: string;
+  icon?: string;
+  color?: string;
+  soonText?: string;
+}
 
 /**
  * Which parts of the app a city offers, decided per city in its own document.
@@ -30,92 +42,40 @@ import { Colors } from './theme';
  *
  *   modules: { Gemach: 'off', Businesses: 'soon' }
  */
-export type ModuleKey =
-  // Tab-level sections. The key is the tab's own name, which is what makes
-  // filtering the navigator, the home shortcuts and the More screen exact
-  // rather than a second list to keep in step.
-  | 'Synagogues'
-  | 'PrayerTimes'
-  | 'Zmanim'
-  | 'Businesses'
-  | 'Mikveh'
-  | 'Events'
-  | 'Eruv'
-  | 'Gemach'
-  | 'Selichot'
-  // Features inside a section, which a city can hold back without losing the
-  // section around them.
-  | 'mikvehBooking'
-  | 'zmanimSettings';
+// The one place a module is declared is src/utils/moduleCatalogue.json, and
+// ModuleKey is generated from it — see scripts/sync-modules.mjs. That script
+// also publishes the catalogue to Firestore, which is where the admin console
+// reads it from, so the console never keeps a list that can fall out of step
+// with this one.
+export type { ModuleKey } from './moduleKeys';
 
 export type ModuleState = 'live' | 'soon' | 'off';
 
 export type CityModules = Partial<Record<ModuleKey, ModuleState>>;
 
 /**
- * What a held-back section says for itself.
- *
- * Only needed for the tab-level ones, which are the only modules that can put a
- * whole screen in front of someone.
+ * What a held-back section says for itself, read off the catalogue rather than
+ * restated here. Only sections have this — they are the only modules that can
+ * put a whole screen in front of someone.
  */
+const COLORS: Record<string, string> = {
+  primary: Colors.primary, kosher: Colors.kosher, mikveh: Colors.mikveh,
+  events: Colors.events, gold: Colors.gold, shacharit: Colors.shacharit,
+  gemach: '#B06B3A',
+};
+
 export const MODULE_INFO: Partial<Record<ModuleKey, {
   title: string; description: string; icon: string; color: string;
-}>> = {
-  Businesses: {
-    title: 'כשרות',
-    description: 'מסעדות, עסקים ותעודות כשרות מתעדכנים כעת מול הרבנות.\nהמדור ייפתח לאחר אימות כל התעודות.',
-    icon: 'restaurant-outline',
-    color: Colors.kosher,
-  },
-  Mikveh: {
-    title: 'מקוואות',
-    description: 'פרטי המקוואות ושעות הפעילות נאספים כעת.\nהמדור ייפתח בקרוב.',
-    icon: 'water-outline',
-    color: Colors.mikveh,
-  },
-  Events: {
-    title: 'אירועים',
-    description: 'לוח האירועים והשיעורים של הקהילה ייפתח בקרוב.',
-    icon: 'calendar-outline',
-    color: Colors.events,
-  },
-  Eruv: {
-    title: 'עירוב',
-    description: 'מפת העירוב ועדכוני התקינות ייפתחו בקרוב.',
-    icon: 'shield-outline',
-    color: Colors.gold,
-  },
-  Gemach: {
-    title: 'גמ"ח',
-    description: 'רשימת הגמ"חים בעיר נאספת כעת ותיפתח בקרוב.',
-    icon: 'gift-outline',
-    color: '#B06B3A',
-  },
-  Selichot: {
-    title: 'סליחות',
-    description: 'זמני הסליחות בבתי הכנסת ייפתחו לקראת חודש אלול.',
-    icon: 'moon-outline',
-    color: Colors.primary,
-  },
-  Synagogues: {
-    title: 'בתי כנסת',
-    description: 'רשימת בתי הכנסת וזמני התפילות נאספים כעת.',
-    icon: 'business-outline',
-    color: Colors.primary,
-  },
-  PrayerTimes: {
-    title: 'מניינים',
-    description: 'לוח המניינים בעיר ייפתח בקרוב.',
-    icon: 'time-outline',
-    color: Colors.shacharit,
-  },
-  Zmanim: {
-    title: 'זמנים',
-    description: 'זמני היום ייפתחו בקרוב.',
-    icon: 'sunny-outline',
-    color: Colors.gold,
-  },
-};
+}>> = Object.fromEntries(
+  (catalogue as CatalogueEntry[])
+    .filter((m) => m.kind === 'section')
+    .map((m) => [m.key, {
+      title: m.label,
+      description: m.soonText ?? '',
+      icon: m.icon ?? 'time-outline',
+      color: COLORS[m.color ?? 'primary'] ?? Colors.primary,
+    }]),
+) as Partial<Record<ModuleKey, { title: string; description: string; icon: string; color: string }>>;
 
 /** This module's state in the city currently being browsed. */
 export function useModule(key: ModuleKey): ModuleState {

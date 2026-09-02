@@ -1,0 +1,95 @@
+[
+  {
+    "key": "Synagogues",
+    "kind": "section",
+    "label": "בתי כנסת",
+    "hint": "רשימת בתי הכנסת וזמני התפילות",
+    "icon": "business-outline",
+    "color": "primary",
+    "soonText": "רשימת בתי הכנסת וזמני התפילות נאספים כעת."
+  },
+  {
+    "key": "PrayerTimes",
+    "kind": "section",
+    "label": "מניינים",
+    "hint": "לוח המניינים בעיר",
+    "icon": "time-outline",
+    "color": "shacharit",
+    "soonText": "לוח המניינים בעיר ייפתח בקרוב."
+  },
+  {
+    "key": "Zmanim",
+    "kind": "section",
+    "label": "זמנים",
+    "hint": "זמני היום",
+    "icon": "sunny-outline",
+    "color": "gold",
+    "soonText": "זמני היום ייפתחו בקרוב."
+  },
+  {
+    "key": "Businesses",
+    "kind": "section",
+    "label": "כשרות",
+    "hint": "עסקים ותעודות כשרות",
+    "icon": "restaurant-outline",
+    "color": "kosher",
+    "soonText": "מסעדות, עסקים ותעודות כשרות מתעדכנים כעת מול הרבנות.\nהמדור ייפתח לאחר אימות כל התעודות."
+  },
+  {
+    "key": "Mikveh",
+    "kind": "section",
+    "label": "מקוואות",
+    "hint": "פרטי המקוואות ושעות הפעילות",
+    "icon": "water-outline",
+    "color": "mikveh",
+    "soonText": "פרטי המקוואות ושעות הפעילות נאספים כעת.\nהמדור ייפתח בקרוב."
+  },
+  {
+    "key": "Events",
+    "kind": "section",
+    "label": "אירועים",
+    "hint": "אירועים, שיעורים והודעות",
+    "icon": "calendar-outline",
+    "color": "events",
+    "soonText": "לוח האירועים והשיעורים של הקהילה ייפתח בקרוב."
+  },
+  {
+    "key": "Eruv",
+    "kind": "section",
+    "label": "עירוב",
+    "hint": "מפת העירוב ועדכוני תקינות",
+    "icon": "shield-outline",
+    "color": "gold",
+    "soonText": "מפת העירוב ועדכוני התקינות ייפתחו בקרוב."
+  },
+  {
+    "key": "Gemach",
+    "kind": "section",
+    "label": "גמ\"ח",
+    "hint": "רשימת הגמ\"חים בעיר",
+    "icon": "gift-outline",
+    "color": "gemach",
+    "soonText": "רשימת הגמ\"חים בעיר נאספת כעת ותיפתח בקרוב."
+  },
+  {
+    "key": "Selichot",
+    "kind": "section",
+    "label": "סליחות",
+    "hint": "זמני סליחות — מופיע בעונה בלבד",
+    "icon": "moon-outline",
+    "color": "primary",
+    "soonText": "זמני הסליחות בבתי הכנסת ייפתחו לקראת חודש אלול."
+  },
+  {
+    "key": "mikvehBooking",
+    "kind": "feature",
+    "label": "קביעת תורים למקווה",
+    "hint": "בתוך מדור המקוואות"
+  },
+  {
+    "key": "zmanimSettings",
+    "kind": "feature",
+    "label": "הגדרות זמנים",
+    "hint": "בחירת שיטת חישוב על ידי המשתמש"
+  }
+]
