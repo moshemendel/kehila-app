@@ -11,6 +11,7 @@ import { useShabbatLock } from '../hooks/useShabbatLock';
 import ShabbatClosedScreen from '../screens/ShabbatClosedScreen';
 import CompleteCityScreen from '../screens/auth/CompleteCityScreen';
 import CityGpsPrompt from '../components/CityGpsPrompt';
+import GuestCityBootstrap from '../components/GuestCityBootstrap';
 import { useFirstRunAuthPrompt } from '../hooks/useFirstRunAuthPrompt';
 import AuthNavigator from './AuthNavigator';
 import MainTabNavigator from './MainTabNavigator';
@@ -155,6 +156,7 @@ export default function RootNavigator() {
 
   return (
     <>
+    <GuestCityBootstrap />
     <CityGpsPrompt />
     {SHOW_DEV_TOOLS && (
       <TouchableOpacity

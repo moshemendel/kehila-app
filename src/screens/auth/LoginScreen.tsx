@@ -15,6 +15,8 @@ import { Colors, Spacing, Radius } from '../../utils/theme';
 import { SHOW_DEV_TOOLS } from '../../utils/devTools';
 import { AuthStackParamList } from '../../types';
 import GuestInfoModal from '../../components/GuestInfoModal';
+import CityPicker from '../../components/CityPicker';
+import { useCities } from '../../hooks/useCities';
 
 const googleAuthConfig = (Constants.expoConfig?.extra as any)?.googleAuth ?? {};
 
@@ -31,13 +33,15 @@ GoogleSignin.configure({
 type Props = { navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'> };
 
 export default function LoginScreen({ navigation }: Props) {
-  const { loginAsDemo, refreshUser } = useAuth();
+  const { loginAsDemo, refreshUser, guestCityId, switchCity } = useAuth();
+  const { cities } = useCities();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [guestInfoVisible, setGuestInfoVisible] = useState(false);
+  const [cityPickerVisible, setCityPickerVisible] = useState(false);
   const [resetting, setResetting] = useState(false);
   const { bottom } = useSafeAreaInsets();
 
@@ -104,7 +108,21 @@ export default function LoginScreen({ navigation }: Props) {
   // modal back to the app. AuthGate's own auto-dismiss effect only fires once
   // actually authenticated (or in demo mode), so a guest choosing to stay a
   // guest must close the modal itself via the parent (Root) navigator.
+  //
+  // ONE THING HAS TO HAPPEN FIRST, and only when there is more than one city:
+  // ask which. Registering carries the answer (CompleteCityScreen), so declining
+  // an account was the one path into the app that left the city unanswered — and
+  // it was answered by a hardcoded default, which quietly hands a resident of one
+  // town another town's prayer times. This is the right moment to ask because it
+  // is the last one before any content is shown: nothing has been rendered yet,
+  // so there is nothing to correct and nothing flashes. A single-city install
+  // never sees this — GuestCityBootstrap has already stored the only city there
+  // is, without asking.
   function handleContinueAsGuest() {
+    if (!guestCityId && cities.length > 1) {
+      setCityPickerVisible(true);
+      return;
+    }
     navigation.getParent()?.goBack();
   }
 
@@ -247,6 +265,22 @@ export default function LoginScreen({ navigation }: Props) {
       </KeyboardAvoidingView>
 
       <GuestInfoModal visible={guestInfoVisible} onClose={() => setGuestInfoVisible(false)} />
+      <CityPicker
+        visible={cityPickerVisible}
+        selectedCityId={guestCityId ?? ''}
+        onSelect={async (city) => {
+          setCityPickerVisible(false);
+          await switchCity(city.id);
+          navigation.getParent()?.goBack();
+        }}
+        // Dismissing without choosing still lets them in — this is an offer,
+        // not a wall, and CityGpsPrompt will ask again from GPS. It just means
+        // the fallback applies until then.
+        onClose={() => {
+          setCityPickerVisible(false);
+          navigation.getParent()?.goBack();
+        }}
+      />
     </LinearGradient>
   );
 }
