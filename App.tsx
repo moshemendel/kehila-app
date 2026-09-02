@@ -10,6 +10,7 @@ LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 import * as Notifications from 'expo-notifications';
 import { AuthProvider } from './src/context/AuthContext';
 import { ZmanimSettingsProvider } from './src/context/ZmanimSettingsContext';
+import { ZmanimProvider } from './src/context/ZmanimContext';
 import { NotificationsProvider } from './src/context/NotificationsContext';
 import { FavoritesProvider } from './src/context/FavoritesContext';
 import { KashrutUpdatesProvider } from './src/context/KashrutUpdatesContext';
@@ -75,6 +76,7 @@ export default function App() {
         <SafeAreaProvider>
           <AuthProvider>
             <ZmanimSettingsProvider>
+              <ZmanimProvider>
               <NotificationsProvider>
                 <FavoritesProvider>
                   <KashrutUpdatesProvider>
@@ -103,6 +105,7 @@ export default function App() {
                   </KashrutUpdatesProvider>
                 </FavoritesProvider>
               </NotificationsProvider>
+              </ZmanimProvider>
             </ZmanimSettingsProvider>
           </AuthProvider>
         </SafeAreaProvider>

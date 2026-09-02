@@ -2,21 +2,33 @@ import { useMemo } from 'react';
 import { useCity } from './useCity';
 import { useZmanimSettings } from '../context/ZmanimSettingsContext';
 import { useAppForegroundTick } from './useAppForegroundTick';
+import { useSharedZmanim } from '../context/ZmanimContext';
 import { calcZmanim, ZmanimResult } from '../utils/zmanim';
 
 /**
- * Returns today's ZmanimResult for the given cityId, or null while loading.
- * Re-computes when the city document or settings change, and also whenever the
- * app returns to the foreground — otherwise `new Date()` below is only ever
- * evaluated once at first mount and the result stays frozen for the entire
- * app session, including across a background/resume the next day.
+ * Today's ZmanimResult for the given cityId, or null while the city loads.
+ *
+ * Nearly every caller asks for the city being browsed, which ZmanimProvider has
+ * already computed — so the common case is a context read and no work at all.
+ * The local computation stays for the case that provider cannot serve: a card
+ * or screen asking about some other city, which happens when an admin is
+ * looking at a listing outside their own.
+ *
+ * Eight call sites each used to run calcZmanim independently, MikvehCard among
+ * them — a per-row component, so a list of mikvaot computed the same sunset
+ * once per card. Reads on a screen's first render, which is the frame a
+ * transition can least afford to be late.
  */
 export function useTodayZmanim(cityId: string): ZmanimResult | null {
+  const shared = useSharedZmanim();
   const { city } = useCity(cityId);
   const { settings } = useZmanimSettings();
   const foregroundTick = useAppForegroundTick();
 
+  const canShare = !!shared && shared.cityId === cityId;
+
   return useMemo(() => {
+    if (canShare) return shared!.zmanim;
     if (!city) return null;
     return calcZmanim(
       new Date(),
@@ -28,5 +40,5 @@ export function useTodayZmanim(cityId: string): ZmanimResult | null {
       0, // mountainAngle: ZmanimScreen computes daily; home widget uses astronomical netz
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [city, settings, foregroundTick]);
+  }, [canShare, shared, city, settings, foregroundTick]);
 }
