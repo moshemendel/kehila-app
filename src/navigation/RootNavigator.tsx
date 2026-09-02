@@ -11,7 +11,7 @@ import { useShabbatLock } from '../hooks/useShabbatLock';
 import ShabbatClosedScreen from '../screens/ShabbatClosedScreen';
 import CompleteCityScreen from '../screens/auth/CompleteCityScreen';
 import CityGpsPrompt from '../components/CityGpsPrompt';
-import FirstRunAuthPrompt from '../components/FirstRunAuthPrompt';
+import { useFirstRunAuthPrompt } from '../hooks/useFirstRunAuthPrompt';
 import AuthNavigator from './AuthNavigator';
 import MainTabNavigator from './MainTabNavigator';
 import SynagogueDetailScreen  from '../screens/main/SynagogueDetailScreen';
@@ -112,6 +112,15 @@ export default function RootNavigator() {
   // crash SynagogueDetailScreen hit.
   const showSplash = useSplashHold(loading);
 
+  // Called before the splash guard below, so the disk read happens under its
+  // cover and the jump lands before the first real screen is drawn — as a
+  // component mounted after the guard, it flashed the home screen first.
+  useFirstRunAuthPrompt({
+    splashVisible: showSplash,
+    ready: !loading,
+    signedIn: isDemo || (!!appUser && !isGuest),
+  });
+
   if (showSplash) return <AppLoadingScreen />;
   mark('splash cleared — first real screen');
 
@@ -147,7 +156,6 @@ export default function RootNavigator() {
   return (
     <>
     <CityGpsPrompt />
-    <FirstRunAuthPrompt />
     {SHOW_DEV_TOOLS && (
       <TouchableOpacity
         style={styles.devLockBtn}

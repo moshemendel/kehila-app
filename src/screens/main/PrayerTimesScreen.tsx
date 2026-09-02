@@ -241,6 +241,8 @@ export default function PrayerTimesScreen() {
   const [viewDay,      setViewDay]      = useState<'today' | 'tomorrow'>('today');
   const [radiusKm,     setRadiusKm]     = useState<number | null>(null);
   const [windowMin,    setWindowMin]    = useState<number | null>(null);
+  const [narrowOpen,   setNarrowOpen]   = useState(false);
+  const narrowActive = radiusKm !== null || windowMin !== null;
 
   // Tick every minute to refresh countdowns
   useEffect(() => {
@@ -503,6 +505,26 @@ export default function PrayerTimesScreen() {
       />
 
       {/* ── Narrowing: how far, and how soon ──────────────────────────────── */}
+      {/* Collapsed by default. Two rows of chips sitting permanently above the
+          list would cost it two rows on every visit, to serve a question most
+          visits do not ask — and this screen is the list. While a narrowing is
+          on, the toggle itself reads "12 מתוך 47", so a shortened list is never
+          unexplained just because the controls are folded away. */}
+      <TouchableOpacity
+        style={[s.narrowToggle, narrowActive && s.narrowToggleOn]}
+        onPress={() => setNarrowOpen((v) => !v)}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="options-outline" size={14}
+          color={narrowActive ? Colors.primary : Colors.textSecondary} />
+        <Text style={[s.narrowToggleTxt, narrowActive && s.narrowToggleTxtOn]}>
+          {narrowActive ? `${sorted.length} מתוך ${matching.length}` : 'צמצום'}
+        </Text>
+        <Ionicons name={narrowOpen ? 'chevron-up' : 'chevron-down'} size={13}
+          color={narrowActive ? Colors.primary : Colors.textMuted} />
+      </TouchableOpacity>
+
+      {narrowOpen && (
       <View style={s.narrowRow}>
         {RADIUS_OPTIONS.map((o) => {
           const active = radiusKm === o.km;
@@ -537,14 +559,13 @@ export default function PrayerTimesScreen() {
             </TouchableOpacity>
           );
         })}
+        {narrowActive && (
+          <TouchableOpacity style={s.narrowClear} onPress={() => { setRadiusKm(null); setWindowMin(null); }}>
+            <Ionicons name="close" size={12} color={Colors.textSecondary} />
+            <Text style={s.narrowClearTxt}>נקה</Text>
+          </TouchableOpacity>
+        )}
       </View>
-
-      {/* Says what the two narrowing chips removed, so a short list reads as
-          "narrowed" rather than "there is nothing". */}
-      {(radiusKm !== null || windowMin !== null) && matching.length > sorted.length && (
-        <Text style={s.narrowHint}>
-          {`מציג ${sorted.length} מתוך ${matching.length} תפילות`}
-        </Text>
       )}
 
       {/* List */}
@@ -623,12 +644,17 @@ const s = StyleSheet.create({
 
   card:         { ...CardShellFlush, flexDirection: 'row', alignItems: 'center' },
   colorBar:     { width: 4, alignSelf: 'stretch' },
+  narrowToggle:   { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end', gap: 5, marginHorizontal: Spacing.md, marginTop: Spacing.sm, paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.full, borderWidth: 1, borderColor: Colors.border },
+  narrowToggleOn:   { borderColor: Colors.primary + '66', backgroundColor: Colors.primary + '10' },
+  narrowToggleTxt:  { fontSize: 12, fontWeight: '600', color: Colors.textSecondary },
+  narrowToggleTxtOn:{ color: Colors.primary },
+  narrowClear:    { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 5 },
+  narrowClearTxt: { fontSize: 12, fontWeight: '600', color: Colors.textSecondary },
   narrowRow:    { flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: Spacing.md, paddingTop: Spacing.sm },
   narrowChip:   { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: Colors.primary + '55', borderRadius: Radius.full, paddingHorizontal: 10, paddingVertical: 5 },
   narrowChipOn: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   narrowChipTxt:   { fontSize: 12, fontWeight: '600', color: Colors.primary },
   narrowChipTxtOn: { color: Colors.white },
-  narrowHint:   { fontSize: 12, color: Colors.textMuted, textAlign: 'right', paddingHorizontal: Spacing.md, paddingTop: Spacing.xs },
   clearNarrowBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: Spacing.md, borderWidth: 1, borderColor: Colors.primary + '55', borderRadius: Radius.full, paddingHorizontal: 14, paddingVertical: 7 },
   clearNarrowTxt: { fontSize: 13, fontWeight: '600', color: Colors.primary },
   cardBody:     { flex: 1, paddingHorizontal: Spacing.sm, paddingVertical: 10, gap: 4 },
