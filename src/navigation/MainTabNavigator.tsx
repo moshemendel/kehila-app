@@ -30,6 +30,7 @@ import { useManagerAlertsFeed }             from '../context/ManagerAlertsContex
 import { useAppIconBadge }                  from '../hooks/useAppIconBadge';
 import BottomSheetModal                     from '../components/BottomSheetModal';
 import ComingSoonScreen, { ComingSoonBadge } from '../components/ComingSoon';
+import { mark } from '../utils/startupTrace';
 import { useModules, isOffered, isComingSoon, MODULE_INFO, ModuleKey } from '../utils/modules';
 import { isSelichotWindowOpen }             from '../utils/selichot';
 
@@ -505,6 +506,11 @@ const pp = StyleSheet.create({
 // ─── Navigator ──────────────────────────────────────────────────
 export default function MainTabNavigator() {
   const modules = useModules();
+  // Traced because "did the home screen appear before the login screen on a
+  // fresh install" is the exact question that was answered wrongly twice by
+  // reasoning about it. On a first run this line must not appear at all before
+  // the login screen — see useFirstRunAuthPrompt.
+  mark('main tabs mounted');
   return (
     <>
       <PrayerNotificationScheduler />

@@ -118,12 +118,24 @@ export default function LoginScreen({ navigation }: Props) {
   // so there is nothing to correct and nothing flashes. A single-city install
   // never sees this — GuestCityBootstrap has already stored the only city there
   // is, without asking.
+  //
+  // goBack() is not enough on its own: on the first launch after install this
+  // screen IS the navigator's first screen, so there is nothing behind it and
+  // goBack() silently does nothing — leaving the guest stuck on the login form
+  // they just declined. Opened later as a modal there is, and going back is
+  // what returns them to where they were.
+  function leaveAuth() {
+    const parent = navigation.getParent<any>();
+    if (parent?.canGoBack()) parent.goBack();
+    else parent?.navigate('MainTabs', { screen: 'Home' });
+  }
+
   function handleContinueAsGuest() {
     if (!guestCityId && cities.length > 1) {
       setCityPickerVisible(true);
       return;
     }
-    navigation.getParent()?.goBack();
+    leaveAuth();
   }
 
   async function handleLogin() {
@@ -271,14 +283,14 @@ export default function LoginScreen({ navigation }: Props) {
         onSelect={async (city) => {
           setCityPickerVisible(false);
           await switchCity(city.id);
-          navigation.getParent()?.goBack();
+          leaveAuth();
         }}
         // Dismissing without choosing still lets them in — this is an offer,
         // not a wall, and CityGpsPrompt will ask again from GPS. It just means
         // the fallback applies until then.
         onClose={() => {
           setCityPickerVisible(false);
-          navigation.getParent()?.goBack();
+          leaveAuth();
         }}
       />
     </LinearGradient>

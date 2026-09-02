@@ -109,19 +109,19 @@ export default function RootNavigator() {
   const [devForceLock, setDevForceLock] = useState(false);
   const isLocked = (lock.locked || devForceLock) && !devBypass;
 
-  // Must be called before the early returns below — a hook skipped on one
-  // render and reached on the next is exactly the "rendered more hooks"
-  // crash SynagogueDetailScreen hit.
-  const showSplash = useSplashHold(loading);
-
-  // Called before the splash guard below, so the disk read happens under its
-  // cover and the jump lands before the first real screen is drawn — as a
-  // component mounted after the guard, it flashed the home screen first.
-  useFirstRunAuthPrompt({
-    splashVisible: showSplash,
+  // Both before the early returns below — a hook skipped on one render and
+  // reached on the next is exactly the "rendered more hooks" crash
+  // SynagogueDetailScreen hit.
+  //
+  // The splash is held for firstRun.pending as well as for auth. The read is a
+  // few milliseconds against a splash that stays up for at least nine hundred,
+  // so it costs nothing — but it decides which screen the navigator mounts
+  // first, and that decision has to be settled before the navigator exists.
+  const firstRun = useFirstRunAuthPrompt({
     ready: !loading,
     signedIn: isDemo || (!!appUser && !isGuest),
   });
+  const showSplash = useSplashHold(loading || firstRun.pending);
 
   if (showSplash) return <AppLoadingScreen />;
   mark('splash cleared — first real screen');
@@ -168,7 +168,20 @@ export default function RootNavigator() {
         <Text style={styles.devLockBtnTxt}>🕯️</Text>
       </TouchableOpacity>
     )}
-    <Root.Navigator screenOptions={{ animation: 'slide_from_right' }}>
+    {/*
+      On the first launch after install the login screen is the navigator's
+      FIRST screen, not a modal pushed onto it.
+
+      It used to be the modal. That meant MainTabs — the initial route — had to
+      mount and paint before anything could be navigated to, so the home screen
+      appeared for a beat and the login modal then slid up over it. Making it
+      the initial route is the only way the home screen genuinely does not
+      render: there is nothing underneath to see.
+    */}
+    <Root.Navigator
+      initialRouteName={firstRun.owed ? 'Auth' : 'MainTabs'}
+      screenOptions={{ animation: 'slide_from_right' }}
+    >
       {/* Main tabs — tab bar handles its own safe area */}
       <Root.Screen
         name="MainTabs"
@@ -176,11 +189,17 @@ export default function RootNavigator() {
         options={{ headerShown: false }}
       />
 
-      {/* Auth (login / register) — on-demand modal for guests */}
+      {/* Auth (login / register) — an on-demand modal for guests, except on the
+          first launch after install, where it is the screen the app opens on.
+          A modal presentation is about appearing over something; as the first
+          screen there is nothing to appear over, so it is a plain card. */}
       <Root.Screen
         name="Auth"
         component={AuthGate}
-        options={{ headerShown: false, presentation: 'modal' }}
+        options={{
+          headerShown: false,
+          presentation: firstRun.owed ? 'card' : 'modal',
+        }}
       />
 
       {/* Synagogue detail */}

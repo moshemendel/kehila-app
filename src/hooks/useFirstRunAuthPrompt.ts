@@ -1,12 +1,12 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { navigationRef } from '../navigation/navigationRef';
 import { mark } from '../utils/startupTrace';
 
 const SEEN_KEY = '@seen_auth_prompt';
 
 /**
- * Offers the login screen once, on the first launch after install.
+ * Whether this launch should open on the login screen — the first one after
+ * install, and no other.
  *
  * The app has no login wall — a guest gets everything except what needs an
  * identity, and that stays true. But dropping straight into guest mode means
@@ -15,72 +15,70 @@ const SEEN_KEY = '@seen_auth_prompt';
  * only moment the answer is open, is the difference between offering an
  * account and hiding one.
  *
- * WHY THIS IS A HOOK RATHER THAN A COMPONENT IN THE TREE. As a component it
- * could only mount after the splash cleared, which put the disk read *after*
- * the first screen had already painted: the app flashed the home screen, then
- * jumped. The read now happens while the splash is still up — it has hundreds
- * of milliseconds of cover and needs about ten — and the jump itself runs in a
- * layout effect, which lands before the frame is drawn rather than after it.
+ * THIS ANSWERS A QUESTION; IT DOES NOT NAVIGATE. That is the whole fix. It used
+ * to call navigate('Auth') from a layout effect, on the theory that a layout
+ * effect lands before the frame is drawn. The theory was fine and the premise
+ * was wrong: RootNavigator returns the splash *instead of* the navigator, so
+ * while the splash is up there is no navigator to drive, and the moment it
+ * clears the navigator mounts its initial route — MainTabs — and paints the
+ * home screen. Only then could any navigation run, and Auth is a modal, so it
+ * then slid up over a home screen the user had already seen. No effect timing
+ * can win that race, because the race is not about timing: a navigator has to
+ * mount a first screen before it can be told to show a different one.
  *
- * The plain effect below is a fallback for the case where the navigator is not
- * mounted yet at layout time. It restores the old behaviour, flash included,
- * rather than losing the offer altogether.
+ * So the caller uses this to choose initialRouteName instead, and the login
+ * screen simply *is* the first screen mounted. Nothing renders before it.
  *
- * Once, and only once, counted from the navigation actually happening — an
- * offer that could not be made leaves the flag unwritten so the next launch
- * tries again. LoginScreen's own "המשך כאורח" is the way out, and goes back to
- * the tabs underneath.
+ * `pending` exists so the splash can be held for the answer. The read takes
+ * about ten milliseconds against a splash that stays up for at least nine
+ * hundred, so in practice it costs nothing — but it has to be a dependency
+ * rather than a race, or a slow disk puts us straight back to a home screen
+ * that flashes.
  */
+export interface FirstRunOffer {
+  /** Still reading — the caller should keep the splash up. */
+  pending: boolean;
+  /** Open on the login screen. */
+  owed: boolean;
+}
+
 export function useFirstRunAuthPrompt(opts: {
-  /** True while the splash is still covering the screen. */
-  splashVisible: boolean;
   /** Auth has settled — we know whether there is an account. */
   ready: boolean;
   /** A real account or demo mode: nothing to ask. */
   signedIn: boolean;
-}): void {
-  const { splashVisible, ready, signedIn } = opts;
-  // null = not read yet, true = owed an offer, false = settled
-  const [shouldOffer, setShouldOffer] = useState<boolean | null>(null);
-  const asked = useRef(false);
+}): FirstRunOffer {
+  const { ready, signedIn } = opts;
+  // null = not read yet
+  const [owed, setOwed] = useState<boolean | null>(null);
 
-  // Read while the splash is still up, so the answer is in hand by the time
-  // the first real screen renders.
   useEffect(() => {
-    if (!ready || shouldOffer !== null) return;
+    if (!ready || owed !== null) return;
+
     if (signedIn) {
       // Mark it so a later sign-out does not read as a fresh install.
       AsyncStorage.setItem(SEEN_KEY, '1').catch(() => {});
       mark('first-run prompt: already signed in, skipped');
-      setShouldOffer(false);
+      setOwed(false);
       return;
     }
+
     AsyncStorage.getItem(SEEN_KEY)
       .then((seen) => {
-        if (seen) mark('first-run prompt: already offered');
-        setShouldOffer(!seen);
+        if (seen) {
+          mark('first-run prompt: already offered');
+          setOwed(false);
+          return;
+        }
+        // Written now rather than when the screen appears: the offer is made by
+        // the navigator's own initial route, so unlike the old navigate() call
+        // there is no step left that can fail to happen.
+        AsyncStorage.setItem(SEEN_KEY, '1').catch(() => {});
+        mark('first-run prompt: opening on login');
+        setOwed(true);
       })
-      .catch(() => setShouldOffer(false));
-  }, [ready, signedIn, shouldOffer]);
+      .catch(() => setOwed(false));
+  }, [ready, signedIn, owed]);
 
-  const offer = () => {
-    if (asked.current || !navigationRef.isReady()) return false;
-    asked.current = true;
-    navigationRef.navigate('Auth' as never);
-    AsyncStorage.setItem(SEEN_KEY, '1').catch(() => {});
-    return true;
-  };
-
-  // Before the frame is drawn — this is what keeps the home screen from
-  // appearing first.
-  useLayoutEffect(() => {
-    if (splashVisible || shouldOffer !== true) return;
-    if (offer()) mark('first-run prompt: offered');
-  });
-
-  // Only reached when the navigator was not ready at layout time.
-  useEffect(() => {
-    if (splashVisible || shouldOffer !== true || asked.current) return;
-    if (offer()) mark('first-run prompt: offered (deferred)');
-  });
+  return { pending: owed === null, owed: owed === true };
 }
