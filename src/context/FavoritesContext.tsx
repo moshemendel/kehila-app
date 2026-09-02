@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from './AuthContext';
 
@@ -109,8 +109,17 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     });
   }, [uid]);
 
+  // Memoised, because a fresh object here re-renders every consumer of this
+  // context whether or not anything in it changed — and this provider wraps the
+  // whole app, so that means every mounted screen. The four functions are
+  // already useCallback'd, which is what makes the memo hold.
+  const value = useMemo(
+    () => ({ favorites, isFavorite, getFavoriteSetting, setFavorite, removeFavorite }),
+    [favorites, isFavorite, getFavoriteSetting, setFavorite, removeFavorite],
+  );
+
   return (
-    <Ctx.Provider value={{ favorites, isFavorite, getFavoriteSetting, setFavorite, removeFavorite }}>
+    <Ctx.Provider value={value}>
       {children}
     </Ctx.Provider>
   );

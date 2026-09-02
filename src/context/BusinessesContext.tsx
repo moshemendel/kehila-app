@@ -8,7 +8,7 @@
  * a cold start instead of a blank spinner for the few seconds the live
  * listener's first connection genuinely takes.
  */
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useCityId } from '../hooks/useCityId';
 import { useBusinesses } from '../hooks/useBusinesses';
 import { useCachedLiveQuery } from '../hooks/useCachedLiveQuery';
@@ -27,8 +27,16 @@ export function BusinessesProvider({ children }: { children: ReactNode }) {
   const { businesses, loading, error } = useBusinesses(cityId);
   const cached = useCachedLiveQuery(`@cache_businesses_${cityId}`, { data: businesses, loading, error });
 
+  // Memoised, because a fresh object here re-renders every consumer of this
+  // context whether or not anything in it changed — and these providers wrap
+  // the whole app, so that means every mounted screen.
+  const value = useMemo(
+    () => ({ businesses: cached.data, loading: cached.loading, error: cached.error }),
+    [cached.data, cached.loading, cached.error],
+  );
+
   return (
-    <BusinessesContext.Provider value={{ businesses: cached.data, loading: cached.loading, error: cached.error }}>
+    <BusinessesContext.Provider value={value}>
       {children}
     </BusinessesContext.Provider>
   );

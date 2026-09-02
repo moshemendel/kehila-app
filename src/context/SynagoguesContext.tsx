@@ -22,7 +22,7 @@
  * showing synagogues is not the one in focus — and a real benefit when the
  * user comes back to one.
  */
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useCityId } from '../hooks/useCityId';
 import { useSynagogues } from '../hooks/useSynagogues';
 import { useCachedLiveQuery } from '../hooks/useCachedLiveQuery';
@@ -41,8 +41,16 @@ export function SynagoguesProvider({ children }: { children: ReactNode }) {
   const { synagogues, loading, error } = useSynagogues(cityId);
   const cached = useCachedLiveQuery(`@cache_synagogues_${cityId}`, { data: synagogues, loading, error });
 
+  // Memoised, because a fresh object here re-renders every consumer of this
+  // context whether or not anything in it changed — and these providers wrap
+  // the whole app, so that means every mounted screen.
+  const value = useMemo(
+    () => ({ synagogues: cached.data, loading: cached.loading, error: cached.error }),
+    [cached.data, cached.loading, cached.error],
+  );
+
   return (
-    <SynagoguesContext.Provider value={{ synagogues: cached.data, loading: cached.loading, error: cached.error }}>
+    <SynagoguesContext.Provider value={value}>
       {children}
     </SynagoguesContext.Provider>
   );
