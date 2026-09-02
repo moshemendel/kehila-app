@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   ActivityIndicator, Alert, TextInput,
@@ -11,28 +11,11 @@ import { useBusinessesFeed } from '../../context/BusinessesContext';
 import { useCityId } from '../../hooks/useCityId';
 import { AppUser, UserRole } from '../../types';
 import { useAuth } from '../../context/AuthContext';
-import { rolesOf, ADMIN_ROLES } from '../../utils/roles';
+import {
+  rolesOf, ADMIN_ROLES, ROLE_PRIORITY, BLANKET_ROLES, LIST_ROLES,
+  ROLE_LABELS, ROLE_COLORS, ROLE_ICONS, assignableBy, isCityScoped, computePrimaryRole,
+} from '../../utils/roles';
 
-// Priority only used for DB write (single role field kept for auth checks)
-const ROLE_PRIORITY: UserRole[] = [
-  'super_admin', 'dev', 'city_admin', 'content_admin', 'event_manager',
-  'kosher_manager', 'mikveh_manager', 'eruv_manager', 'business_manager', 'gabbai', 'user',
-];
-
-const ROLES: { key: UserRole; label: string; color: string; icon: string }[] = [
-  { key: 'user',             label: 'משתמש רגיל',    color: Colors.textSecondary, icon: 'person-outline' },
-  { key: 'gabbai',           label: 'גבאי',           color: Colors.primaryLight,  icon: 'business-outline' },
-  { key: 'content_admin',    label: 'מנהל תוכן',      color: Colors.warning,       icon: 'create-outline' },
-  { key: 'business_manager', label: 'מנהל עסק',       color: Colors.kosher,        icon: 'restaurant-outline' },
-  { key: 'kosher_manager',   label: 'מנהל כשרות',     color: Colors.success,       icon: 'shield-checkmark-outline' },
-  { key: 'mikveh_manager',   label: 'מנהל מקוואות',   color: Colors.mikveh,        icon: 'water-outline' },
-  { key: 'event_manager',    label: 'מנהל אירועים',   color: Colors.events,        icon: 'megaphone-outline' },
-  { key: 'eruv_manager',     label: 'ממונה על עירוב', color: Colors.gold,          icon: 'shield-outline' },
-  { key: 'city_admin',       label: 'מנהל מערכת',     color: Colors.danger,        icon: 'key-outline' },
-];
-
-// Roles that require assigning specific managed items
-const LIST_ROLES = new Set<UserRole>(['gabbai', 'business_manager']);
 
 type UserDraft = {
   roles: UserRole[];
@@ -42,15 +25,6 @@ type UserDraft = {
 
 type SubListState = { syn: boolean; rest: boolean };
 
-/**
- * The roles that carry everything beneath them.
- *
- * Deliberately not "everything lower in ROLE_PRIORITY" — that list orders which
- * label to show on the pill, not what implies what. event_manager sits above
- * kosher_manager there, but an events manager holds no kashrut authority; those
- * are parallel specialisms, not rungs. Only these four genuinely subsume.
- */
-const BLANKET_ROLES: UserRole[] = ['super_admin', 'dev', 'city_admin', 'content_admin'];
 
 /**
  * Roles already covered by a blanket role the account holds — בכלל מאתיים מנה.
@@ -66,23 +40,22 @@ function subsumedRoles(roles: UserRole[]): Set<UserRole> {
   return new Set(ROLE_PRIORITY.slice(top + 1));
 }
 
-function computePrimaryRole(roles: UserRole[]): UserRole {
-  for (const r of ROLE_PRIORITY) {
-    if (roles.includes(r)) return r;
-  }
-  return 'user';
-}
 
-// Pill display: city_admin wins, single role shows name, multiple → "N תפקידים"
+/**
+ * The pill on a collapsed row: a blanket role speaks for the whole account, a
+ * single role shows its own name, anything else is a count.
+ *
+ * This used to special-case city_admin by name. That was the same assumption
+ * that hid content_admin everywhere else — a deputy who is also a gabbai read
+ * as "2 תפקידים", burying the role that actually describes them. Asking
+ * BLANKET_ROLES covers city_admin, content_admin and whatever comes next.
+ */
 function getPillInfo(draft: UserDraft): { label: string; color: string } {
-  if (draft.roles.includes('city_admin')) {
-    return { label: 'מנהל מערכת', color: Colors.danger };
-  }
   const active = draft.roles.filter((r) => r !== 'user');
-  if (active.length === 0) return { label: 'משתמש רגיל', color: Colors.textSecondary };
-  if (active.length === 1) {
-    const info = ROLES.find((r) => r.key === active[0]);
-    return { label: info?.label ?? active[0], color: info?.color ?? Colors.primary };
+  if (active.length === 0) return { label: ROLE_LABELS.user, color: ROLE_COLORS.user };
+  const top = computePrimaryRole(active);
+  if (active.length === 1 || BLANKET_ROLES.includes(top)) {
+    return { label: ROLE_LABELS[top], color: ROLE_COLORS[top] };
   }
   return { label: `${active.length} תפקידים`, color: Colors.primary };
 }
@@ -100,6 +73,23 @@ export default function UserManagementScreen() {
   const cityId = useCityId();
   const { synagogues } = useSynagoguesFeed();
   const { businesses } = useBusinessesFeed();
+
+  /**
+   * The roles this admin may hand out, which is now asked rather than listed.
+   *
+   * Two filters, for two different reasons. assignableBy() mirrors the users
+   * rule: a city_admin may staff their city but not mint peers or superiors, so
+   * offering city_admin here would have produced a save the server rejects.
+   * isCityScoped drops super_admin and dev — not because they are too powerful
+   * to appear, but because they are not about this city at all, and this screen
+   * only ever manages one.
+   */
+  const assignableRoles = useMemo(
+    () => assignableBy(appUser)
+      .filter(isCityScoped)
+      .map((key) => ({ key, label: ROLE_LABELS[key], color: ROLE_COLORS[key], icon: ROLE_ICONS[key] })),
+    [appUser],
+  );
 
   const [users, setUsers]             = useState<AppUser[]>([]);
   const [loading, setLoading]         = useState(true);
@@ -297,7 +287,7 @@ export default function UserManagementScreen() {
                   <View style={styles.editor}>
                     <Text style={styles.editorLabel}>תפקידים (ניתן לבחור מספר)</Text>
                     <View style={styles.rolesGrid}>
-                      {ROLES.map((r) => {
+                      {assignableRoles.map((r) => {
                         const active     = draft.roles.includes(r.key);
                         const isListRole = LIST_ROLES.has(r.key);
                         const covered    = !active && subsumed.has(r.key);

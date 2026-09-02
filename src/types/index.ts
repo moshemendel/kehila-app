@@ -33,21 +33,12 @@ export interface PendingGemach {
   status: 'pending' | 'approved' | 'rejected';
 }
 
-export type UserRole =
-  | "user"
-  | "gabbai"
-  // A city_admin's deputy for published content, with no authority over
-  // accounts — see isContentAdminOf in firestore.rules for why that split
-  // exists instead of a second, subordinate city_admin.
-  | "content_admin"
-  | "business_manager"
-  | "kosher_manager"
-  | "mikveh_manager"
-  | "event_manager"
-  | "eruv_manager"
-  | "city_admin"
-  | "dev"
-  | "super_admin";
+// The roles an account can hold are declared in src/utils/roleCatalogue.json
+// and the union is generated from it — see scripts/sync-catalogue.mjs. That
+// same file is published to Firestore, which is where the admin console reads
+// its role list from, so the two cannot drift apart the way they did before.
+import type { UserRole } from '../utils/roleKeys';
+export type { UserRole };
 
 export interface AppUser {
   uid: string;

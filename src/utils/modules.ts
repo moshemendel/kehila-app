@@ -43,7 +43,7 @@ interface CatalogueEntry {
  *   modules: { Gemach: 'off', Businesses: 'soon' }
  */
 // The one place a module is declared is src/utils/moduleCatalogue.json, and
-// ModuleKey is generated from it — see scripts/sync-modules.mjs. That script
+// ModuleKey is generated from it — see scripts/sync-catalogue.mjs. That script
 // also publishes the catalogue to Firestore, which is where the admin console
 // reads it from, so the console never keeps a list that can fall out of step
 // with this one.

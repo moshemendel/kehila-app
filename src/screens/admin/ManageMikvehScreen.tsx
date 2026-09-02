@@ -9,6 +9,7 @@ import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useMikvaot } from '../../hooks/useMikvaot';
 import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
+import { managesContent } from '../../utils/roles';
 import { updateMikveh, addMikveh, deleteMikveh, newMikvehId } from '../../services/mikvaot';
 import { Mikveh } from '../../types';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -30,7 +31,8 @@ function EditForm({ mikveh, onBack }: { mikveh: Mikveh; onBack: () => void }) {
   const navigation = useNavigation<any>();
   const { appUser } = useAuth();
   const roles = appUser?.roles ?? (appUser?.role ? [appUser.role] : []);
-  const isAdmin = roles.some((r) => ['city_admin', 'super_admin', 'dev', 'mikveh_manager'].includes(r));
+  // Mirrors the mikvaot rule: content authority, or the mikveh specialist.
+  const isAdmin = managesContent(appUser) || roles.includes('mikveh_manager');
   const [form, setForm] = useState<Mikveh>({ ...mikveh });
   const [saving, setSaving] = useState(false);
   const [editingLoc, setEditingLoc] = useState(false);
@@ -266,7 +268,8 @@ export default function ManageMikvehScreen() {
   // not just appUser.role, so a mikveh_manager without any higher role still
   // sees the add button.
   const roles = appUser?.roles ?? (appUser?.role ? [appUser.role] : []);
-  const isAdmin = roles.some((r) => ['city_admin', 'super_admin', 'dev', 'mikveh_manager'].includes(r));
+  // Mirrors the mikvaot rule: content authority, or the mikveh specialist.
+  const isAdmin = managesContent(appUser) || roles.includes('mikveh_manager');
 
   async function handleCreate(values: Record<string, string>) {
     setCreating(true);

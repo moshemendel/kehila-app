@@ -1,0 +1,126 @@
+[
+  {
+    "key": "super_admin",
+    "label": "מנהל על",
+    "color": "gold",
+    "icon": "star-outline",
+    "assignableBy": "super_admin",
+    "scope": "global",
+    "blanket": true,
+    "authority": true,
+    "content": true
+  },
+  {
+    "key": "dev",
+    "label": "צוות פיתוח",
+    "color": "slate",
+    "icon": "code-slash-outline",
+    "assignableBy": "super_admin",
+    "scope": "global",
+    "blanket": true,
+    "authority": true,
+    "content": true
+  },
+  {
+    "key": "city_admin",
+    "label": "מנהל עיר",
+    "color": "danger",
+    "icon": "key-outline",
+    "assignableBy": "super_admin",
+    "scope": "city",
+    "blanket": true,
+    "authority": true,
+    "content": true
+  },
+  {
+    "key": "content_admin",
+    "label": "מנהל תוכן",
+    "color": "warning",
+    "icon": "create-outline",
+    "assignableBy": "city_admin",
+    "scope": "city",
+    "blanket": true,
+    "authority": false,
+    "content": true
+  },
+  {
+    "key": "event_manager",
+    "label": "מנהל אירועים",
+    "color": "events",
+    "icon": "megaphone-outline",
+    "assignableBy": "city_admin",
+    "scope": "city",
+    "blanket": false,
+    "authority": false,
+    "content": false
+  },
+  {
+    "key": "kosher_manager",
+    "label": "מנהל כשרות",
+    "selfLabel": "מנהל כשרות במועצה",
+    "color": "success",
+    "icon": "shield-checkmark-outline",
+    "assignableBy": "city_admin",
+    "scope": "city",
+    "blanket": false,
+    "authority": false,
+    "content": false
+  },
+  {
+    "key": "mikveh_manager",
+    "label": "מנהל מקוואות",
+    "color": "mikveh",
+    "icon": "water-outline",
+    "assignableBy": "city_admin",
+    "scope": "city",
+    "blanket": false,
+    "authority": false,
+    "content": false
+  },
+  {
+    "key": "eruv_manager",
+    "label": "ממונה על העירוב",
+    "color": "gold",
+    "icon": "shield-outline",
+    "assignableBy": "city_admin",
+    "scope": "city",
+    "blanket": false,
+    "authority": false,
+    "content": false
+  },
+  {
+    "key": "business_manager",
+    "label": "מנהל עסק",
+    "color": "kosher",
+    "icon": "restaurant-outline",
+    "assignableBy": "city_admin",
+    "scope": "city",
+    "blanket": false,
+    "authority": false,
+    "content": false,
+    "manages": "businesses"
+  },
+  {
+    "key": "gabbai",
+    "label": "גבאי",
+    "color": "primaryLight",
+    "icon": "business-outline",
+    "assignableBy": "city_admin",
+    "scope": "city",
+    "blanket": false,
+    "authority": false,
+    "content": false,
+    "manages": "synagogues"
+  },
+  {
+    "key": "user",
+    "label": "משתמש רגיל",
+    "color": "slate",
+    "icon": "person-outline",
+    "assignableBy": "city_admin",
+    "scope": "city",
+    "blanket": false,
+    "authority": false,
+    "content": false
+  }
+]

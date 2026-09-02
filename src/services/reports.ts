@@ -159,9 +159,10 @@ function dedupeSorted(rows: ContentReport[]): ContentReport[] {
 /** True when this user has any route to reports at all — for menu gating. */
 export function canSeeReports(user: AppUser | null): boolean {
   if (!user) return false;
+  // Everyone with a role beyond plain `user` sees reports — what they actually
+  // see is then filtered to what they run (see the queries below). Listing the
+  // eight roles that existed when this was written meant content_admin, added
+  // later, could not see a single report about content it is responsible for.
   const roles: string[] = user.roles ?? (user.role ? [user.role] : []);
-  return roles.some((r) => [
-    'city_admin', 'super_admin', 'dev',
-    'gabbai', 'business_manager', 'kosher_manager', 'mikveh_manager', 'event_manager',
-  ].includes(r));
+  return roles.some((r) => r && r !== 'user');
 }

@@ -25,37 +25,11 @@ import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { UserRole, City } from '../../types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CityPicker from '../../components/CityPicker';
-import { managesContent, isAdminRole as isAdminRoleOf } from '../../utils/roles';
+import { managesContent, isAdminRole as isAdminRoleOf, ROLE_SELF_LABELS, ROLE_COLORS } from '../../utils/roles';
 
 const IS_EXPO_GO = Constants.executionEnvironment === 'storeClient';
 
-const ROLE_LABELS: Record<UserRole, string> = {
-  user: 'משתמש רגיל',
-  gabbai: 'גבאי',
-  content_admin: 'מנהל תוכן',
-  business_manager: 'מנהל עסק',
-  kosher_manager: 'מנהל כשרות במועצה',
-  mikveh_manager: 'מנהל מקוואות',
-  event_manager: 'מנהל אירועים',
-  eruv_manager: 'ממונה על העירוב',
-  city_admin: 'מנהל מערכת',
-  dev: 'צוות פיתוח',
-  super_admin: 'מנהל על',
-};
 
-const ROLE_COLORS: Record<UserRole, string> = {
-  user:               Colors.textSecondary,
-  gabbai:             Colors.primaryLight,
-  content_admin:      Colors.warning,
-  business_manager: Colors.kosher,
-  kosher_manager:     Colors.success,
-  mikveh_manager:     Colors.mikveh,
-  event_manager:      Colors.events,
-  eruv_manager:       Colors.gold,
-  city_admin:              Colors.danger,
-  dev:                Colors.textSecondary,
-  super_admin:        Colors.textSecondary,
-};
 
 interface MenuRowProps {
   icon: string;
@@ -243,7 +217,7 @@ export default function ProfileScreen() {
                   keeps every role reliably readable regardless of its assigned hue. */}
               {(roles.length > 1 ? roles.filter((r) => r !== 'user') : roles).map((r) => (
                 <View key={r} style={[styles.roleBadge, { backgroundColor: ROLE_COLORS[r], borderColor: 'rgba(255,255,255,0.35)' }]}>
-                  <Text style={styles.roleText}>{ROLE_LABELS[r]}</Text>
+                  <Text style={styles.roleText}>{ROLE_SELF_LABELS[r]}</Text>
                 </View>
               ))}
             </View>

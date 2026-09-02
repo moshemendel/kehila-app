@@ -7,7 +7,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "test-plan": "node scripts/serve-test-plan.mjs"
+    "test-plan": "node scripts/serve-test-plan.mjs",
+    "check-catalogue": "node scripts/sync-catalogue.mjs --check"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
