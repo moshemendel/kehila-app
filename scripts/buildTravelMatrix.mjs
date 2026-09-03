@@ -94,6 +94,18 @@ const FRESH  = process.argv.includes('--fresh');
 const ENGINE = String(flag('engine', 'valhalla'));
 const ORS_KEY = flag('key', process.env.ORS_KEY);
 const VALHALLA_URL = String(flag('url', 'http://localhost:8002')).replace(/\/$/, '');
+const OSRM_URL = String(flag('url', 'https://router.project-osrm.org')).replace(/\/$/, '');
+
+/**
+ * Route only N cells instead of the whole city, for a look rather than a build.
+ *
+ * Spread evenly across the grid rather than taken from one corner, so the
+ * sample covers the ridges and the valleys instead of one neighbourhood. The
+ * output goes to <cityId>.sample.json and is marked inside, because a partial
+ * matrix that got mistaken for the real one would leave most of the city
+ * silently falling back to the estimate.
+ */
+const SAMPLE = Number(flag('sample', 0));
 
 const CITY_ID     = flag('city', null);
 const CELL_M      = Number(flag('cell', 150));
@@ -205,7 +217,10 @@ const CHUNK = CHUNK_FLAG
   ? Number(CHUNK_FLAG)
   : ENGINE === 'ors'
     ? Math.max(1, Math.floor(3500 / Math.max(synagogues.length, 1)))
-    : 200;
+    // OSRM takes one coordinate list capped at 100, shared between both ends.
+    : ENGINE === 'osrm'
+      ? Math.max(1, 100 - synagogues.length)
+      : 200;
 
 if (synagogues.length === 0) {
   console.error(`No synagogue in ${cityId} has coordinates. Nothing to build.`);
@@ -370,8 +385,39 @@ async function orsMatrix(sources, targets, mode) {
   );
 }
 
+/**
+ * OSRM's table service. Real roads, no key, nothing to install — and car only.
+ *
+ * The public demo at router.project-osrm.org runs the driving profile, so this
+ * cannot answer the walking half at all, and its fair-use policy rules it out
+ * for building a whole city. It earns its place for --sample: a few requests
+ * are enough to see how far the straight-line estimate really is from the road
+ * network, without waiting on Docker. Point --url at your own OSRM to use it
+ * for real.
+ */
+async function osrmMatrix(sources, targets, mode) {
+  if (mode !== 'drive') {
+    throw new Error('OSRM here is the public driving demo — it cannot do walking. Use --modes drive.');
+  }
+
+  const coords = [...sources, ...targets].map((p) => `${p.lon},${p.lat}`).join(';');
+  const src = sources.map((_, i) => i).join(';');
+  const dst = targets.map((_, i) => sources.length + i).join(';');
+  const url = `${OSRM_URL}/table/v1/driving/${coords}?sources=${src}&destinations=${dst}&annotations=duration`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`OSRM → ${res.status} ${(await res.text()).slice(0, 200)}`);
+  const json = await res.json();
+  if (json.code !== 'Ok') throw new Error(`OSRM: ${json.code} ${json.message ?? ''}`);
+
+  return json.durations.map((row) => row.map((s) => (Number.isFinite(s) ? s / 60 : null)));
+}
+
 const ENGINES = {
   valhalla: { matrix: valhallaMatrix, pauseMs: 0,    knowsHills: true  },
+  // One request at a time against a shared community server, and never a
+  // whole city — see the note above osrmMatrix.
+  osrm:     { matrix: osrmMatrix,     pauseMs: 1200, knowsHills: false },
   // ORS allows 40 requests a minute; 1.6 s between them keeps us just under it
   // without the run stopping to be rate-limited and retried.
   ors:      { matrix: orsMatrix,      pauseMs: 1600, knowsHills: false },
@@ -411,17 +457,25 @@ const cellCount = grid.rows * grid.cols;
 const targets = synagogues.map((s) => ({ lat: s.latitude, lon: s.longitude }));
 
 /** The cells worth asking about — see MAX_NEAREST_M. Order is the run order. */
-const liveCells = [];
+let liveCells = [];
 for (let i = 0; i < cellCount; i++) {
   const c = cellCentre(grid, i);
   const nearest = Math.min(...targets.map((t) => haversineM(c.lat, c.lon, t.lat, t.lon)));
   if (nearest <= MAX_NEAREST_M) liveCells.push(i);
 }
 
+if (SAMPLE > 0 && SAMPLE < liveCells.length) {
+  // Evenly spaced across the grid, not the first N — a sample taken from one
+  // corner would describe one neighbourhood and call it the city.
+  const step = liveCells.length / SAMPLE;
+  liveCells = Array.from({ length: SAMPLE }, (_, i) => liveCells[Math.floor(i * step)]);
+}
+
 const chunks = Math.ceil(liveCells.length / CHUNK);
 
-const cachePath = join(outDir, `.cache-${cityId}.json`);
-const outPath   = join(outDir, `${cityId}.json`);
+const SUFFIX    = SAMPLE > 0 ? '.sample' : '';
+const cachePath = join(outDir, `.cache-${cityId}${SUFFIX}.json`);
+const outPath   = join(outDir, `${cityId}${SUFFIX}.json`);
 
 function loadCache() {
   if (FRESH || !existsSync(cachePath)) return {};
@@ -452,6 +506,7 @@ function plan() {
   console.log(`Synagogues      ${synagogues.length}${skipped ? `  (${skipped} skipped — no coordinates)` : ''}`);
   console.log(`Area            ${km(spanLon)} × ${km(spanLat)} km, ${MARGIN_M} m past the outermost shul`);
   console.log(`Grid            ${grid.cols} × ${grid.rows} = ${cellCount.toLocaleString()} cells of ${CELL_M} m`);
+  if (SAMPLE > 0) console.log(`SAMPLE          ${liveCells.length} cells only — a look, not a city build`);
   console.log(`Routed          ${liveCells.length.toLocaleString()} cells  (${(cellCount - liveCells.length).toLocaleString()} skipped — no shul within ${MAX_NEAREST_M} m)`);
   console.log(`Modes           ${MODES.join(', ')}`);
   console.log(`Engine          ${ENGINE}${ENGINE === 'valhalla' ? ` at ${VALHALLA_URL}` : ''}`);
@@ -602,6 +657,8 @@ function write(cache) {
     /** Where the synagogue coordinates came from — 'json' means the run may be
      *  built on a mirror the admin console has since moved on from. */
     source: SOURCE_USED,
+    /** Set when only some cells were routed (--sample). Not a city build. */
+    sampledCells: SAMPLE > 0 ? liveCells.length : undefined,
     /** Minutes, one-way, rounded, capped per mode. A synagogue with no entry is
      *  further than the cap or unroutable — the app falls back to its estimate. */
     maxMinutes: MAX_MIN,

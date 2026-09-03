@@ -70,3 +70,7 @@ __pycache__/
 # buildTravelMatrix resume state — a partial run, superseded by the finished
 # data/travel/<cityId>.json and deleted the moment the run completes
 data/travel/.cache-*.json
+
+# Partial travel matrices from buildTravelMatrix --sample. A look at a few
+# cells, not a city build, and easy to mistake for one.
+data/travel/*.sample.json
