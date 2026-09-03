@@ -19,6 +19,7 @@ import NeighborhoodPickerModal from '../../components/NeighborhoodPickerModal';
 import { updateSynagogue, addSynagogue, deleteSynagogue } from '../../services/synagogues';
 import { submitPendingEvent } from '../../services/pendingEvents';
 import { Synagogue, PrayerTimeSlot, ZmanimAnchor, Shiur, EventCategory, SynagogueAnnouncement } from '../../types';
+import { gabbaimOf } from '../../utils/synagogueContacts';
 import LocationEditModal from '../../components/LocationEditModal';
 import AddItemModal from '../../components/AddItemModal';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
@@ -1074,6 +1075,29 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
     setForm((p) => ({ ...p, [key]: value }));
   }
 
+  /**
+   * The first gabbai, editable as two plain fields.
+   *
+   * Reads through gabbaimOf so a record still on the old flat pair opens with
+   * its gabbai filled in, and WRITES only to gabbaim[0] — see the note by the
+   * fields. Clearing both empties the seat rather than leaving {name: ""},
+   * which would render as a nameless row in the app.
+   */
+  const gabbaiSeatList = gabbaimOf(form as Synagogue);
+  const gabbaiSeat = {
+    name:  gabbaiSeatList[0]?.name ?? '',
+    phone: gabbaiSeatList[0]?.phone ?? '',
+  };
+  const gabbaiExtra = Math.max(0, (form.gabbaim?.length ?? 0) - 1);
+
+  function setGabbaiSeat(name: string, phone: string) {
+    setForm((p) => {
+      const rest = (p.gabbaim ?? []).slice(1);
+      const head = name.trim() || phone.trim() ? [{ name: name.trim(), phone: phone.trim() || null }] : [];
+      return { ...p, gabbaim: [...head, ...rest] };
+    });
+  }
+
   function setSlots(type: PrayerKey, slots: PrayerTimeSlot[]) {
     setForm((p) => ({
       ...p,
@@ -1234,8 +1258,16 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
           <View style={s.card}>
             <Field label="רב"          value={form.rabbiName ?? form.rabbi ?? ''}  onChangeText={(v) => set('rabbiName', v)} />
             <Field label="טלפון רב"    value={form.rabbiPhone ?? ''}               onChangeText={(v) => set('rabbiPhone', v)} />
-            <Field label="גבאי"        value={form.gabbaiName ?? ''}               onChangeText={(v) => set('gabbaiName', v)} />
-            <Field label="טלפון גבאי"  value={form.gabbaiPhone ?? ''}              onChangeText={(v) => set('gabbaiPhone', v)} />
+            {/* Writes into gabbaim[0], never back into gabbaiName/gabbaiPhone.
+                Those two are being retired from the documents, and an editor
+                still writing them would quietly restore them on the next save.
+                Any further gabbaim on the record are preserved untouched —
+                editing more than one of them needs a list editor this is not. */}
+            <Field label="גבאי"        value={gabbaiSeat.name}                     onChangeText={(v) => setGabbaiSeat(v, gabbaiSeat.phone)} />
+            <Field label="טלפון גבאי"  value={gabbaiSeat.phone}                    onChangeText={(v) => setGabbaiSeat(gabbaiSeat.name, v)} />
+            {gabbaiExtra > 0 && (
+              <Text style={s.sectionHint}>ועוד {gabbaiExtra} גבאים ברשומה — נשמרים כמו שהם</Text>
+            )}
             <Field label="טלפון כללי"  value={form.phone ?? ''}                    onChangeText={(v) => set('phone', v)} />
           </View>
         </View>

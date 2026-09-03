@@ -26,6 +26,7 @@ import FavoritePrayerModal, { ModalOptions } from '../../components/FavoritePray
 import EventReminderModal from '../../components/EventReminderModal';
 import { getSlotLabel } from '../../utils/prayerUtils';
 import { collectShiurim } from '../../utils/prayerNotifications';
+import { gabbaimOf, contactPhoneOf } from '../../utils/synagogueContacts';
 import {
   getTodaySchedule, getNextPrayer, formatPrayerLabel, formatDays,
   parseTimeToMinutes, nowInMinutes, hebrewDayOfWeek,
@@ -435,7 +436,9 @@ export default function SynagogueDetailScreen() {
   const shabbatShiurim = syn.shabbatSchedule ? allShiurim.filter(shabbatOnly) : [];
   const weekdayShiurim = allShiurim.filter((sh) => !shabbatShiurim.includes(sh));
 
-  const hasPhone = !!(syn.phone ?? syn.gabbaiPhone);
+  const gabbaim   = gabbaimOf(syn);
+  const callPhone = contactPhoneOf(syn);
+  const hasPhone  = !!callPhone;
 
   return (
     <View style={st.container}>
@@ -534,11 +537,11 @@ export default function SynagogueDetailScreen() {
             {hasPhone && (
               <TouchableOpacity
                 style={st.metaRow}
-                onPress={() => Linking.openURL(`tel:${syn.phone ?? syn.gabbaiPhone}`)}
+                onPress={() => Linking.openURL(`tel:${callPhone}`)}
                 activeOpacity={0.7}
               >
                 <Ionicons name="call-outline" size={15} color={Colors.textSecondary} />
-                <Text style={[st.metaText, { color: nusachColor }]}>{syn.phone ?? syn.gabbaiPhone}</Text>
+                <Text style={[st.metaText, { color: nusachColor }]}>{callPhone}</Text>
               </TouchableOpacity>
             )}
 
@@ -569,7 +572,7 @@ export default function SynagogueDetailScreen() {
                 {hasPhone && (
                   <TouchableOpacity
                     style={[st.actionBtn, { borderColor: nusachColor, backgroundColor: nusachColor + '0D' }]}
-                    onPress={() => Linking.openURL(`tel:${syn.phone ?? syn.gabbaiPhone}`)}
+                    onPress={() => Linking.openURL(`tel:${callPhone}`)}
                   >
                     <Ionicons name="call-outline" size={18} color={nusachColor} />
                     <Text style={[st.actionBtnTxt, { color: nusachColor }]}>חייג</Text>
@@ -597,12 +600,16 @@ export default function SynagogueDetailScreen() {
               <InfoRow icon="person" label="רב" value={syn.rabbiName ?? syn.rabbi!} color={nusachColor}
                 onPress={syn.rabbiPhone ? () => Linking.openURL(`tel:${syn.rabbiPhone}`) : undefined} />
             )}
-            {!!syn.gabbaiName && (
-              <InfoRow icon="people" label="גבאי"
-                value={syn.gabbaiPhone ? `${syn.gabbaiName}  ${syn.gabbaiPhone}` : syn.gabbaiName}
+            {/* One row per gabbai — a shul with three of them used to show the
+                first and silently drop the rest. Labelled singular or plural so
+                the row does not read as a list of one. */}
+            {gabbaim.map((g, i) => (
+              <InfoRow key={`${g.name}-${i}`} icon="people"
+                label={i === 0 ? (gabbaim.length > 1 ? 'גבאים' : 'גבאי') : ''}
+                value={g.phone ? `${g.name}  ${g.phone}` : g.name}
                 color={nusachColor}
-                onPress={syn.gabbaiPhone ? () => Linking.openURL(`tel:${syn.gabbaiPhone}`) : undefined} />
-            )}
+                onPress={g.phone ? () => Linking.openURL(`tel:${g.phone}`) : undefined} />
+            ))}
             {!!syn.phone && (
               <InfoRow icon="call" label="טלפון" value={syn.phone} color={nusachColor}
                 onPress={() => Linking.openURL(`tel:${syn.phone}`)} />
