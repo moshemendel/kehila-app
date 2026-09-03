@@ -38,8 +38,21 @@ export async function registerPushToken(uid: string, cityId: string, role: strin
       roles: roles ?? [role],
       updatedAt: new Date(),
     });
-  } catch (e) {
-    console.warn('[Push] registerPushToken failed:', e);
+  } catch (e: any) {
+    // The payload, not just the error. This fails as permission-denied on every
+    // sign-in, and the rule compares role and roles against the account's own
+    // profile document — so the message that matters is what we sent, which the
+    // bare error does not say. Order counts too: the rule tests array equality,
+    // so ['gabbai','kosher_manager'] is not the same as the reverse.
+    //
+    // Swallowed on purpose — a push token is a nice-to-have and must never
+    // block a sign-in — which is exactly why it has to be loud in the log. A
+    // device that never registers never receives anything, and nothing else
+    // would ever say so.
+    console.warn(
+      `[Push] registerPushToken failed (${e?.code ?? 'unknown'}) — sent uid=${uid} ` +
+      `role=${role} roles=${JSON.stringify(roles ?? [role])} cityId=${cityId}`,
+    );
   }
 }
 
