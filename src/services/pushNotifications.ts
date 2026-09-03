@@ -3,7 +3,7 @@ import * as Crypto from 'expo-crypto';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { collection, doc, setDoc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
-import { db } from './firebase';
+import { auth, db } from './firebase';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const DEVICE_ID_KEY = 'kehila_device_id_v1';
@@ -25,6 +25,28 @@ async function getDeviceId(): Promise<string> {
 // Fails silently — push token is a nice-to-have, never a hard requirement.
 export async function registerPushToken(uid: string, cityId: string, role: string, roles?: string[]): Promise<void> {
   try {
+    // THE ONE SOURCE THAT CANNOT LAG. The rule this write must satisfy is
+    // `data.uid == request.auth.uid`, and request.auth.uid is whatever the Auth
+    // SDK holds at the moment the write leaves — so that is what the payload has
+    // to be checked against, not a React ref or a value captured earlier.
+    //
+    // Both earlier attempts compared against something that trails the SDK. The
+    // first closed over the caller's values, and a registration queued as a
+    // guest fired after the user had signed in. The second read a ref refreshed
+    // inside an effect, which is better and still wrong: the account can be live
+    // in the SDK while React has not yet re-rendered, and it lost by 186ms —
+    // the guest payload went out between `auth resolved (fetched account)` and
+    // the effect that would have updated the ref.
+    //
+    // Whoever is signed in now owns this device's token. If that is not who this
+    // call was made for, drop it: the caller's own effect has already re-run for
+    // the new identity and will register it properly.
+    const current = auth.currentUser?.uid ?? null;
+    if (current !== uid) {
+      console.warn(`[Push] skipped — queued for ${uid}, now signed in as ${current ?? 'nobody'}`);
+      return;
+    }
+
     const deviceId = await getDeviceId();
     // projectId is required for standalone builds; obtained from EAS config.
     const projectId = (Constants.expoConfig?.extra as any)?.eas?.projectId as string | undefined;
