@@ -41,6 +41,15 @@ export default function PrayerNotificationScheduler() {
   // keep receiving the old city's eruv/kashrut alerts instead of the new one.
   const registeredForKey = useRef<string | null>(null);
 
+  /**
+   * The identity as it is right now, not as it was when a registration was
+   * queued. Read at write time — see the effect below for why that distinction
+   * is the whole bug.
+   */
+  const identity = useRef<{ uid: string | null; role: string | null; roles: string[] | null; cityId: string }>({
+    uid: null, role: null, roles: null, cityId,
+  });
+
   // Register push token for any logged-in user (registered or guest), independent of prayer scheduling.
   // Runs as soon as we have a uid + cityId — does NOT require synagogue favorites.
   useEffect(() => {
@@ -51,6 +60,8 @@ export default function PrayerNotificationScheduler() {
     const uid   = firebaseUser?.uid ?? null;
     const role  = appUser?.role  ?? (isGuest ? 'guest' : null);
     const roles = appUser?.roles ?? (role ? [role] : null);
+    identity.current = { uid, role, roles, cityId };
+
     if (!uid || !role || !cityId) return;
     const key = `${uid}:${cityId}`;
     if (registeredForKey.current === key) return;
@@ -58,11 +69,29 @@ export default function PrayerNotificationScheduler() {
     const timer = setTimeout(async () => {
       if (registeredForKey.current === key) return;
       const granted = await requestNotificationPermissions();
-      if (granted) {
-        registeredForKey.current = key;
-        hasPermission.current = true;
-        registerPushToken(uid, cityId, role, roles ?? [role]);
-      }
+      if (!granted) return;
+
+      // WHO WE ARE NOW, not who we were three seconds ago.
+      //
+      // This wrote permission-denied on every sign-in, and the payload said
+      // why: role=guest, roles=["guest"], sent nine seconds after the guest had
+      // stopped existing. The timer was queued during the anonymous session,
+      // fired, and then blocked on the permission prompt above — and while it
+      // waited, the user signed in. It resumed and wrote the values it had
+      // closed over, against an identity that was no longer theirs, failing the
+      // rule twice over: the uid no longer matched request.auth.uid, and
+      // 'guest' is not the role on the profile.
+      //
+      // clearTimeout cannot help. The cleanup cancels a timer that has not
+      // fired; this one had, and was sitting in an await where nothing can
+      // reach it. So the guard belongs after the await, not before it.
+      const now = identity.current;
+      if (!now.uid || !now.role) return;
+      if (`${now.uid}:${now.cityId}` !== key) return; // a newer effect owns this
+
+      registeredForKey.current = key;
+      hasPermission.current = true;
+      registerPushToken(now.uid, now.cityId, now.role, now.roles ?? [now.role]);
     }, 3000);
     return () => clearTimeout(timer);
   }, [appUser?.uid, isGuest, firebaseUser?.uid, cityId, appUser?.role]);
