@@ -66,3 +66,7 @@ __pycache__/
 # a commit, and nothing reads them from here.
 *.apk
 *.aab
+
+# buildTravelMatrix resume state — a partial run, superseded by the finished
+# data/travel/<cityId>.json and deleted the moment the run completes
+data/travel/.cache-*.json
