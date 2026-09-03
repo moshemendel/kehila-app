@@ -1276,7 +1276,10 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
         <View style={s.section}>
           <Text style={s.sectionTitle}>מיקום</Text>
           <View style={s.card}>
-            <Field label="קישור Waze"    value={form.wazeLink ?? ''}        onChangeText={(v) => set('wazeLink', v || undefined)} />
+            {/* The link is a fallback now, not an override — see NavTarget.wazeLink.
+                Saying so here stops a gabbai pasting one and expecting it to win. */}
+            <Field label="קישור Waze"    value={form.wazeLink ?? ''}        onChangeText={(v) => set('wazeLink', v || undefined)}
+                   placeholder="משמש רק כשאין מיקום מדויק" />
             <Field label="הוראות ניווט" value={form.navigationNote ?? ''} onChangeText={(v) => set('navigationNote', v || undefined)} multiline />
             <TouchableOpacity style={s.locBtn} onPress={() => setEditingLoc(true)}>
               <Ionicons name={form.latitude ? 'location' : 'location-outline'} size={18} color={Colors.warning} />
