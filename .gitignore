@@ -74,3 +74,9 @@ data/travel/.cache-*.json
 # Partial travel matrices from buildTravelMatrix --sample. A look at a few
 # cells, not a city build, and easy to mistake for one.
 data/travel/*.sample.json
+
+# Local Claude Code state: the launch config for the dev server, and — the
+# reason this needs an entry rather than being left merely untracked — the
+# worktrees it creates, each a full second checkout of this repo. `git add -A`
+# would otherwise commit a copy of the project inside the project.
+.claude/
