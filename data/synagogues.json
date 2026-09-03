@@ -5,17 +5,48 @@
             "cityId": "city-1",
             "neighborhood": "נופי סלע (07)",
             "name": "אביר יעקב",
-            "nusach": "מרוקאי",
-            "latitude": 31.789606,
-            "longitude": 35.31008,
-            "rabbiPhone": null,
+            "nusach": [
+                "מרוקאי"
+            ],
+            "latitude": 31.79142,
+            "longitude": 35.308744,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "אבי גינו",
             "gabbaiPhone": "054-6091568",
             "weeklySchedule": {
-                "shacharit": [
+                "mincha": [
                     {
-                        "time": "06:00",
+                        "dates": null,
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5
+                        ],
+                        "anchor": "shkia",
+                        "time": "",
+                        "proportional": null,
+                        "offsetMin": -20
+                    }
+                ],
+                "selichot": [
+                    {
+                        "days": [
+                            1
+                        ],
+                        "offsetMin": null,
+                        "anchor": null,
+                        "time": "00:30"
+                    },
+                    {
+                        "time": "",
+                        "dates": null,
+                        "notes": "שתיה חמה",
+                        "offsetMin": -70,
+                        "proportional": null,
+                        "anchor": "netz",
                         "days": [
                             1,
                             2,
@@ -24,26 +55,26 @@
                             5,
                             6
                         ]
-                    }
-                ],
-                "mincha": [
-                    {
-                        "time": "",
-                        "anchor": "shkia",
-                        "proportional": null,
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5
-                        ],
-                        "offsetMin": -20
                     }
                 ],
                 "maariv": [
                     {
                         "time": "19:50",
+                        "offsetMin": null,
+                        "dates": null,
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5
+                        ],
+                        "anchor": null
+                    }
+                ],
+                "notes": "",
+                "shacharit": [
+                    {
                         "days": [
                             1,
                             2,
@@ -51,661 +82,72 @@
                             4,
                             5,
                             6
-                        ]
+                        ],
+                        "time": "06:00"
                     }
                 ]
             },
             "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "shiurim": [
+                {
+                    "id": "sh_1781032332380",
+                    "title": "גמרא ברכות",
+                    "rabbi": "הרב דוד",
+                    "time": "20:00",
+                    "days": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "description": "כיבוד קל שתייה חמה"
+                }
+            ],
+            "notes": "",
+            "updatedAt": "2026-09-01T11:11:41.455Z",
             "wazeLink": "https://waze.com/ul/hsv9hge05b",
             "navigationNote": null,
             "address": {
                 "he": "האלמוג",
                 "en": "HaAlmog"
-            }
-        },
-        {
-            "id": "syn-2",
-            "cityId": "city-1",
-            "neighborhood": "נופי סלע (07)",
-            "name": "אהבת חיים",
-            "nusach": "מרוקאי",
-            "latitude": 31.777675,
-            "longitude": 35.311754,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "מוטי פרץ",
-            "gabbaiPhone": "050-5506063",
-            "weeklySchedule": {
-                "shacharit": [],
-                "mincha": [],
-                "maariv": []
             },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9hg8cnr",
-            "navigationNote": "מתחם הגנים משמאל לביהכנ\"ס צור ישראל",
-            "address": {
-                "he": "הרכס 28",
-                "en": "HaReches 28"
-            }
-        },
-        {
-            "id": "syn-3",
-            "cityId": "city-1",
-            "neighborhood": "נופי סלע (07)",
-            "name": "אחדות ישראל",
-            "nusach": "אשכנז/ ספרד",
-            "latitude": 31.791451,
-            "longitude": 35.308535,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "מתי קופמן",
-            "gabbaiPhone": "052-8308040",
-            "weeklySchedule": {
-                "shacharit": [],
-                "mincha": [],
-                "maariv": [
-                    {
-                        "time": "20:45",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ]
-            },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9hg7qys",
-            "navigationNote": "בנין מתי\"א",
-            "address": {
-                "he": "האלמוג 37",
-                "en": "HaAlmog 37"
-            }
-        },
-        {
-            "id": "syn-4",
-            "cityId": "city-1",
-            "neighborhood": "נופי סלע (07)",
-            "name": "מאיר במעלה",
-            "nusach": "מעורב/לפי החזן",
-            "latitude": 31.776345,
-            "longitude": 35.305274,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "מתניה רייכמן",
-            "gabbaiPhone": "054-5243865",
-            "weeklySchedule": {
-                "shacharit": [],
-                "mincha": [],
-                "maariv": []
-            },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9hg2sw8",
-            "navigationNote": null,
-            "address": {
-                "he": "אולפנת צביה",
-                "en": "Tzvia Ulpana"
-            }
-        },
-        {
-            "id": "syn-5",
-            "cityId": "city-1",
-            "neighborhood": "נופי סלע (07)",
-            "name": "מעלות לדוד",
-            "nusach": "ירושלמי",
-            "latitude": 31.785614,
-            "longitude": 35.30978,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "יעקב בנימין",
-            "gabbaiPhone": "053-3630906",
-            "weeklySchedule": {
-                "shacharit": [
-                    {
-                        "time": "05:30",
-                        "days": [
-                            2,
-                            5
-                        ]
-                    },
-                    {
-                        "time": "05:40",
-                        "days": [
-                            1,
-                            3,
-                            4,
-                            6
-                        ]
-                    }
-                ],
-                "mincha": [
-                    {
-                        "time": "18:50",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "סמוך לערבית/מנחה"
-                    }
-                ],
-                "maariv": [
-                    {
-                        "time": "19:10",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "סמוך לערבית/מנחה"
-                    }
-                ],
-                "selichot": [
-                    {
-                        "time": "04:40",
-                        "days": [
-                            1,
-                            3,
-                            4,
-                            6
-                        ],
-                        "notes": null
-                    },
-                    {
-                        "time": "04:30",
-                        "days": [
-                            2,
-                            5
-                        ],
-                        "notes": null
-                    }
-                ]
-            },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9hg6ru9",
-            "navigationNote": null,
-            "address": {
-                "he": "הרכס",
-                "en": "HaReches"
-            },
-            "selichotCustom": "sephardi"
-        },
-        {
-            "id": "syn-6",
-            "cityId": "city-1",
-            "neighborhood": "נופי סלע (07)",
-            "name": "משה דיין",
-            "nusach": "אשכנז/ספרד",
-            "latitude": 31.781838,
-            "longitude": 35.309994,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "ירון קלר",
-            "gabbaiPhone": "050-6775777",
-            "weeklySchedule": {
-                "shacharit": [
-                    {
-                        "time": "05:45",
-                        "days": [
-                            2,
-                            5
-                        ],
-                        "notes": "הודו"
-                    },
-                    {
-                        "time": "05:50",
-                        "days": [
-                            1,
-                            3,
-                            4,
-                            6
-                        ],
-                        "notes": "הודו"
-                    },
-                    {
-                        "time": "08:00",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "הודו"
-                    }
-                ],
-                "mincha": [
-                    {
-                        "time": "19:05",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
-                "maariv": [
-                    {
-                        "time": "19:40",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "21:30",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ]
-            },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9hg3xyw",
-            "navigationNote": null,
-            "address": {
-                "he": "החלמיש 1",
-                "en": "HaHalamish 1"
-            }
-        },
-        {
-            "id": "syn-7",
-            "cityId": "city-1",
-            "neighborhood": "נופי סלע (07)",
-            "name": "נופי סלע",
-            "nusach": "ירושלמי",
-            "latitude": 31.780035,
-            "longitude": 35.311582,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "שמעון מזרחי",
-            "gabbaiPhone": "050-8296491",
-            "weeklySchedule": {
-                "shacharit": [
-                    {
-                        "time": "05:15",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "05:40",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "נץ"
-                    },
-                    {
-                        "time": "06:40",
-                        "days": [
-                            2,
-                            5
-                        ]
-                    },
-                    {
-                        "time": "06:45",
-                        "days": [
-                            1,
-                            3,
-                            4,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "08:00",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
-                "mincha": [
-                    {
-                        "time": "13:10",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "17:50",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "סמוך לערבית/מנחה"
-                    },
-                    {
-                        "time": "18:50",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
-                "maariv": [
-                    {
-                        "time": "18:10",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "סמוך לערבית/מנחה"
-                    },
-                    {
-                        "time": "19:30",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "22:15",
-                        "days": [
-                            1
-                        ]
-                    }
-                ],
-                "selichot": [
-                    {
-                        "time": "00:30",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": null
-                    },
-                    {
-                        "time": "04:15",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": null
-                    },
-                    {
-                        "time": "04:30",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": null
-                    },
-                    {
-                        "time": "06:00",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": null
-                    }
-                ]
-            },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9hg93h5",
-            "navigationNote": null,
-            "address": {
-                "he": "השחם 2",
-                "en": "HaShoham 2"
-            },
-            "selichotCustom": "sephardi"
-        },
-        {
-            "id": "syn-8",
-            "cityId": "city-1",
-            "neighborhood": "נופי סלע (07)",
-            "name": "עץ חיים",
-            "nusach": "תימני",
-            "latitude": 31.777675,
-            "longitude": 35.311754,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "עודד שרעבי",
-            "gabbaiPhone": "054-5664488",
-            "weeklySchedule": {
-                "shacharit": [],
-                "mincha": [],
-                "maariv": []
-            },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9hg8cnr",
-            "navigationNote": "מתחם הגנים משמאל לביהכנ\"ס צור ישראל",
-            "address": {
-                "he": "הרכס 28",
-                "en": "HaReches 28"
-            }
-        },
-        {
-            "id": "syn-9",
-            "cityId": "city-1",
-            "neighborhood": "נופי סלע (07)",
-            "name": "צור ישראל",
-            "nusach": "ירושלמי",
-            "latitude": 31.777675,
-            "longitude": 35.311754,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "רונן ביטון",
-            "gabbaiPhone": "052-8604351",
-            "weeklySchedule": {
-                "shacharit": [
-                    {
-                        "time": "05:35",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "נץ"
-                    },
-                    {
-                        "time": "06:00",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "08:00",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
-                "mincha": [
-                    {
-                        "time": "13:15",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "18:55",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
-                "maariv": [
-                    {
-                        "time": "19:45",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
-                "selichot": [
-                    {
-                        "time": "04:40",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": null
-                    },
-                    {
-                        "time": "05:10",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": null
-                    },
-                    {
-                        "time": "07:10",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": null
-                    }
-                ]
-            },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9hg8cnr",
-            "navigationNote": null,
-            "address": {
-                "he": "הרכס 28",
-                "en": "HaReches 28"
-            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/kehila-app-386ab.firebasestorage.app/o/synagogues%2Fsyn-1%2Fgallery%2F1781032014800.jpeg?alt=media&token=40d6161e-aa0d-4b0e-9c07-e588c53485bf",
+            "images": [
+                "https://firebasestorage.googleapis.com/v0/b/kehila-app-386ab.firebasestorage.app/o/synagogues%2Fsyn-1%2Fgallery%2F1781032090007.jpeg?alt=media&token=4999ebcb-3c83-4b52-92ef-ad88019e55a6",
+                "https://firebasestorage.googleapis.com/v0/b/kehila-app-386ab.firebasestorage.app/o/synagogues%2Fsyn-1%2Fgallery%2F1781032104941.jpeg?alt=media&token=88eeaabb-6bcc-45d4-9cac-7258f1ad1264"
+            ],
+            "synagogueEvents": [
+                {
+                    "description": "סיום מסכת מגילה עם סעודה חגיגית על האש",
+                    "category": "community",
+                    "location": "אולם בית הכנסת",
+                    "createdAt": "2026-06-09T19:32:58.388Z",
+                    "id": "ev_1781033578388",
+                    "isAlert": false,
+                    "startDate": "2026-06-18T17:30:00.000Z",
+                    "title": "סיום מסכת מגילה"
+                },
+                {
+                    "id": "ev_1781114000050",
+                    "title": "מתנפחים",
+                    "description": "פופקורן",
+                    "category": "community",
+                    "startDate": "2026-06-17T13:30:00.000Z",
+                    "isAlert": false,
+                    "createdAt": "2026-06-10T17:53:20.051Z",
+                    "location": "ברחבה ליד בית כנסת"
+                }
+            ],
+            "phone": "",
+            "rabbi": "",
+            "gabbaim": [
+                {
+                    "name": "אבי גינו",
+                    "phone": "054-6091568"
+                }
+            ],
+            "selichotStartDate": null,
             "selichotCustom": "sephardi"
         },
         {
@@ -713,70 +155,16 @@
             "cityId": "city-1",
             "neighborhood": "נופי סלע (07)",
             "name": "היכל שמאע",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.791451,
             "longitude": 35.308535,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "סימון אילוז",
             "gabbaiPhone": "050-5791024",
             "weeklySchedule": {
-                "shacharit": [
-                    {
-                        "time": "05:10",
-                        "days": [
-                            2,
-                            5
-                        ]
-                    },
-                    {
-                        "time": "05:15",
-                        "days": [
-                            1,
-                            3,
-                            4,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "06:30",
-                        "days": [
-                            6
-                        ]
-                    },
-                    {
-                        "time": "08:00",
-                        "days": [
-                            6
-                        ]
-                    }
-                ],
-                "mincha": [
-                    {
-                        "time": "18:55",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
-                "maariv": [
-                    {
-                        "time": "19:35",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
                 "selichot": [
                     {
                         "time": "00:30",
@@ -808,29 +196,101 @@
                         ],
                         "notes": null
                     }
+                ],
+                "mincha": [
+                    {
+                        "time": "18:55",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ],
+                "maariv": [
+                    {
+                        "time": "19:35",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ],
+                "shacharit": [
+                    {
+                        "time": "05:10",
+                        "days": [
+                            2,
+                            5
+                        ]
+                    },
+                    {
+                        "time": "05:15",
+                        "days": [
+                            1,
+                            3,
+                            4,
+                            6
+                        ]
+                    },
+                    {
+                        "time": "06:30",
+                        "days": [
+                            6
+                        ]
+                    },
+                    {
+                        "time": "08:00",
+                        "days": [
+                            6
+                        ]
+                    }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-24T17:24:31.642Z",
             "wazeLink": "https://waze.com/ul/hsv9hg7qys",
             "navigationNote": null,
             "address": {
                 "he": "האלמוג 37",
                 "en": "HaAlmog 37"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": "",
+            "synagogueEvents": [
+                {
+                    "id": "ev_1782321871379",
+                    "title": "מתנפחים",
+                    "description": "חצר",
+                    "category": "announcement",
+                    "startDate": "2026-06-25T17:00:00.000Z",
+                    "isAlert": false,
+                    "createdAt": "2026-06-24T17:24:31.379Z",
+                    "location": "חצ"
+                }
+            ]
         },
         {
             "id": "syn-11",
             "cityId": "city-1",
             "neighborhood": "נופי סלע (07)",
             "name": "שים שלום",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.780894,
             "longitude": 35.3142,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "אורן מזרחי",
             "gabbaiPhone": "050-5063547",
@@ -867,53 +327,32 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:06:33.714Z",
             "wazeLink": "https://waze.com/ul/hsv9hg9e10",
             "navigationNote": null,
             "address": {
                 "he": "הצור 6",
                 "en": "HaTzur 6"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-12",
             "cityId": "city-1",
             "neighborhood": "מרכז העיר",
             "name": "אבני החושן",
-            "nusach": "ירושלמי",
-            "latitude": 31.774156,
-            "longitude": 35.300167,
-            "rabbiPhone": null,
+            "nusach": [
+                "ירושלמי"
+            ],
+            "latitude": 31.774206,
+            "longitude": 35.300241,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "יורם רענן",
             "gabbaiPhone": "052-7737727",
             "weeklySchedule": {
-                "shacharit": [
-                    {
-                        "time": "05:40",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "נץ"
-                    },
-                    {
-                        "time": "07:30",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
                 "mincha": [
                     {
                         "time": "13:15",
@@ -1012,142 +451,7 @@
                         ],
                         "notes": null
                     }
-                ]
-            },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9hg22cc",
-            "navigationNote": null,
-            "address": null,
-            "selichotCustom": "sephardi"
-        },
-        {
-            "id": "syn-13",
-            "cityId": "city-1",
-            "neighborhood": "מרכז העיר",
-            "name": "אהל רחל",
-            "nusach": "אשכנז/ספרד",
-            "latitude": 31.77407,
-            "longitude": 35.296175,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "דורון סגל",
-            "gabbaiPhone": "050-6284176",
-            "weeklySchedule": {
-                "shacharit": [],
-                "mincha": [],
-                "maariv": []
-            },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9hg0mck",
-            "navigationNote": null,
-            "address": {
-                "he": "מתנ\"ס - מדבר יהודה 5",
-                "en": "Matnas - Midbar Yehuda 5"
-            }
-        },
-        {
-            "id": "syn-14",
-            "cityId": "city-1",
-            "neighborhood": "מרכז העיר",
-            "name": "אוהל אברהם",
-            "nusach": "מרוקאי",
-            "latitude": 31.776559,
-            "longitude": 35.302827,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "שי רחמני",
-            "gabbaiPhone": "052-8655561",
-            "weeklySchedule": {
-                "shacharit": [],
-                "mincha": [],
-                "maariv": []
-            },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9hg2dxz",
-            "navigationNote": null,
-            "address": {
-                "he": "ביה\"ס מעלה התורה, דרך קדם 15",
-                "en": "Maale HaTorah School, Derech Kedem 15"
-            }
-        },
-        {
-            "id": "syn-15",
-            "cityId": "city-1",
-            "neighborhood": "מרכז העיר",
-            "name": "אוהל אברהם אבינו קהילה אתיופית",
-            "nusach": "ירושלמי",
-            "latitude": 31.780422,
-            "longitude": 35.29815,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "ראובן מנגסטו",
-            "gabbaiPhone": "053-4844223",
-            "weeklySchedule": {
-                "shacharit": [],
-                "mincha": [],
-                "maariv": []
-            },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9hg1rq6",
-            "navigationNote": null,
-            "address": {
-                "he": "העוגב 1",
-                "en": "HaUgav 1"
-            }
-        },
-        {
-            "id": "syn-16",
-            "cityId": "city-1",
-            "neighborhood": "מרכז העיר",
-            "name": "אוהל ישרים",
-            "nusach": "ירושלמי",
-            "latitude": 31.779435,
-            "longitude": 35.298493,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "משה דיין",
-            "gabbaiPhone": "050-4175511",
-            "weeklySchedule": {
-                "shacharit": [],
-                "mincha": [],
-                "maariv": []
-            },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9hg1r8d",
-            "navigationNote": null,
-            "address": {
-                "he": "דרך מדבר יהודה 37",
-                "en": "Derech Midbar Yehuda 37"
-            }
-        },
-        {
-            "id": "syn-17",
-            "cityId": "city-1",
-            "neighborhood": "מרכז העיר",
-            "name": "אור התורה",
-            "nusach": "ירושלמי",
-            "latitude": 31.777761,
-            "longitude": 35.29815,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "רחמים יצקן",
-            "gabbaiPhone": "050-6209903",
-            "weeklySchedule": {
+                ],
                 "shacharit": [
                     {
                         "time": "05:40",
@@ -1172,31 +476,171 @@
                             6
                         ]
                     }
-                ],
-                "mincha": [
-                    {
-                        "time": "13:15",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "18:55",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
+                ]
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "",
+            "updatedAt": "2026-08-07T11:50:27.987Z",
+            "wazeLink": "https://waze.com/ul/hsv9hg22cc",
+            "navigationNote": null,
+            "address": {
+                "he": "אבני החושן"
+            },
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": "",
+            "gabbaim": [
+                {
+                    "name": "יורם רענן",
+                    "phone": "052-7737727"
+                }
+            ]
+        },
+        {
+            "id": "syn-13",
+            "cityId": "city-1",
+            "neighborhood": "מרכז העיר",
+            "name": "אהל רחל",
+            "nusach": [
+                "אשכנז",
+                "ספרד"
+            ],
+            "latitude": 31.77407,
+            "longitude": 35.296175,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "דורון סגל",
+            "gabbaiPhone": "050-6284176",
+            "weeklySchedule": {
+                "shacharit": [],
+                "mincha": [],
+                "maariv": []
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:11:14.057Z",
+            "wazeLink": "https://waze.com/ul/hsv9hg0mck",
+            "navigationNote": null,
+            "address": {
+                "he": "מתנ\"ס - מדבר יהודה 5",
+                "en": "Matnas - Midbar Yehuda 5"
+            },
+            "phone": "",
+            "rabbi": ""
+        },
+        {
+            "id": "syn-14",
+            "cityId": "city-1",
+            "neighborhood": "מרכז העיר",
+            "name": "אוהל אברהם",
+            "nusach": [
+                "מרוקאי"
+            ],
+            "latitude": 31.776559,
+            "longitude": 35.302827,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "שי רחמני",
+            "gabbaiPhone": "052-8655561",
+            "weeklySchedule": {
+                "shacharit": [],
+                "mincha": [],
+                "maariv": []
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:11:29.004Z",
+            "wazeLink": "https://waze.com/ul/hsv9hg2dxz",
+            "navigationNote": null,
+            "address": {
+                "he": "ביה\"ס מעלה התורה, דרך קדם 15",
+                "en": "Maale HaTorah School, Derech Kedem 15"
+            },
+            "phone": "",
+            "rabbi": ""
+        },
+        {
+            "id": "syn-15",
+            "cityId": "city-1",
+            "neighborhood": "מרכז העיר",
+            "name": "אוהל אברהם אבינו קהילה אתיופית",
+            "nusach": [
+                "ירושלמי"
+            ],
+            "latitude": 31.780422,
+            "longitude": 35.29815,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "ראובן מנגסטו",
+            "gabbaiPhone": "053-4844223",
+            "weeklySchedule": {
+                "shacharit": [],
+                "mincha": [],
+                "maariv": []
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:11:42.945Z",
+            "wazeLink": "https://waze.com/ul/hsv9hg1rq6",
+            "navigationNote": null,
+            "address": {
+                "he": "העוגב 1",
+                "en": "HaUgav 1"
+            },
+            "phone": "",
+            "rabbi": ""
+        },
+        {
+            "id": "syn-16",
+            "cityId": "city-1",
+            "neighborhood": "מרכז העיר",
+            "name": "אוהל ישרים",
+            "nusach": [
+                "ירושלמי"
+            ],
+            "latitude": 31.779435,
+            "longitude": 35.298493,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "משה דיין",
+            "gabbaiPhone": "050-4175511",
+            "weeklySchedule": {
+                "shacharit": [],
+                "mincha": [],
+                "maariv": []
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "סגנון ישיבתי",
+            "updatedAt": "2026-06-15T10:12:32.486Z",
+            "wazeLink": "https://waze.com/ul/hsv9hg1r8d",
+            "navigationNote": null,
+            "address": {
+                "he": "דרך מדבר יהודה 37",
+                "en": "Derech Midbar Yehuda 37"
+            },
+            "phone": "",
+            "rabbi": ""
+        },
+        {
+            "id": "syn-17",
+            "cityId": "city-1",
+            "neighborhood": "מרכז העיר",
+            "name": "אור התורה",
+            "nusach": [
+                "ירושלמי"
+            ],
+            "latitude": 31.777761,
+            "longitude": 35.29815,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "רחמים יצקן",
+            "gabbaiPhone": "050-6209903",
+            "weeklySchedule": {
                 "maariv": [
                     {
                         "time": "20:00",
@@ -1258,33 +702,88 @@
                         ],
                         "notes": null
                     }
+                ],
+                "mincha": [
+                    {
+                        "time": "13:15",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    },
+                    {
+                        "time": "18:55",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ],
+                "shacharit": [
+                    {
+                        "time": "05:40",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": "נץ"
+                    },
+                    {
+                        "time": "07:30",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:12:49.455Z",
             "wazeLink": "https://waze.com/ul/hsv9hg0zqf",
             "navigationNote": null,
             "address": {
                 "he": "הנחלים 54",
                 "en": "HaNchalim 54"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-18",
             "cityId": "city-1",
             "neighborhood": "מרכז העיר",
             "name": "בית חב\"ד",
-            "nusach": "לפי החזן",
+            "nusach": [
+                "לפי חזן"
+            ],
             "latitude": 31.774671,
             "longitude": 35.299222,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "לוי יצחק ג'ורנו",
             "gabbaiPhone": "052-6111714",
             "weeklySchedule": {
+                "mincha": [],
+                "maariv": [],
                 "shacharit": [
                     {
                         "time": "07:45",
@@ -1308,53 +807,54 @@
                             6
                         ]
                     }
-                ],
-                "mincha": [],
-                "maariv": []
+                ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:13:03.611Z",
             "wazeLink": "https://waze.com/ul/hsv9hg22hg",
             "navigationNote": "בהמשך הפארק מצד ימין",
             "address": {
                 "he": "פארק אדומים",
                 "en": "Park Adumim"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-19",
             "cityId": "city-1",
             "neighborhood": "מרכז העיר",
             "name": "המרכזי",
-            "nusach": "מרוקאי",
+            "nusach": [
+                "מרוקאי"
+            ],
             "latitude": 31.77613,
             "longitude": 35.297377,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "משה אסייג",
             "gabbaiPhone": "050-8511416",
             "weeklySchedule": {
                 "shacharit": [
                     {
-                        "time": "04:50",
                         "days": [
                             2,
                             5
-                        ]
+                        ],
+                        "time": "04:50"
                     },
                     {
-                        "time": "04:55",
                         "days": [
                             1,
                             3,
                             4,
                             6
-                        ]
+                        ],
+                        "time": "04:55"
                     },
                     {
-                        "time": "06:30",
                         "days": [
                             1,
                             2,
@@ -1362,12 +862,14 @@
                             4,
                             5,
                             6
-                        ]
+                        ],
+                        "time": "06:30"
                     }
                 ],
                 "mincha": [
                     {
                         "time": "18:30",
+                        "notes": "סמוך לערבית/מנחה",
                         "days": [
                             1,
                             2,
@@ -1375,41 +877,6 @@
                             4,
                             5,
                             6
-                        ],
-                        "notes": "סמוך לערבית/מנחה"
-                    }
-                ],
-                "maariv": [
-                    {
-                        "time": "18:50",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "סמוך לערבית/מנחה"
-                    },
-                    {
-                        "time": "22:20",
-                        "days": [
-                            1,
-                            2,
-                            4
-                        ]
-                    },
-                    {
-                        "time": "22:30",
-                        "days": [
-                            3
-                        ]
-                    },
-                    {
-                        "time": "23:15",
-                        "days": [
-                            5
                         ]
                     }
                 ],
@@ -1428,6 +895,7 @@
                     },
                     {
                         "time": "05:35",
+                        "notes": null,
                         "days": [
                             1,
                             2,
@@ -1435,50 +903,24 @@
                             4,
                             5,
                             6
-                        ],
-                        "notes": null
+                        ]
                     },
                     {
-                        "time": "17:30",
                         "days": [
                             1,
                             2,
                             3,
                             4,
-                            5,
-                            6
+                            5
                         ],
-                        "notes": null
+                        "notes": null,
+                        "time": "17:30",
+                        "anchor": null,
+                        "offsetMin": null,
+                        "dates": null
                     }
-                ]
-            },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9hg0wv2",
-            "navigationNote": null,
-            "address": {
-                "he": "נחלים 96",
-                "en": "Nchalim 96"
-            },
-            "selichotCustom": "sephardi"
-        },
-        {
-            "id": "syn-20",
-            "cityId": "city-1",
-            "neighborhood": "מרכז העיר",
-            "name": "אור הלבונה",
-            "nusach": "ירושלמי",
-            "latitude": null,
-            "longitude": null,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "משה מנדלוביץ",
-            "gabbaiPhone": "054-8408679",
-            "weeklySchedule": {
-                "shacharit": [],
-                "mincha": [
+                ],
+                "maariv": [
                     {
                         "time": "18:50",
                         "days": [
@@ -1490,58 +932,248 @@
                             6
                         ],
                         "notes": "סמוך לערבית/מנחה"
-                    }
-                ],
-                "maariv": [
+                    },
                     {
-                        "time": "19:10",
                         "days": [
                             1,
                             2,
-                            3,
-                            4,
-                            5,
-                            6
+                            4
                         ],
-                        "notes": "סמוך לערבית/מנחה"
-                    }
-                ],
-                "selichot": [
+                        "time": "22:20"
+                    },
                     {
-                        "time": "18:30",
                         "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
+                            3
                         ],
-                        "notes": null
+                        "time": "22:30"
+                    },
+                    {
+                        "days": [
+                            5
+                        ],
+                        "time": "23:15"
                     }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-08-21T12:30:33.852Z",
+            "wazeLink": "https://waze.com/ul/hsv9hg0wv2",
+            "navigationNote": null,
+            "address": {
+                "he": "נחלים 96",
+                "en": "Nchalim 96"
+            },
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
+        },
+        {
+            "id": "syn-2",
+            "cityId": "city-1",
+            "neighborhood": "נופי סלע (07)",
+            "name": "אהבת חיים",
+            "nusach": [
+                "מרוקאי"
+            ],
+            "latitude": 31.777675,
+            "longitude": 35.311754,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "מוטי פרץ",
+            "gabbaiPhone": "050-5506063",
+            "weeklySchedule": {
+                "shacharit": [],
+                "mincha": [],
+                "maariv": []
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:06:09.524Z",
+            "wazeLink": "https://waze.com/ul/hsv9hg8cnr",
+            "navigationNote": "מתחם הגנים משמאל לביהכנ\"ס צור ישראל",
+            "address": {
+                "he": "הרכס 28",
+                "en": "HaReches 28"
+            },
+            "phone": "",
+            "rabbi": ""
+        },
+        {
+            "id": "syn-20",
+            "cityId": "city-1",
+            "neighborhood": "מרכז העיר",
+            "name": "אור הלבונה",
+            "nusach": [
+                "ירושלמי"
+            ],
+            "latitude": 31.773009,
+            "longitude": 35.301815,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "משה מנדלוביץ",
+            "gabbaiPhone": "054-8408679",
+            "weeklySchedule": {
+                "shacharit": [],
+                "maariv": [
+                    {
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5
+                        ],
+                        "time": "",
+                        "proportional": null,
+                        "dates": null,
+                        "anchor": "shkia",
+                        "notes": "סמוך לערבית/מנחה",
+                        "offsetMin": 0
+                    }
+                ],
+                "mincha": [
+                    {
+                        "proportional": null,
+                        "dates": null,
+                        "offsetMin": -20,
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5
+                        ],
+                        "notes": "סמוך לערבית/מנחה",
+                        "time": "",
+                        "anchor": "shkia"
+                    }
+                ],
+                "selichot": [
+                    {
+                        "proportional": null,
+                        "anchor": "shkia",
+                        "offsetMin": -60,
+                        "time": "",
+                        "notes": null,
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5
+                        ],
+                        "dates": null
+                    }
+                ]
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "",
+            "updatedAt": "2026-09-02T07:54:32.499Z",
             "wazeLink": null,
             "navigationNote": null,
             "address": {
-                "he": "הר הלבונה 11",
-                "en": "Har HaLevona 11"
+                "he": "הר הלבונה 18"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": "",
+            "gabbaim": [
+                {
+                    "name": "משה מנדלוביץ",
+                    "phone": "054-8408679"
+                }
+            ],
+            "synagogueEvents": [
+                {
+                    "isAlert": false,
+                    "title": "חצי יום של תורה",
+                    "category": "shiur",
+                    "id": "ev_1784557588582",
+                    "description": "כן",
+                    "createdAt": "2026-07-20T14:26:28.582Z",
+                    "startDate": "2026-07-23T13:30:00.000Z"
+                },
+                {
+                    "id": "ev_1785495391749",
+                    "title": "תהילים ויין",
+                    "description": "האירוע של השנה",
+                    "category": "community",
+                    "isAlert": false,
+                    "createdAt": "2026-07-31T10:56:31.749Z",
+                    "startDate": "2026-08-01T17:00:00.000Z"
+                },
+                {
+                    "isAlert": false,
+                    "startDate": "2026-08-25T17:00:00.000Z",
+                    "createdAt": "2026-08-24T09:18:11.574Z",
+                    "title": "בדיקה",
+                    "id": "ev_1787563091574",
+                    "category": "announcement",
+                    "description": "בדיקה"
+                },
+                {
+                    "id": "ev_1787729176614",
+                    "title": "בדיקה חדשה",
+                    "description": "בדיקה זו לא הייתה לי תחושה",
+                    "category": "announcement",
+                    "startDate": "2026-08-27T17:00:00.000Z",
+                    "isAlert": false,
+                    "createdAt": "2026-08-26T07:26:16.614Z"
+                }
+            ],
+            "shabbatSchedule": {
+                "shacharit": [
+                    {
+                        "anchor": null,
+                        "notes": "קידוש לאחר התפילה",
+                        "dates": null,
+                        "offsetMin": null,
+                        "time": "07:30"
+                    }
+                ],
+                "minchaFriday": [
+                    {
+                        "offsetMin": -30,
+                        "anchor": "shkia",
+                        "time": "",
+                        "proportional": null,
+                        "notes": "חצי שעה לפני השקיעה",
+                        "dates": null
+                    },
+                    {
+                        "time": "",
+                        "notes": "מניין פלג",
+                        "anchor": "shkia",
+                        "offsetMin": -90,
+                        "proportional": null,
+                        "dates": null
+                    }
+                ],
+                "mincha": [
+                    {
+                        "anchor": null,
+                        "dates": null,
+                        "time": "13:15",
+                        "offsetMin": null
+                    }
+                ]
+            }
         },
         {
             "id": "syn-21",
             "cityId": "city-1",
             "neighborhood": "מרכז העיר",
             "name": "חיבת ציון",
-            "nusach": "לפי החזן",
+            "nusach": [
+                "לפי חזן"
+            ],
             "latitude": 31.780293,
             "longitude": 35.301797,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "עמנואל טוביאנה",
             "gabbaiPhone": "050-7426215",
@@ -1552,100 +1184,32 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:14:17.436Z",
             "wazeLink": "https://waze.com/ul/hsv9hg33vx",
             "navigationNote": null,
             "address": {
                 "he": "המיצדים 2",
                 "en": "HaMitzadim 2"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-22",
             "cityId": "city-1",
             "neighborhood": "מרכז העיר",
             "name": "יצחקי",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.779778,
             "longitude": 35.299265,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "שמואל איילון",
             "gabbaiPhone": "052-8901550",
             "weeklySchedule": {
-                "shacharit": [
-                    {
-                        "time": "05:40",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "נץ"
-                    },
-                    {
-                        "time": "06:45",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "07:30",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "08:00",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
-                "mincha": [
-                    {
-                        "time": "13:20",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "למטה"
-                    },
-                    {
-                        "time": "18:30",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
                 "maariv": [
                     {
                         "time": "19:00",
@@ -1707,29 +1271,105 @@
                         ],
                         "notes": null
                     }
+                ],
+                "mincha": [
+                    {
+                        "time": "13:20",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": "למטה"
+                    },
+                    {
+                        "time": "18:30",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ],
+                "shacharit": [
+                    {
+                        "time": "05:40",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": "נץ"
+                    },
+                    {
+                        "time": "06:45",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    },
+                    {
+                        "time": "07:30",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    },
+                    {
+                        "time": "08:00",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:14:31.589Z",
             "wazeLink": "https://waze.com/ul/hsv9hg324s",
             "navigationNote": null,
             "address": {
                 "he": "הגיתית 2",
                 "en": "HaGitit 2"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-23",
             "cityId": "city-1",
             "neighborhood": "מרכז העיר",
             "name": "כולל מעלות החיים",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.780121,
             "longitude": 35.297892,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "גיא נגדאי",
             "gabbaiPhone": "054-6660542",
@@ -1763,27 +1403,31 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:14:59.401Z",
             "wazeLink": "https://waze.com/ul/hsv9hg1rhs",
             "navigationNote": "בתוך בית הספר אורות",
             "address": {
                 "he": "העוגב 1",
                 "en": "HaUgav 1"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-24",
             "cityId": "city-1",
             "neighborhood": "מרכז העיר",
             "name": "מגן אבות",
-            "nusach": "מרוקאי",
+            "nusach": [
+                "מרוקאי"
+            ],
             "latitude": 31.772654,
             "longitude": 35.29845,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
-            "gabbaiName": null,
-            "gabbaiPhone": null,
+            "gabbaiName": "",
+            "gabbaiPhone": "",
             "weeklySchedule": {
                 "shacharit": [],
                 "mincha": [],
@@ -1791,24 +1435,28 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:19:07.740Z",
             "wazeLink": "https://waze.com/ul/hsv9hg0p91",
             "navigationNote": "בכניסה ליהלום 8 למטה במדרגות",
             "address": {
                 "he": "ככר יהלום",
                 "en": "Yahalom Square"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-25",
             "cityId": "city-1",
             "neighborhood": "מרכז העיר",
             "name": "נוסח אחיד",
-            "nusach": "ספרד",
+            "nusach": [
+                "ספרד"
+            ],
             "latitude": 31.779778,
             "longitude": 35.297077,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "שמואל פרידמן",
             "gabbaiPhone": "054-8887527",
@@ -1873,44 +1521,44 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:19:27.150Z",
             "wazeLink": "https://waze.com/ul/hsv9hg1qd9",
             "navigationNote": "מול תיבות הדואר נכנסים וממשיכים לאמצע הפארק",
             "address": {
                 "he": "ככר הקרן",
                 "en": "HaKeren Square"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-26",
             "cityId": "city-1",
             "neighborhood": "מרכז העיר",
             "name": "נחלת אבות",
-            "nusach": "תימני",
+            "nusach": [
+                "תימני"
+            ],
             "latitude": 31.779435,
             "longitude": 35.298493,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "משה סוריט",
             "gabbaiPhone": "050-8296386",
             "weeklySchedule": {
-                "shacharit": [
+                "selichot": [
                     {
-                        "time": "05:30",
-                        "days": [
-                            2,
-                            5
-                        ]
-                    },
-                    {
-                        "time": "05:40",
+                        "time": "04:00",
                         "days": [
                             1,
+                            2,
                             3,
                             4,
+                            5,
                             6
-                        ]
+                        ],
+                        "notes": null
                     }
                 ],
                 "mincha": [
@@ -1941,42 +1589,50 @@
                         "notes": "סמוך לערבית/מנחה"
                     }
                 ],
-                "selichot": [
+                "shacharit": [
                     {
-                        "time": "04:00",
+                        "time": "05:30",
+                        "days": [
+                            2,
+                            5
+                        ]
+                    },
+                    {
+                        "time": "05:40",
                         "days": [
                             1,
-                            2,
                             3,
                             4,
-                            5,
                             6
-                        ],
-                        "notes": null
+                        ]
                     }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:19:50.694Z",
             "wazeLink": "https://waze.com/ul/hsv9hg1r8d",
             "navigationNote": null,
             "address": {
                 "he": "דרך מדבר יהודה 37",
                 "en": "Derech Midbar Yehuda 37"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-27",
             "cityId": "city-1",
             "neighborhood": "מרכז העיר",
             "name": "נחלת יצחק",
-            "nusach": "מרוקאי",
+            "nusach": [
+                "מרוקאי"
+            ],
             "latitude": 31.781538,
             "longitude": 35.30493,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "אהרן דנה",
             "gabbaiPhone": "052-8899559",
@@ -1999,42 +1655,35 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:20:27.364Z",
             "wazeLink": "https://waze.com/ul/hsv9hg3skb",
             "navigationNote": null,
             "address": {
                 "he": "המצדים 63",
                 "en": "HaMitzadim 63"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-28",
             "cityId": "city-1",
             "neighborhood": "מרכז העיר",
             "name": "עלי עשור ועלי נבל",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.779435,
             "longitude": 35.298493,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "ירון מחסומי",
             "gabbaiPhone": "050-3971500",
             "weeklySchedule": {
-                "shacharit": [
+                "selichot": [
                     {
-                        "time": "05:25",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "05:35",
+                        "time": "04:40",
                         "days": [
                             1,
                             2,
@@ -2043,10 +1692,10 @@
                             5,
                             6
                         ],
-                        "notes": "נץ"
+                        "notes": null
                     },
                     {
-                        "time": "08:00",
+                        "time": "05:00",
                         "days": [
                             1,
                             2,
@@ -2054,7 +1703,20 @@
                             4,
                             5,
                             6
-                        ]
+                        ],
+                        "notes": null
+                    },
+                    {
+                        "time": "07:30",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": null
                     }
                 ],
                 "mincha": [
@@ -2105,9 +1767,9 @@
                         ]
                     }
                 ],
-                "selichot": [
+                "shacharit": [
                     {
-                        "time": "04:40",
+                        "time": "05:25",
                         "days": [
                             1,
                             2,
@@ -2115,11 +1777,10 @@
                             4,
                             5,
                             6
-                        ],
-                        "notes": null
+                        ]
                     },
                     {
-                        "time": "05:00",
+                        "time": "05:35",
                         "days": [
                             1,
                             2,
@@ -2128,10 +1789,10 @@
                             5,
                             6
                         ],
-                        "notes": null
+                        "notes": "נץ"
                     },
                     {
-                        "time": "07:30",
+                        "time": "08:00",
                         "days": [
                             1,
                             2,
@@ -2139,35 +1800,38 @@
                             4,
                             5,
                             6
-                        ],
-                        "notes": null
+                        ]
                     }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:37:37.011Z",
             "wazeLink": "https://waze.com/ul/hsv9hg1r8d",
             "navigationNote": null,
             "address": {
                 "he": "דרך מדבר יהודה 37",
                 "en": "Derech Midbar Yehuda 37"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-29",
             "cityId": "city-1",
             "neighborhood": "מרכז העיר",
             "name": "קניון מעלה אדומים",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.771195,
             "longitude": 35.299137,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
-            "gabbaiName": null,
-            "gabbaiPhone": null,
+            "gabbaiName": "",
+            "gabbaiPhone": "",
             "weeklySchedule": {
                 "shacharit": [],
                 "mincha": [
@@ -2187,27 +1851,76 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:37:55.614Z",
             "wazeLink": "https://waze.com/ul/hsv9herb09",
             "navigationNote": "קומה תחתונה ליד שופרסל",
             "address": {
                 "he": "דרך קדם 5",
                 "en": "Derech Kedem 5"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
+        },
+        {
+            "id": "syn-3",
+            "cityId": "city-1",
+            "neighborhood": "נופי סלע (07)",
+            "name": "אחדות ישראל",
+            "nusach": [
+                "ספרד",
+                "אשכנז"
+            ],
+            "latitude": 31.791451,
+            "longitude": 35.308535,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "מתי קופמן",
+            "gabbaiPhone": "052-8308040",
+            "weeklySchedule": {
+                "shacharit": [],
+                "mincha": [],
+                "maariv": [
+                    {
+                        "time": "20:45",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ]
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:08:10.005Z",
+            "wazeLink": "https://waze.com/ul/hsv9hg7qys",
+            "navigationNote": "בנין מתי\"א",
+            "address": {
+                "he": "האלמוג 37",
+                "en": "HaAlmog 37"
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-30",
             "cityId": "city-1",
             "neighborhood": "מישור אדומים/גבעת המייסדים",
             "name": "אור החיים",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.802952,
             "longitude": 35.328834,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
-            "gabbaiName": null,
-            "gabbaiPhone": null,
+            "gabbaiName": "",
+            "gabbaiPhone": "",
             "weeklySchedule": {
                 "shacharit": [],
                 "mincha": [],
@@ -2215,24 +1928,29 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T18:25:37.253Z",
             "wazeLink": "https://waze.com/ul/hsv9hgvt9t",
             "navigationNote": null,
             "address": {
                 "he": "גבעת המייסדים",
                 "en": "Givat HaMeyasdim"
-            }
+            },
+            "phone": "",
+            "rabbi": "",
+            "gabbaim": []
         },
         {
             "id": "syn-31",
             "cityId": "city-1",
             "neighborhood": "מישור אדומים/גבעת המייסדים",
             "name": "דלתות המלך",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.790335,
             "longitude": 35.332267,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "דלתות המלך",
             "gabbaiPhone": "052-4890083",
@@ -2255,24 +1973,28 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:38:22.713Z",
             "wazeLink": "https://waze.com/ul/hsv9hu520j",
             "navigationNote": null,
             "address": {
                 "he": "תלמי יוסף 8",
                 "en": "Talmei Yosef 8"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-32",
             "cityId": "city-1",
             "neighborhood": "מישור אדומים/גבעת המייסדים",
             "name": "אולמי גאמוס",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.786773,
             "longitude": 35.336602,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "מיכאל בליטי",
             "gabbaiPhone": "053-7254030",
@@ -2295,24 +2017,28 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:38:36.854Z",
             "wazeLink": "https://waze.com/ul/hsv9hu4e76",
             "navigationNote": "צמוד לפלאפל התחנה",
             "address": {
                 "he": "רחוב די זהב 7",
                 "en": "Di Zahav St 7"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-33",
             "cityId": "city-1",
             "neighborhood": "כלי שיר",
             "name": "היכל אביעד",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.778491,
             "longitude": 35.294287,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "אברהם סוריט",
             "gabbaiPhone": "050-8885790",
@@ -2349,24 +2075,28 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:38:48.289Z",
             "wazeLink": "https://waze.com/ul/hsv9hg1he0",
             "navigationNote": "למעלה בעלייה מצד שמאל",
             "address": {
                 "he": "התוף 36",
                 "en": "HaTof 36"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-34",
             "cityId": "city-1",
             "neighborhood": "כלי שיר",
             "name": "מוסר אביך",
-            "nusach": "אשכנז",
+            "nusach": [
+                "אשכנז"
+            ],
             "latitude": 31.783769,
             "longitude": 35.298493,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "מיכאל פומרנץ",
             "gabbaiPhone": "050-5670113",
@@ -2408,24 +2138,28 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:39:07.750Z",
             "wazeLink": "https://waze.com/ul/hsv9hg4p9f",
             "navigationNote": "מסביב לבניין מצד שמאל",
             "address": {
                 "he": "הצילצל 5",
                 "en": "HaTziltzel 5"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-35",
             "cityId": "city-1",
             "neighborhood": "כלי שיר",
             "name": "מחניים",
-            "nusach": "אשכנז",
+            "nusach": [
+                "אשכנז"
+            ],
             "latitude": 31.781194,
             "longitude": 35.295918,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "נתן קרא-איוונוב",
             "gabbaiPhone": "054-7718363",
@@ -2468,24 +2202,29 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:39:20.258Z",
             "wazeLink": "https://waze.com/ul/hsv9hg1tdy",
             "navigationNote": null,
             "address": {
                 "he": "החליל 17",
                 "en": "HaHalil 17"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-36",
             "cityId": "city-1",
             "neighborhood": "כלי שיר",
             "name": "קהל חסידים",
-            "nusach": "אשכנז/ספרד",
+            "nusach": [
+                "אשכנז",
+                "ספרד"
+            ],
             "latitude": 31.778362,
             "longitude": 35.295875,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "עוז אריאל",
             "gabbaiPhone": "050-9800446",
@@ -2496,24 +2235,28 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:39:41.449Z",
             "wazeLink": "https://waze.com/ul/hsv9hg1jdm",
             "navigationNote": null,
             "address": {
                 "he": "השופר 22",
                 "en": "HaShofar 22"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-37",
             "cityId": "city-1",
             "neighborhood": "מגדים (03)",
             "name": "בית רבנו",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.770895,
             "longitude": 35.293815,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "רן גבאי",
             "gabbaiPhone": "052-5666834",
@@ -2536,24 +2279,29 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T11:27:37.688Z",
             "wazeLink": "https://waze.com/ul/hsv9hepsnv",
             "navigationNote": "מעל מעיין 2000",
             "address": {
                 "he": "פרי מגדים 19",
                 "en": "Pri Megadim 19"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-38",
             "cityId": "city-1",
             "neighborhood": "מגדים (03)",
             "name": "גבעת מגדים",
-            "nusach": "אשכנז/ספרד",
+            "nusach": [
+                "ספרד",
+                "אשכנז"
+            ],
             "latitude": 31.771882,
             "longitude": 35.293429,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "דניאל מינץ",
             "gabbaiPhone": "050-4567844",
@@ -2564,31 +2312,34 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T11:28:01.167Z",
             "wazeLink": "https://waze.com/ul/hsv9hepgus",
             "navigationNote": null,
             "address": {
                 "he": "פרי מגדים 25",
                 "en": "Pri Megadim 25"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-39",
             "cityId": "city-1",
             "neighborhood": "מגדים (03)",
             "name": "חסדי חנניה",
-            "nusach": "מרוקאי",
+            "nusach": [
+                "מרוקאי"
+            ],
             "latitude": 31.770766,
             "longitude": 35.292056,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "מיטל בוזגלו",
             "gabbaiPhone": "050-9195054",
             "weeklySchedule": {
                 "shacharit": [
                     {
-                        "time": "05:50",
                         "days": [
                             1,
                             2,
@@ -2596,7 +2347,8 @@
                             4,
                             5,
                             6
-                        ]
+                        ],
+                        "time": "05:50"
                     }
                 ],
                 "mincha": [
@@ -2615,7 +2367,6 @@
                 ],
                 "maariv": [
                     {
-                        "time": "19:20",
                         "days": [
                             1,
                             2,
@@ -2624,12 +2375,13 @@
                             5,
                             6
                         ],
-                        "notes": "סמוך לערבית/מנחה"
+                        "notes": "סמוך לערבית/מנחה",
+                        "time": "19:20"
                     }
                 ],
                 "selichot": [
                     {
-                        "time": "05:00",
+                        "notes": null,
                         "days": [
                             1,
                             2,
@@ -2638,63 +2390,103 @@
                             5,
                             6
                         ],
-                        "notes": null
+                        "time": "05:00"
                     },
                     {
-                        "time": "18:30",
                         "days": [
                             1,
                             2,
                             3,
                             4,
-                            5,
-                            6
+                            5
                         ],
-                        "notes": null
+                        "notes": null,
+                        "time": "18:30",
+                        "anchor": null,
+                        "offsetMin": null,
+                        "dates": null
                     }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-08-21T12:33:27.907Z",
             "wazeLink": "https://waze.com/ul/hsv9hepdyh",
             "navigationNote": null,
             "address": {
                 "he": "קול התור",
                 "en": "Kol HaTor"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
+        },
+        {
+            "id": "syn-4",
+            "cityId": "city-1",
+            "neighborhood": "נופי סלע (07)",
+            "name": "מאיר במעלה",
+            "nusach": [
+                "לפי חזן"
+            ],
+            "latitude": 31.776345,
+            "longitude": 35.305274,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "מתניה רייכמן",
+            "gabbaiPhone": "054-5243865",
+            "weeklySchedule": {
+                "shacharit": [],
+                "mincha": [],
+                "maariv": []
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:08:40.211Z",
+            "wazeLink": "https://waze.com/ul/hsv9hg2sw8",
+            "navigationNote": null,
+            "address": {
+                "he": "אולפנת צביה",
+                "en": "Tzvia Ulpana"
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-40",
             "cityId": "city-1",
             "neighborhood": "מגדים (03)",
             "name": "ישי",
-            "nusach": "מרוקאי",
+            "nusach": [
+                "מרוקאי"
+            ],
             "latitude": 31.773555,
             "longitude": 35.290382,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "בן ישעיה",
             "gabbaiPhone": "050-6775063",
             "weeklySchedule": {
-                "shacharit": [
+                "selichot": [
                     {
-                        "time": "05:50",
-                        "days": [
-                            2,
-                            5
-                        ]
-                    },
-                    {
-                        "time": "06:00",
+                        "time": "05:00",
                         "days": [
                             1,
                             3,
                             4,
                             6
-                        ]
+                        ],
+                        "notes": null
+                    },
+                    {
+                        "time": "04:50",
+                        "days": [
+                            2,
+                            5
+                        ],
+                        "notes": null
                     }
                 ],
                 "mincha": [
@@ -2723,55 +2515,57 @@
                         ]
                     }
                 ],
-                "selichot": [
+                "shacharit": [
                     {
-                        "time": "05:00",
+                        "time": "05:50",
+                        "days": [
+                            2,
+                            5
+                        ]
+                    },
+                    {
+                        "time": "06:00",
                         "days": [
                             1,
                             3,
                             4,
                             6
-                        ],
-                        "notes": null
-                    },
-                    {
-                        "time": "04:50",
-                        "days": [
-                            2,
-                            5
-                        ],
-                        "notes": null
+                        ]
                     }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T11:28:49.640Z",
             "wazeLink": "https://waze.com/ul/hsv9hg01wm",
             "navigationNote": null,
             "address": {
                 "he": "עת הזמיר 3",
                 "en": "Et HaZamir 3"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-41",
             "cityId": "city-1",
             "neighborhood": "מגדים (03)",
             "name": "מצפה מגדים",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.771882,
             "longitude": 35.293429,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "יחיאל וקנין",
             "gabbaiPhone": "050-6613697",
             "weeklySchedule": {
-                "shacharit": [
+                "selichot": [
                     {
-                        "time": "05:30",
+                        "time": "04:30",
                         "days": [
                             1,
                             2,
@@ -2780,23 +2574,25 @@
                             5,
                             6
                         ],
-                        "notes": "נץ"
+                        "notes": null
                     },
                     {
-                        "time": "06:20",
-                        "days": [
-                            2,
-                            5
-                        ]
-                    },
-                    {
-                        "time": "06:30",
+                        "time": "05:40",
                         "days": [
                             1,
                             3,
                             4,
                             6
-                        ]
+                        ],
+                        "notes": null
+                    },
+                    {
+                        "time": "05:30",
+                        "days": [
+                            2,
+                            5
+                        ],
+                        "notes": null
                     }
                 ],
                 "mincha": [
@@ -2831,9 +2627,9 @@
                         ]
                     }
                 ],
-                "selichot": [
+                "shacharit": [
                     {
-                        "time": "04:30",
+                        "time": "05:30",
                         "days": [
                             1,
                             2,
@@ -2842,49 +2638,51 @@
                             5,
                             6
                         ],
-                        "notes": null
+                        "notes": "נץ"
                     },
                     {
-                        "time": "05:40",
+                        "time": "06:20",
+                        "days": [
+                            2,
+                            5
+                        ]
+                    },
+                    {
+                        "time": "06:30",
                         "days": [
                             1,
                             3,
                             4,
                             6
-                        ],
-                        "notes": null
-                    },
-                    {
-                        "time": "05:30",
-                        "days": [
-                            2,
-                            5
-                        ],
-                        "notes": null
+                        ]
                     }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-24T17:17:28.546Z",
             "wazeLink": "https://waze.com/ul/hsv9hepgus",
             "navigationNote": "מעל החנייה",
             "address": {
                 "he": "פרי מגדים 25",
                 "en": "Pri Megadim 25"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-42",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "אהבה וחסד",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.771023,
             "longitude": 35.313599,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "יורן נאקי",
             "gabbaiPhone": "050-5078579",
@@ -2900,63 +2698,44 @@
                             2,
                             3,
                             4,
-                            5,
-                            6
+                            5
                         ],
-                        "notes": null
+                        "notes": null,
+                        "anchor": null,
+                        "offsetMin": null,
+                        "dates": null
                     }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-08-21T12:34:00.006Z",
             "wazeLink": "https://waze.com/ul/hsv9hexdxd",
             "navigationNote": null,
             "address": {
                 "he": "הצלף 18",
                 "en": "HaTzalaf 18"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-43",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "אהבת ישראל",
-            "nusach": "מרוקאי",
+            "nusach": [
+                "מרוקאי"
+            ],
             "latitude": 31.765273,
             "longitude": 35.298836,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "גרשון לוי",
             "gabbaiPhone": "050-6775758",
             "weeklySchedule": {
-                "shacharit": [
-                    {
-                        "time": "05:40",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "נץ"
-                    },
-                    {
-                        "time": "06:45",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
                 "mincha": [
                     {
                         "time": "13:15",
@@ -3032,29 +2811,58 @@
                         ],
                         "notes": null
                     }
+                ],
+                "shacharit": [
+                    {
+                        "time": "05:40",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": "נץ"
+                    },
+                    {
+                        "time": "06:45",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T11:29:42.750Z",
             "wazeLink": "https://waze.com/ul/hsv9henxy4",
             "navigationNote": null,
             "address": {
                 "he": "הדקל 1",
                 "en": "HaDekel 1"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-44",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "אוהבי ציון",
-            "nusach": "אלג'יראי",
+            "nusach": [
+                "מרוקאי"
+            ],
             "latitude": 31.770937,
             "longitude": 35.307548,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "עמנואל רווח",
             "gabbaiPhone": "054-8318023",
@@ -3065,24 +2873,28 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T11:30:29.043Z",
             "wazeLink": "https://waze.com/ul/hsv9herwpj",
             "navigationNote": "ביה\"ס - כניסה ממגרש הספורט - במקלט מאחורה",
             "address": {
                 "he": null,
                 "en": null
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-45",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "אור זרוע",
-            "nusach": "מרוקאי",
+            "nusach": [
+                "מרוקאי"
+            ],
             "latitude": 31.768663,
             "longitude": 35.304286,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "מאיר דדון",
             "gabbaiPhone": "054-5944840",
@@ -3098,6 +2910,20 @@
                             5,
                             6
                         ]
+                    }
+                ],
+                "selichot": [
+                    {
+                        "time": "06:15",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": null
                     }
                 ],
                 "mincha": [
@@ -3127,43 +2953,33 @@
                         ],
                         "notes": "סמוך לערבית/מנחה"
                     }
-                ],
-                "selichot": [
-                    {
-                        "time": "06:15",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": null
-                    }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T11:30:44.787Z",
             "wazeLink": "https://waze.com/ul/hsv9her7cc",
             "navigationNote": null,
             "address": {
                 "he": "הקנה 1",
                 "en": "HaKaneh 1"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-46",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "בית חב\"ד 06",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.765616,
             "longitude": 35.29536,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "רב שמואל",
             "gabbaiPhone": "052-7707488",
@@ -3186,31 +3002,35 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T11:31:01.822Z",
             "wazeLink": "https://waze.com/ul/hsv9henv21",
             "navigationNote": null,
             "address": {
                 "he": "השיזף 16",
                 "en": "HaShizaf 16"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-47",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "ברכת כהן",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.768663,
             "longitude": 35.304286,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "שמואל בכר",
             "gabbaiPhone": "054-2888790",
             "weeklySchedule": {
-                "shacharit": [
+                "selichot": [
                     {
-                        "time": "05:40",
+                        "time": "04:35",
                         "days": [
                             1,
                             2,
@@ -3219,10 +3039,10 @@
                             5,
                             6
                         ],
-                        "notes": "נץ"
+                        "notes": null
                     },
                     {
-                        "time": "07:45",
+                        "time": "07:00",
                         "days": [
                             1,
                             2,
@@ -3230,7 +3050,8 @@
                             4,
                             5,
                             6
-                        ]
+                        ],
+                        "notes": null
                     }
                 ],
                 "mincha": [
@@ -3310,9 +3131,9 @@
                         ]
                     }
                 ],
-                "selichot": [
+                "shacharit": [
                     {
-                        "time": "04:35",
+                        "time": "05:40",
                         "days": [
                             1,
                             2,
@@ -3321,10 +3142,10 @@
                             5,
                             6
                         ],
-                        "notes": null
+                        "notes": "נץ"
                     },
                     {
-                        "time": "07:00",
+                        "time": "07:45",
                         "days": [
                             1,
                             2,
@@ -3332,66 +3153,41 @@
                             4,
                             5,
                             6
-                        ],
-                        "notes": null
+                        ]
                     }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:18:01.737Z",
             "wazeLink": "https://waze.com/ul/hsv9her7cc",
             "navigationNote": null,
             "address": {
                 "he": "הקנה 1",
                 "en": "HaKaneh 1"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-48",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "ברכת שלום העם",
-            "nusach": "מרוקאי",
+            "nusach": [
+                "מרוקאי"
+            ],
             "latitude": 31.767805,
             "longitude": 35.301797,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "אשר אבגי",
             "gabbaiPhone": "050-9009895",
             "weeklySchedule": {
-                "shacharit": [],
                 "mincha": [
                     {
-                        "time": "18:00",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
-                "maariv": [
-                    {
-                        "time": "19:00",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
-                "selichot": [
-                    {
-                        "time": "18:20",
                         "days": [
                             1,
                             2,
@@ -3400,31 +3196,65 @@
                             5,
                             6
                         ],
-                        "notes": null
+                        "time": "18:00"
+                    }
+                ],
+                "shacharit": [],
+                "selichot": [
+                    {
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5
+                        ],
+                        "notes": null,
+                        "time": "18:20",
+                        "anchor": null,
+                        "offsetMin": null,
+                        "dates": null
+                    }
+                ],
+                "maariv": [
+                    {
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "time": "19:00"
                     }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-08-21T12:32:50.141Z",
             "wazeLink": "https://waze.com/ul/hsv9her1uz",
             "navigationNote": "בתוך המתנ\"ס",
             "address": {
                 "he": "מבוא הצפצפה 1",
                 "en": "Mevo HaTzaftzafa 1"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-49",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "היכל עמרם",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.766989,
             "longitude": 35.297935,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "יעקב אהרון",
             "gabbaiPhone": "050-6889977",
@@ -3447,79 +3277,55 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:18:48.618Z",
             "wazeLink": "https://waze.com/ul/hsv9hepp0j",
             "navigationNote": "קומה שנייה מעל המכולת",
             "address": {
                 "he": "צמח השדה 22",
                 "en": "Tzemach HaSadeh 22"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
-            "id": "syn-50",
+            "id": "syn-5",
             "cityId": "city-1",
-            "neighborhood": "צמח השדה (06)",
-            "name": "היכל רחל ואסתר (אמרי פי)",
-            "nusach": "ירושלמי",
-            "latitude": 31.767547,
-            "longitude": 35.294716,
-            "rabbiPhone": null,
+            "neighborhood": "נופי סלע (07)",
+            "name": "מעלות לדוד",
+            "nusach": [
+                "ירושלמי"
+            ],
+            "latitude": 31.785614,
+            "longitude": 35.30978,
+            "rabbiPhone": "",
             "rabbiName": null,
-            "gabbaiName": "ירון אסלן",
-            "gabbaiPhone": "052-5040440",
+            "gabbaiName": "יעקב בנימין",
+            "gabbaiPhone": "053-3630906",
             "weeklySchedule": {
-                "shacharit": [
+                "selichot": [
                     {
-                        "time": "05:35",
+                        "time": "04:40",
                         "days": [
                             1,
-                            2,
                             3,
                             4,
-                            5,
                             6
                         ],
-                        "notes": "נץ"
+                        "notes": null
                     },
                     {
-                        "time": "07:55",
+                        "time": "04:30",
                         "days": [
-                            1,
                             2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "08:30",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
                             5
                         ],
-                        "notes": "הודו"
+                        "notes": null
                     }
                 ],
                 "mincha": [
                     {
-                        "time": "17:45",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "למטה, סמוך לערבית/מנחה"
-                    },
-                    {
-                        "time": "18:30",
+                        "time": "18:50",
                         "days": [
                             1,
                             2,
@@ -3533,19 +3339,7 @@
                 ],
                 "maariv": [
                     {
-                        "time": "18:05",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "למטה, סמוך לערבית/מנחה"
-                    },
-                    {
-                        "time": "18:45",
+                        "time": "19:10",
                         "days": [
                             1,
                             2,
@@ -3555,17 +3349,58 @@
                             6
                         ],
                         "notes": "סמוך לערבית/מנחה"
-                    },
-                    {
-                        "time": "20:45",
-                        "days": [
-                            3
-                        ]
                     }
                 ],
-                "selichot": [
+                "shacharit": [
                     {
-                        "time": "04:40",
+                        "time": "05:30",
+                        "days": [
+                            2,
+                            5
+                        ]
+                    },
+                    {
+                        "time": "05:40",
+                        "days": [
+                            1,
+                            3,
+                            4,
+                            6
+                        ]
+                    }
+                ]
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:09:20.876Z",
+            "wazeLink": "https://waze.com/ul/hsv9hg6ru9",
+            "navigationNote": null,
+            "address": {
+                "he": "הרכס",
+                "en": "HaReches"
+            },
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
+        },
+        {
+            "id": "syn-50",
+            "cityId": "city-1",
+            "neighborhood": "צמח השדה (06)",
+            "name": "היכל רחל ואסתר (אמרי פי)",
+            "nusach": [
+                "ירושלמי"
+            ],
+            "latitude": 31.767547,
+            "longitude": 35.294716,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "ירון אסלן",
+            "gabbaiPhone": "052-5040440",
+            "weeklySchedule": {
+                "shacharit": [
+                    {
                         "days": [
                             1,
                             2,
@@ -3574,7 +3409,102 @@
                             5,
                             6
                         ],
-                        "notes": null
+                        "notes": "נץ",
+                        "time": "05:35"
+                    },
+                    {
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "time": "07:55"
+                    },
+                    {
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5
+                        ],
+                        "time": "08:30",
+                        "notes": "הודו"
+                    }
+                ],
+                "mincha": [
+                    {
+                        "notes": "למטה, סמוך לערבית/מנחה",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "time": "17:45"
+                    },
+                    {
+                        "time": "18:30",
+                        "notes": "סמוך לערבית/מנחה",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ],
+                "maariv": [
+                    {
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "time": "18:05",
+                        "notes": "למטה, סמוך לערבית/מנחה"
+                    },
+                    {
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "time": "18:45",
+                        "notes": "סמוך לערבית/מנחה"
+                    },
+                    {
+                        "days": [
+                            3
+                        ],
+                        "time": "20:45"
+                    }
+                ],
+                "selichot": [
+                    {
+                        "notes": null,
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "time": "04:40"
                     },
                     {
                         "time": "17:40",
@@ -3583,51 +3513,44 @@
                             2,
                             3,
                             4,
-                            5,
-                            6
+                            5
                         ],
-                        "notes": null
+                        "notes": null,
+                        "anchor": null,
+                        "offsetMin": null,
+                        "dates": null
                     }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-08-21T12:31:58.098Z",
             "wazeLink": "https://waze.com/ul/hsv9hephg6",
             "navigationNote": null,
             "address": {
                 "he": "האשל 72",
                 "en": "HaEshel 72"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-51",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "כולל עמל התורה",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.76686,
             "longitude": 35.300767,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "יוסף סויסה",
             "gabbaiPhone": "050-7701145",
             "weeklySchedule": {
-                "shacharit": [
-                    {
-                        "time": "08:10",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
                 "mincha": [],
                 "maariv": [],
                 "selichot": [
@@ -3643,52 +3566,10 @@
                         ],
                         "notes": null
                     }
-                ]
-            },
-            "specialEvents": null,
-            "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
-            "wazeLink": "https://waze.com/ul/hsv9heqcpr",
-            "navigationNote": "קומה שנייה מעל המסעדה",
-            "address": {
-                "he": "צמח השדה 40",
-                "en": "Tzemach HaSadeh 40"
-            },
-            "selichotCustom": "sephardi"
-        },
-        {
-            "id": "syn-52",
-            "cityId": "city-1",
-            "neighborhood": "צמח השדה (06)",
-            "name": "משכן יהודה",
-            "nusach": "ירושלמי",
-            "latitude": 31.768062,
-            "longitude": 35.3039,
-            "rabbiPhone": null,
-            "rabbiName": null,
-            "gabbaiName": "אורי שבתאי",
-            "gabbaiPhone": "050-5772323",
-            "weeklySchedule": {
+                ],
                 "shacharit": [
                     {
-                        "time": "05:00",
-                        "days": [
-                            2,
-                            5
-                        ]
-                    },
-                    {
-                        "time": "05:10",
-                        "days": [
-                            1,
-                            3,
-                            4,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "08:00",
+                        "time": "08:10",
                         "days": [
                             1,
                             2,
@@ -3698,7 +3579,37 @@
                             6
                         ]
                     }
-                ],
+                ]
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:19:34.847Z",
+            "wazeLink": "https://waze.com/ul/hsv9heqcpr",
+            "navigationNote": "קומה שנייה מעל המסעדה",
+            "address": {
+                "he": "צמח השדה 40",
+                "en": "Tzemach HaSadeh 40"
+            },
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
+        },
+        {
+            "id": "syn-52",
+            "cityId": "city-1",
+            "neighborhood": "צמח השדה (06)",
+            "name": "משכן יהודה",
+            "nusach": [
+                "ירושלמי"
+            ],
+            "latitude": 31.768062,
+            "longitude": 35.3039,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "אורי שבתאי",
+            "gabbaiPhone": "050-5772323",
+            "weeklySchedule": {
                 "mincha": [
                     {
                         "time": "18:25",
@@ -3782,29 +3693,62 @@
                         ],
                         "notes": null
                     }
+                ],
+                "shacharit": [
+                    {
+                        "time": "05:00",
+                        "days": [
+                            2,
+                            5
+                        ]
+                    },
+                    {
+                        "time": "05:10",
+                        "days": [
+                            1,
+                            3,
+                            4,
+                            6
+                        ]
+                    },
+                    {
+                        "time": "08:00",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:19:48.376Z",
             "wazeLink": "https://waze.com/ul/hsv9her5w2",
             "navigationNote": null,
             "address": {
                 "he": "הערבה 1",
                 "en": "HaArava 1"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-53",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "משכנותיך ישראל",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.767504,
             "longitude": 35.301969,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "יקיר חליבה",
             "gabbaiPhone": "050-2287598",
@@ -3823,24 +3767,29 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:20:04.027Z",
             "wazeLink": "https://waze.com/ul/hsv9her455",
             "navigationNote": "קומה שניה מעל שום פלפל ושמן זית",
             "address": {
                 "he": "צמח השדה 29",
                 "en": "Tzemach HaSadeh 29"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-54",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "שיח השדה",
-            "nusach": "אשכנז/ספרד",
+            "nusach": [
+                "ספרד",
+                "אשכנז"
+            ],
             "latitude": 31.768148,
             "longitude": 35.301368,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "גלעד ליבר",
             "gabbaiPhone": "054-7884832",
@@ -3887,57 +3836,32 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:20:15.788Z",
             "wazeLink": "https://waze.com/ul/hsv9her1wv",
             "navigationNote": null,
             "address": {
                 "he": "הצפצפה 4",
                 "en": "HaTzaftzafa 4"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-55",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "שלום לעם",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.767633,
             "longitude": 35.302098,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "ינון דוינו",
             "gabbaiPhone": "052-5262535",
             "weeklySchedule": {
-                "shacharit": [
-                    {
-                        "time": "05:50",
-                        "days": [
-                            2,
-                            5
-                        ]
-                    },
-                    {
-                        "time": "06:00",
-                        "days": [
-                            1,
-                            3,
-                            4,
-                            6
-                        ]
-                    },
-                    {
-                        "time": "07:45",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
-                ],
                 "mincha": [
                     {
                         "time": "13:10",
@@ -4002,29 +3926,62 @@
                         ],
                         "notes": null
                     }
+                ],
+                "shacharit": [
+                    {
+                        "time": "05:50",
+                        "days": [
+                            2,
+                            5
+                        ]
+                    },
+                    {
+                        "time": "06:00",
+                        "days": [
+                            1,
+                            3,
+                            4,
+                            6
+                        ]
+                    },
+                    {
+                        "time": "07:45",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "ירושלמי ישיבתי",
+            "updatedAt": "2026-06-15T17:20:33.116Z",
             "wazeLink": "https://waze.com/ul/hsv9her45y",
             "navigationNote": "מעל הקיוסק",
             "address": {
                 "he": "צמח השדה 33",
                 "en": "Tzemach HaSadeh 33"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-56",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "שערי רחמים (עמל אדומים)",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.768191,
             "longitude": 35.296175,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "אילן לוי",
             "gabbaiPhone": "050-6277933",
@@ -4087,37 +4044,41 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:20:54.304Z",
             "wazeLink": "https://waze.com/ul/hsv9hepjzh",
             "navigationNote": "עמל אדומים קומה 3",
             "address": {
                 "he": "האשל",
                 "en": "HaEshel"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-57",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "תפארת בנים",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.768663,
             "longitude": 35.304286,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "גיא קרסנטי",
             "gabbaiPhone": "052-3995792",
             "weeklySchedule": {
                 "shacharit": [
                     {
-                        "time": "06:05",
                         "days": [
                             2,
                             5
                         ],
-                        "notes": "הודו"
+                        "notes": "הודו",
+                        "time": "06:05"
                     },
                     {
                         "time": "06:15",
@@ -4128,6 +4089,48 @@
                             6
                         ],
                         "notes": "הודו"
+                    }
+                ],
+                "maariv": [
+                    {
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": "סמוך לערבית/מנחה",
+                        "time": "18:50"
+                    }
+                ],
+                "selichot": [
+                    {
+                        "time": "05:25",
+                        "notes": null,
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    },
+                    {
+                        "time": "17:50",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5
+                        ],
+                        "notes": null,
+                        "anchor": null,
+                        "offsetMin": null,
+                        "dates": null
                     }
                 ],
                 "mincha": [
@@ -4143,69 +4146,33 @@
                         ],
                         "notes": "סמוך לערבית/מנחה"
                     }
-                ],
-                "maariv": [
-                    {
-                        "time": "18:50",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "סמוך לערבית/מנחה"
-                    }
-                ],
-                "selichot": [
-                    {
-                        "time": "05:25",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": null
-                    },
-                    {
-                        "time": "17:50",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": null
-                    }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-08-21T12:32:23.992Z",
             "wazeLink": "https://waze.com/ul/hsv9her7cc",
             "navigationNote": null,
             "address": {
                 "he": "הקנה 1",
                 "en": "HaKaneh 1"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-58",
             "cityId": "city-1",
             "neighborhood": "צמח השדה (06)",
             "name": "תפארת תימן",
-            "nusach": "תימני",
+            "nusach": [
+                "תימני"
+            ],
             "latitude": 31.767848,
             "longitude": 35.301926,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "ארז שעיבי",
             "gabbaiPhone": "050-6275559",
@@ -4216,24 +4183,28 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:21:17.083Z",
             "wazeLink": "https://waze.com/ul/hsv9her4j4",
             "navigationNote": "בתוך ביה\"ס",
             "address": {
                 "he": "הצפצפה 10",
                 "en": "HaTzaftzafa 10"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-59",
             "cityId": "city-1",
             "neighborhood": "מצפה נבו",
             "name": "היכל בר יוחאי",
-            "nusach": "מרוקאי",
+            "nusach": [
+                "מרוקאי"
+            ],
             "latitude": 31.794412,
             "longitude": 35.302398,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "שי מורלי",
             "gabbaiPhone": "054-7887569",
@@ -4244,28 +4215,146 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:22:17.546Z",
             "wazeLink": "https://waze.com/ul/hsv9hg7frv",
             "navigationNote": "לרדת במדרגות מימין לבית כנסת פני שמואל עד למטה",
             "address": {
                 "he": "מצפה נבו 100",
                 "en": "Mitzpe Nevo 100"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
+        },
+        {
+            "id": "syn-6",
+            "cityId": "city-1",
+            "neighborhood": "נופי סלע (07)",
+            "name": "משה דיין",
+            "nusach": [
+                "ספרד",
+                "אשכנז"
+            ],
+            "latitude": 31.781838,
+            "longitude": 35.309994,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "ירון קלר",
+            "gabbaiPhone": "050-6775777",
+            "weeklySchedule": {
+                "mincha": [
+                    {
+                        "time": "19:05",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ],
+                "maariv": [
+                    {
+                        "time": "19:40",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    },
+                    {
+                        "time": "21:30",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ],
+                "shacharit": [
+                    {
+                        "time": "05:45",
+                        "days": [
+                            2,
+                            5
+                        ],
+                        "notes": "הודו"
+                    },
+                    {
+                        "time": "05:50",
+                        "days": [
+                            1,
+                            3,
+                            4,
+                            6
+                        ],
+                        "notes": "הודו"
+                    },
+                    {
+                        "time": "08:00",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": "הודו"
+                    }
+                ]
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:09:47.626Z",
+            "wazeLink": "https://waze.com/ul/hsv9hg3xyw",
+            "navigationNote": null,
+            "address": {
+                "he": "החלמיש 1",
+                "en": "HaHalamish 1"
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-60",
             "cityId": "city-1",
             "neighborhood": "מצפה נבו",
             "name": "הגילגל",
-            "nusach": "אשכנז/ספרד",
+            "nusach": [
+                "אשכנז",
+                "ספרד"
+            ],
             "latitude": 31.796687,
             "longitude": 35.30287,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "בנצי אנדה",
             "gabbaiPhone": "054-7887390",
             "weeklySchedule": {
+                "mincha": [],
+                "maariv": [
+                    {
+                        "time": "20:00",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ],
                 "shacharit": [
                     {
                         "time": "06:15",
@@ -4291,42 +4380,32 @@
                             6
                         ]
                     }
-                ],
-                "mincha": [],
-                "maariv": [
-                    {
-                        "time": "20:00",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:22:59.420Z",
             "wazeLink": "https://waze.com/ul/hsv9hgk6v0",
             "navigationNote": null,
             "address": {
                 "he": "הגילגל 18",
                 "en": "HaGilgal 18"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-61",
             "cityId": "city-1",
             "neighborhood": "מצפה נבו",
             "name": "ישיבת ההסדר ברכת משה",
-            "nusach": "לפי החזן",
+            "nusach": [
+                "לפי חזן"
+            ],
             "latitude": 31.790292,
             "longitude": 35.301239,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "הראל רווה",
             "gabbaiPhone": "055-6616808",
@@ -4373,60 +4452,32 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:23:11.638Z",
             "wazeLink": "https://waze.com/ul/hsv9hg71xf",
             "navigationNote": null,
             "address": {
                 "he": "מצפה נבו 21",
                 "en": "Mitzpe Nevo 21"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-62",
             "cityId": "city-1",
             "neighborhood": "מצפה נבו",
             "name": "מעלות דוד",
-            "nusach": "אשכנז",
+            "nusach": [
+                "אשכנז"
+            ],
             "latitude": 31.788318,
             "longitude": 35.298579,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "אוריאל תאיר",
             "gabbaiPhone": "054-4547374",
             "weeklySchedule": {
-                "shacharit": [
-                    {
-                        "time": "06:35",
-                        "days": [
-                            2,
-                            5
-                        ],
-                        "notes": "הודו"
-                    },
-                    {
-                        "time": "06:45",
-                        "days": [
-                            1,
-                            3,
-                            4,
-                            6
-                        ],
-                        "notes": "הודו"
-                    },
-                    {
-                        "time": "07:30",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "הודו"
-                    }
-                ],
                 "mincha": [
                     {
                         "time": "13:20",
@@ -4463,32 +4514,83 @@
                             6
                         ]
                     }
+                ],
+                "shacharit": [
+                    {
+                        "time": "06:35",
+                        "days": [
+                            2,
+                            5
+                        ],
+                        "notes": "הודו"
+                    },
+                    {
+                        "time": "06:45",
+                        "days": [
+                            1,
+                            3,
+                            4,
+                            6
+                        ],
+                        "notes": "הודו"
+                    },
+                    {
+                        "time": "07:30",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": "הודו"
+                    }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:23:23.120Z",
             "wazeLink": "https://waze.com/ul/hsv9hg4zsk",
             "navigationNote": null,
             "address": {
                 "he": "מצפה נבו 44",
                 "en": "Mitzpe Nevo 44"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-63",
             "cityId": "city-1",
             "neighborhood": "מצפה נבו",
             "name": "מצפה נבו",
-            "nusach": "אשכנז/ספרד",
+            "nusach": [
+                "אשכנז",
+                "ספרד"
+            ],
             "latitude": 31.791365,
             "longitude": 35.302441,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "אריה כהן",
             "gabbaiPhone": "052-7099978",
             "weeklySchedule": {
+                "mincha": [],
+                "maariv": [
+                    {
+                        "time": "20:15",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ],
                 "shacharit": [
                     {
                         "time": "05:50",
@@ -4508,42 +4610,32 @@
                         ],
                         "notes": "הודו"
                     }
-                ],
-                "mincha": [],
-                "maariv": [
-                    {
-                        "time": "20:15",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ]
-                    }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:23:52.146Z",
             "wazeLink": "https://waze.com/ul/hsv9hg76qn",
             "navigationNote": "להמשיך ישר ברגל אחרי היכל הספורט",
             "address": {
                 "he": "פארק מצפה נבו",
                 "en": "Park Mitzpe Nevo"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-64",
             "cityId": "city-1",
             "neighborhood": "מצפה נבו",
             "name": "משכן בגלגל",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.794412,
             "longitude": 35.302398,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "אבי משה",
             "gabbaiPhone": "050-6235234",
@@ -4554,24 +4646,28 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:24:05.334Z",
             "wazeLink": "https://waze.com/ul/hsv9hg7frv",
             "navigationNote": "לרדת במדרגות מימין לבית כנסת פני שמואל עד למטה",
             "address": {
                 "he": "הגילגל 1",
                 "en": "HaGilgal 1"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-65",
             "cityId": "city-1",
             "neighborhood": "מצפה נבו",
             "name": "משכן שושנה",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.788189,
             "longitude": 35.298493,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "עופר כהן",
             "gabbaiPhone": "054-5666611",
@@ -4588,6 +4684,20 @@
                             6
                         ],
                         "notes": "הודו"
+                    }
+                ],
+                "selichot": [
+                    {
+                        "time": "05:10",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": null
                     }
                 ],
                 "mincha": [
@@ -4615,61 +4725,37 @@
                             6
                         ]
                     }
-                ],
-                "selichot": [
-                    {
-                        "time": "05:10",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": null
-                    }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:24:15.484Z",
             "wazeLink": "https://waze.com/ul/hsv9hg4zed",
             "navigationNote": null,
             "address": {
                 "he": "מצפה נבו 42",
                 "en": "Mitzpe Nevo 42"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-66",
             "cityId": "city-1",
             "neighborhood": "מצפה נבו",
             "name": "נזר אהרון",
-            "nusach": "ירושלמי",
+            "nusach": [
+                "ירושלמי"
+            ],
             "latitude": 31.791365,
             "longitude": 35.302441,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "מיכאל בן הרוש",
             "gabbaiPhone": "052-2513632",
             "weeklySchedule": {
-                "shacharit": [
-                    {
-                        "time": "05:50",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "נץ, הודו"
-                    }
-                ],
                 "mincha": [],
                 "maariv": [
                     {
@@ -4697,29 +4783,47 @@
                         ],
                         "notes": null
                     }
+                ],
+                "shacharit": [
+                    {
+                        "time": "05:50",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": "נץ, הודו"
+                    }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:24:25.862Z",
             "wazeLink": "https://waze.com/ul/hsv9hg76qn",
             "navigationNote": "להמשיך ישר ברגל אחרי היכל הספורט",
             "address": {
                 "he": "פארק מצפה נבו",
                 "en": "Park Mitzpe Nevo"
             },
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-67",
             "cityId": "city-1",
             "neighborhood": "מצפה נבו",
             "name": "נחלת יהודה",
-            "nusach": "ספרד/קרליבך",
+            "nusach": [
+                "ספרד"
+            ],
             "latitude": 31.791108,
             "longitude": 35.302227,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "יונתן רוסנר",
             "gabbaiPhone": "054-3040515",
@@ -4730,86 +4834,33 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "סגנון קרליבך",
+            "updatedAt": "2026-06-15T17:25:06.078Z",
             "wazeLink": "https://waze.com/ul/hsv9hg76k9",
             "navigationNote": null,
             "address": {
                 "he": "מצפה נבו 97 (ישיבה תיכונית)",
                 "en": "Mitzpe Nevo 97 (Yeshiva Tichonit)"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-68",
             "cityId": "city-1",
             "neighborhood": "מצפה נבו",
             "name": "פני שמואל",
-            "nusach": "אשכנז/ספרד",
+            "nusach": [
+                "אשכנז",
+                "ספרד"
+            ],
             "latitude": 31.794412,
             "longitude": 35.302398,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
             "gabbaiName": "שי פרץ",
             "gabbaiPhone": "052-5665302",
             "weeklySchedule": {
-                "shacharit": [
-                    {
-                        "time": "06:20",
-                        "days": [
-                            2,
-                            5
-                        ],
-                        "notes": "הודו"
-                    },
-                    {
-                        "time": "06:30",
-                        "days": [
-                            1,
-                            3,
-                            4,
-                            6
-                        ],
-                        "notes": "הודו"
-                    },
-                    {
-                        "time": "07:15",
-                        "days": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5,
-                            6
-                        ],
-                        "notes": "הודו"
-                    },
-                    {
-                        "time": "08:00",
-                        "days": [
-                            1,
-                            3,
-                            4,
-                            6
-                        ],
-                        "notes": "הודו"
-                    },
-                    {
-                        "time": "08:10",
-                        "days": [
-                            2,
-                            5
-                        ],
-                        "notes": "הודו"
-                    },
-                    {
-                        "time": "08:45",
-                        "days": [
-                            1,
-                            6
-                        ],
-                        "notes": "הודו"
-                    }
-                ],
                 "mincha": [
                     {
                         "time": "13:30",
@@ -4890,31 +4941,94 @@
                             6
                         ]
                     }
+                ],
+                "shacharit": [
+                    {
+                        "time": "06:20",
+                        "days": [
+                            2,
+                            5
+                        ],
+                        "notes": "הודו"
+                    },
+                    {
+                        "time": "06:30",
+                        "days": [
+                            1,
+                            3,
+                            4,
+                            6
+                        ],
+                        "notes": "הודו"
+                    },
+                    {
+                        "time": "07:15",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": "הודו"
+                    },
+                    {
+                        "time": "08:00",
+                        "days": [
+                            1,
+                            3,
+                            4,
+                            6
+                        ],
+                        "notes": "הודו"
+                    },
+                    {
+                        "time": "08:10",
+                        "days": [
+                            2,
+                            5
+                        ],
+                        "notes": "הודו"
+                    },
+                    {
+                        "time": "08:45",
+                        "days": [
+                            1,
+                            6
+                        ],
+                        "notes": "הודו"
+                    }
                 ]
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:25:30.437Z",
             "wazeLink": "https://waze.com/ul/hsv9hg7frv",
             "navigationNote": null,
             "address": {
                 "he": "מצפה נבו 102",
                 "en": "Mitzpe Nevo 102"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
         },
         {
             "id": "syn-69",
             "cityId": "city-1",
             "neighborhood": "מצפה נבו",
             "name": "קרליבך בגן",
-            "nusach": "אשכנז/ספרד",
+            "nusach": [
+                "אשכנז",
+                "ספרד"
+            ],
             "latitude": 31.790679,
             "longitude": 35.299609,
-            "rabbiPhone": null,
+            "rabbiPhone": "",
             "rabbiName": null,
-            "gabbaiName": null,
-            "gabbaiPhone": null,
+            "gabbaiName": "",
+            "gabbaiPhone": "",
             "weeklySchedule": {
                 "shacharit": [],
                 "mincha": [],
@@ -4922,14 +5036,388 @@
             },
             "specialEvents": null,
             "shiurim": null,
-            "notes": null,
-            "updatedAt": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T17:25:45.508Z",
             "wazeLink": "https://waze.com/ul/hsv9hg726h",
             "navigationNote": "למעלה במדרגות",
             "address": {
                 "he": "מצפה נבו 23",
                 "en": "Mitzpe Nevo 23"
-            }
+            },
+            "phone": "",
+            "rabbi": ""
+        },
+        {
+            "id": "syn-7",
+            "cityId": "city-1",
+            "neighborhood": "נופי סלע (07)",
+            "name": "נופי סלע",
+            "nusach": [
+                "ירושלמי"
+            ],
+            "latitude": 31.780035,
+            "longitude": 35.311582,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "שמעון מזרחי",
+            "gabbaiPhone": "050-8296491",
+            "weeklySchedule": {
+                "selichot": [
+                    {
+                        "time": "00:30",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": null
+                    },
+                    {
+                        "time": "04:15",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": null
+                    },
+                    {
+                        "time": "04:30",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": null
+                    },
+                    {
+                        "time": "06:00",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": null
+                    }
+                ],
+                "mincha": [
+                    {
+                        "time": "13:10",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    },
+                    {
+                        "time": "17:50",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": "סמוך לערבית/מנחה"
+                    },
+                    {
+                        "time": "18:50",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ],
+                "maariv": [
+                    {
+                        "time": "18:10",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": "סמוך לערבית/מנחה"
+                    },
+                    {
+                        "time": "19:30",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    },
+                    {
+                        "time": "22:15",
+                        "days": [
+                            1
+                        ]
+                    }
+                ],
+                "shacharit": [
+                    {
+                        "time": "05:15",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    },
+                    {
+                        "time": "05:40",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": "נץ"
+                    },
+                    {
+                        "time": "06:40",
+                        "days": [
+                            2,
+                            5
+                        ]
+                    },
+                    {
+                        "time": "06:45",
+                        "days": [
+                            1,
+                            3,
+                            4,
+                            6
+                        ]
+                    },
+                    {
+                        "time": "08:00",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ]
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:10:08.220Z",
+            "wazeLink": "https://waze.com/ul/hsv9hg93h5",
+            "navigationNote": null,
+            "address": {
+                "he": "השחם 2",
+                "en": "HaShoham 2"
+            },
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
+        },
+        {
+            "id": "syn-8",
+            "cityId": "city-1",
+            "neighborhood": "נופי סלע (07)",
+            "name": "עץ חיים",
+            "nusach": [
+                "תימני"
+            ],
+            "latitude": 31.777675,
+            "longitude": 35.311754,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "עודד שרעבי",
+            "gabbaiPhone": "054-5664488",
+            "weeklySchedule": {
+                "shacharit": [],
+                "mincha": [],
+                "maariv": []
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:10:31.261Z",
+            "wazeLink": "https://waze.com/ul/hsv9hg8cnr",
+            "navigationNote": "מתחם הגנים משמאל לביהכנ\"ס צור ישראל",
+            "address": {
+                "he": "הרכס 28",
+                "en": "HaReches 28"
+            },
+            "phone": "",
+            "rabbi": ""
+        },
+        {
+            "id": "syn-9",
+            "cityId": "city-1",
+            "neighborhood": "נופי סלע (07)",
+            "name": "צור ישראל",
+            "nusach": [
+                "ירושלמי"
+            ],
+            "latitude": 31.777675,
+            "longitude": 35.311754,
+            "rabbiPhone": "",
+            "rabbiName": null,
+            "gabbaiName": "רונן ביטון",
+            "gabbaiPhone": "052-8604351",
+            "weeklySchedule": {
+                "selichot": [
+                    {
+                        "time": "04:40",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": null
+                    },
+                    {
+                        "time": "05:10",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": null
+                    },
+                    {
+                        "time": "07:10",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": null
+                    }
+                ],
+                "mincha": [
+                    {
+                        "time": "13:15",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    },
+                    {
+                        "time": "18:55",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ],
+                "maariv": [
+                    {
+                        "time": "19:45",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ],
+                "shacharit": [
+                    {
+                        "time": "05:35",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ],
+                        "notes": "נץ"
+                    },
+                    {
+                        "time": "06:00",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    },
+                    {
+                        "time": "08:00",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ]
+            },
+            "specialEvents": null,
+            "shiurim": null,
+            "notes": "",
+            "updatedAt": "2026-06-15T10:10:45.154Z",
+            "wazeLink": "https://waze.com/ul/hsv9hg8cnr",
+            "navigationNote": null,
+            "address": {
+                "he": "הרכס 28",
+                "en": "HaReches 28"
+            },
+            "selichotCustom": "sephardi",
+            "phone": "",
+            "rabbi": ""
         }
     ]
 }
