@@ -74,22 +74,39 @@ export default function LoginScreen({ navigation }: Props) {
     );
   }
 
+  /**
+   * Timed out loud, in release builds, because "it feels slow" is how this was
+   * reported and "it feels faster" is not good enough to answer it with. The
+   * phases are separated because they fail differently: the picker is Google's
+   * and we cannot make it quicker, the credential exchange is one network round
+   * trip, and everything after it is ours.
+   *
+   *   adb logcat -d | grep signin
+   */
   async function handleGooglePress() {
+    const t0 = Date.now();
+    const since = () => Date.now() - t0;
     setGoogleLoading(true);
     try {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       const response = await GoogleSignin.signIn();
+      console.log(`[signin] +${since()}ms google picker done`);
       if (isSuccessResponse(response)) {
         if (!response.data.idToken) throw new Error('לא התקבל אסימון זיהוי מ-Google');
-        const user = await signInWithGoogleCredential(response.data.idToken);
-        // AuthContext's onAuthStateChanged listener may have already tried (and
-        // failed) to load the Firestore user doc for a brand-new account, racing
-        // ahead of signInWithGoogleCredential's own doc creation above — nothing
-        // else re-triggers a reload afterward, so force one now that the doc is
-        // guaranteed to exist. Pass `user` explicitly — refreshUser()'s own
-        // firebaseUser closure here would still be this screen's pre-sign-in
-        // (guest) identity, since nothing has re-rendered this component yet.
-        await refreshUser(user);
+        const { user, created } = await signInWithGoogleCredential(response.data.idToken);
+        console.log(`[signin] +${since()}ms firebase credential exchanged (new account: ${created})`);
+        // ONLY for an account created just now. AuthContext's onAuthStateChanged
+        // listener may have raced ahead and tried to load a profile document
+        // that did not exist yet, and nothing else re-triggers a reload — so a
+        // new account still needs this. An existing one does not: the listener
+        // loaded the document perfectly well, and reloading it was a second
+        // Firestore round trip on top of a redundant existence check, together
+        // most of why Google sign-in took 7-8 seconds against 2-3 for a
+        // password. Pass `user` explicitly — refreshUser()'s own firebaseUser
+        // closure here would still be this screen's pre-sign-in (guest)
+        // identity, since nothing has re-rendered this component yet.
+        if (created) await refreshUser(user);
+        console.log(`[signin] +${since()}ms handler done — AuthGate now closes the screen`);
       }
       // type === 'cancelled' — user backed out of the account picker, no-op.
     } catch (e: any) {

@@ -5,6 +5,7 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signInWithCredential,
+  getAdditionalUserInfo,
   sendPasswordResetEmail,
   sendEmailVerification,
   User,
@@ -76,14 +77,37 @@ export async function loginWithEmail(email: string, password: string): Promise<U
   return cred.user;
 }
 
-export async function signInWithGoogleCredential(idToken: string): Promise<User> {
+/**
+ * Returns whether the profile document was created here, because the caller
+ * needs to know: only a brand-new account requires a forced reload, and doing
+ * it for everyone was costing a full Firestore round trip on every Google
+ * sign-in (see LoginScreen).
+ *
+ * MEASURED, not assumed. Signing in with Google took 7-8 seconds against 2-3
+ * for a password, and logcat put 3.4 of those seconds in the stretch after
+ * Firebase returned, with nothing running but Firestore: this function's
+ * existence check, the load that onAuthStateChanged does anyway, and a third
+ * read from the caller's refreshUser. Three sequential round trips on a channel
+ * that has just had its auth token swapped, where the password path does one.
+ *
+ * isNewUser comes back with the credential itself, so the existence check costs
+ * nothing now. It answers a slightly different question — new to Firebase Auth,
+ * rather than "has a profile document" — and the gap between them is an account
+ * whose doc creation failed after its first sign-in. That account would land on
+ * appUser null, which is exactly where the email/password path has always left
+ * it; this is not a guarantee being given up, it is one that only Google
+ * sign-in ever pretended to make.
+ */
+export async function signInWithGoogleCredential(
+  idToken: string,
+): Promise<{ user: User; created: boolean }> {
   const credential = GoogleAuthProvider.credential(idToken);
   const cred = await signInWithCredential(auth, credential);
-  const exists = await userDocExists(cred.user.uid);
-  if (!exists) {
+  const created = getAdditionalUserInfo(cred)?.isNewUser ?? false;
+  if (created) {
     await createUserDoc(cred.user, '', 'user');
   }
-  return cred.user;
+  return { user: cred.user, created };
 }
 
 export async function logout(): Promise<void> {
@@ -121,10 +145,6 @@ async function createUserDoc(user: User, cityId: string, role: UserRole): Promis
   });
 }
 
-async function userDocExists(uid: string): Promise<boolean> {
-  const snap = await getDoc(doc(db, 'users', uid));
-  return snap.exists();
-}
 
 export async function getUserDoc(uid: string): Promise<AppUser | null> {
   const snap = await getDoc(doc(db, 'users', uid));
