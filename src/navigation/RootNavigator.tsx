@@ -76,22 +76,27 @@ function AuthGate({ navigation, route }: any) {
     if ((firebaseUser && !isGuest) || isDemo) {
       // A guest who was blocked mid-flow (e.g. booking a mikveh appointment,
       // adding a gemach) expects to land back where they were, not on Home —
-      // the caller passes returnTo/returnParams for that. Falling back to the
-      // Home tab explicitly (rather than goBack()) only when there's nothing
-      // to return to, since the modal can also be opened from plain entry
-      // points (e.g. Profile's "התחבר/הרשמה"), where goBack() would just
-      // return there instead of landing on the main screen.
+      // the caller passes returnTo/returnParams for that. Everyone else lands
+      // on Home rather than back where they opened this from, which for the
+      // usual entry point (Profile's "התחבר") would be a settings screen.
+      //
+      // STATED AS THE RESULTING STACK, not as a move from the current one.
+      // This was navigate('MainTabs', { screen: 'Home' }), and it did not close
+      // the modal: passing a nested `screen` param dispatches into the tab
+      // navigator underneath, which is already mounted, so the child handled it
+      // and the parent stack was never touched. Signing in left the login form
+      // sitting on top of a screen that had quietly logged you in — pressing
+      // back revealed the account, fully signed in, behind it.
+      //
+      // reset says what should be true afterwards, so there is no current state
+      // for it to be wrong about: opened as a modal over the tabs, opened as the
+      // first screen on a fresh install, or opened to unblock a guest mid-flow.
       const { returnTo, returnParams } = route.params ?? {};
-      if (returnTo) {
-        navigation.navigate(returnTo, returnParams);
-      } else if (navigation.canGoBack()) {
-        navigation.navigate('MainTabs', { screen: 'Home' });
-      } else {
-        // First launch: this screen is the stack's first route, so navigating
-        // would stack the tabs on top of it and leave a login screen behind
-        // the back button. Resetting drops it for good.
-        navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-      }
+      navigation.reset(returnTo
+        // Blocked mid-flow: land on what they were trying to do, with the tabs
+        // behind it so back goes home rather than to a login form.
+        ? { index: 1, routes: [{ name: 'MainTabs' }, { name: returnTo, params: returnParams }] }
+        : { index: 0, routes: [{ name: 'MainTabs', params: { screen: 'Home' } }] });
     }
   }, [firebaseUser, isGuest, isDemo, navigation, route.params]);
   return <AuthNavigator />;
