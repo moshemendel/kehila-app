@@ -229,8 +229,11 @@ function AnnouncementRow({ ann, synagogueId }: { ann: SynagogueAnnouncement; syn
   );
 }
 
-function ShiurRow({ sh }: { sh: Shiur }) {
-  const dayLabel = sh.days === 'daily' ? 'יומי' : formatDays(sh.days as number[]);
+/** `hideDay` is for the Shabbat board, where the day is the section, not the row. */
+function ShiurRow({ sh, hideDay = false }: { sh: Shiur; hideDay?: boolean }) {
+  const dayLabel = hideDay
+    ? ''
+    : sh.days === 'daily' ? 'יומי' : formatDays(sh.days as number[]);
   return (
     <View style={st.shiurRow}>
       <View style={st.shiurLeft}>
@@ -405,11 +408,32 @@ export default function SynagogueDetailScreen() {
       : `בעוד ${m} דקות`;
   }
 
+  /**
+   * Shiurim, split by when they run rather than by where they were filed.
+   *
+   * A shiur can sit in any of three places — the admin writes the top-level
+   * array, the two schedules predate it — so they are merged first and sorted
+   * out afterwards.
+   *
+   * A Shabbat-only shiur belongs on the Shabbat board: on Shabbat nobody is
+   * scanning the weekday list for it, and a "ש" badge in a weekday section is
+   * the same noise as an "א–ו" badge on a Shabbat slot. Anything else stays in
+   * the weekday list — a daily shiur, or one that runs Monday AND Shabbat, has
+   * a day label that is doing real work.
+   *
+   * The board only exists when the shul has a shabbatSchedule at all, so
+   * without one nothing is moved and the single list keeps everything. Better a
+   * "ש" badge than a shiur with nowhere to appear.
+   */
   const allShiurim = [
     ...(syn.weeklySchedule.shiurim ?? []),
     ...(syn.shabbatSchedule?.shiurim ?? []),
     ...(syn.shiurim ?? []),
   ];
+  const shabbatOnly = (sh: Shiur) =>
+    Array.isArray(sh.days) && sh.days.length === 1 && sh.days[0] === 7;
+  const shabbatShiurim = syn.shabbatSchedule ? allShiurim.filter(shabbatOnly) : [];
+  const weekdayShiurim = allShiurim.filter((sh) => !shabbatShiurim.includes(sh));
 
   const hasPhone = !!(syn.phone ?? syn.gabbaiPhone);
 
@@ -657,6 +681,12 @@ export default function SynagogueDetailScreen() {
               <SlotPrayerSection label="שחרית" slots={syn.shabbatSchedule.shacharit} color={nusachColor} zmanim={shabbatZmanim} />
               <SlotPrayerSection label="מנחה"  slots={syn.shabbatSchedule.mincha}    color={nusachColor} zmanim={shabbatZmanim} />
               <SlotPrayerSection label="ערבית" slots={syn.shabbatSchedule.maariv}    color={nusachColor} zmanim={shabbatZmanim} />
+              {shabbatShiurim.length > 0 && (
+                <View style={st.prayerSection}>
+                  <Text style={st.prayerSectionLabel}>שיעורים</Text>
+                  {shabbatShiurim.map((sh) => <ShiurRow key={sh.id} sh={sh} hideDay />)}
+                </View>
+              )}
               {!!syn.shabbatSchedule.notes && (
                 <Text style={st.shabbatNotes}>{syn.shabbatSchedule.notes}</Text>
               )}
@@ -725,14 +755,18 @@ export default function SynagogueDetailScreen() {
         })()}
 
         {/* ── Shiurim ───────────────────────────────────────────────────────── */}
-        {allShiurim.length > 0 && (
+        {weekdayShiurim.length > 0 && (
           <View style={st.section}>
             <View style={st.sectionHdr}>
               <Ionicons name="book-outline" size={18} color={nusachColor} />
-              <Text style={st.sectionTitle}>שיעורים</Text>
+              {/* Named only when a Shabbat list exists too — otherwise this one
+                  holds everything and the qualifier would be a lie. */}
+              <Text style={st.sectionTitle}>
+                {shabbatShiurim.length > 0 ? 'שיעורים בימות החול' : 'שיעורים'}
+              </Text>
             </View>
             <View style={st.sectionCard}>
-              {allShiurim.map((sh) => <ShiurRow key={sh.id} sh={sh} />)}
+              {weekdayShiurim.map((sh) => <ShiurRow key={sh.id} sh={sh} />)}
             </View>
           </View>
         )}

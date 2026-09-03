@@ -463,15 +463,26 @@ function formatDateList(dates: string[]): string {
 }
 
 // ─── Compact slot card ────────────────────────────────────────────────────────
-function SlotCard({ slot, onPress }: { slot: PrayerTimeSlot; onPress: () => void }) {
+function SlotCard({ slot, onPress, hideDays = false }: {
+  slot: PrayerTimeSlot; onPress: () => void; hideDays?: boolean;
+}) {
   const days = slot.days ?? [];
   // A one-off shows its date instead of a weekly pattern, so a gabbai can see
   // at a glance which slot is the single special night.
-  const daysLabel = slot.dates?.length
-    ? formatDateList(slot.dates)
-    : days.length === 0 || days.length === 6
-      ? 'א–ו'
-      : days.map((d) => DAYS.find((day) => day.num === d)?.label ?? '').join(' ');
+  //
+  // hideDays is for the Shabbat board, where a day is not a property of the
+  // slot: מנחה ע"ש is Friday and the rest are Shabbat, by virtue of being in
+  // that schedule at all. These slots carry no `days`, and without this they
+  // fell into the "no days means all week" default below and every one of them
+  // was labelled א–ו. The editor already hid the day picker for them; only the
+  // card was still claiming otherwise.
+  const daysLabel = hideDays
+    ? ''
+    : slot.dates?.length
+      ? formatDateList(slot.dates)
+      : days.length === 0 || days.length === 6
+        ? 'א–ו'
+        : days.map((d) => DAYS.find((day) => day.num === d)?.label ?? '').join(' ');
 
   return (
     <TouchableOpacity style={sm.slotCard} onPress={onPress} activeOpacity={0.75}>
@@ -654,7 +665,7 @@ function PrayerBlock({ label, color, prayerKey, slots, onChange, hideDays = fals
         {slots.length === 0
           ? <Text style={sm.emptySlots}>אין זמנים</Text>
           : slots.map((slot, i) => (
-              <SlotCard key={i} slot={slot} onPress={() => setEditingIdx(i)} />
+              <SlotCard key={i} slot={slot} hideDays={hideDays} onPress={() => setEditingIdx(i)} />
             ))
         }
       </View>
