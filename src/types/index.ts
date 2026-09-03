@@ -184,8 +184,15 @@ export interface Synagogue {
   rabbi?: string;
   rabbiName?: string;
   rabbiPhone?: string;
+  /**
+   * The flat pair is the ORIGINAL shape and holds one person. `gabbaim` below
+   * replaces it. Both exist in Firestore, so read contacts through
+   * utils/synagogueContacts rather than either field directly.
+   */
   gabbaiName?: string;
   gabbaiPhone?: string;
+  /** Every gabbai, the shape the admin console now writes. */
+  gabbaim?: { name: string; phone?: string | null }[];
   wazeLink?: string;
   navigationNote?: string;
   /**

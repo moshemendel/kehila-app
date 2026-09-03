@@ -19,6 +19,7 @@ import NeighborhoodPickerModal from '../../components/NeighborhoodPickerModal';
 import { updateSynagogue, addSynagogue, deleteSynagogue } from '../../services/synagogues';
 import { submitPendingEvent } from '../../services/pendingEvents';
 import { Synagogue, PrayerTimeSlot, ZmanimAnchor, Shiur, EventCategory, SynagogueAnnouncement } from '../../types';
+import { gabbaimOf } from '../../utils/synagogueContacts';
 import LocationEditModal from '../../components/LocationEditModal';
 import AddItemModal from '../../components/AddItemModal';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
@@ -463,15 +464,26 @@ function formatDateList(dates: string[]): string {
 }
 
 // ─── Compact slot card ────────────────────────────────────────────────────────
-function SlotCard({ slot, onPress }: { slot: PrayerTimeSlot; onPress: () => void }) {
+function SlotCard({ slot, onPress, hideDays = false }: {
+  slot: PrayerTimeSlot; onPress: () => void; hideDays?: boolean;
+}) {
   const days = slot.days ?? [];
   // A one-off shows its date instead of a weekly pattern, so a gabbai can see
   // at a glance which slot is the single special night.
-  const daysLabel = slot.dates?.length
-    ? formatDateList(slot.dates)
-    : days.length === 0 || days.length === 6
-      ? 'א–ו'
-      : days.map((d) => DAYS.find((day) => day.num === d)?.label ?? '').join(' ');
+  //
+  // hideDays is for the Shabbat board, where a day is not a property of the
+  // slot: מנחה ע"ש is Friday and the rest are Shabbat, by virtue of being in
+  // that schedule at all. These slots carry no `days`, and without this they
+  // fell into the "no days means all week" default below and every one of them
+  // was labelled א–ו. The editor already hid the day picker for them; only the
+  // card was still claiming otherwise.
+  const daysLabel = hideDays
+    ? ''
+    : slot.dates?.length
+      ? formatDateList(slot.dates)
+      : days.length === 0 || days.length === 6
+        ? 'א–ו'
+        : days.map((d) => DAYS.find((day) => day.num === d)?.label ?? '').join(' ');
 
   return (
     <TouchableOpacity style={sm.slotCard} onPress={onPress} activeOpacity={0.75}>
@@ -654,7 +666,7 @@ function PrayerBlock({ label, color, prayerKey, slots, onChange, hideDays = fals
         {slots.length === 0
           ? <Text style={sm.emptySlots}>אין זמנים</Text>
           : slots.map((slot, i) => (
-              <SlotCard key={i} slot={slot} onPress={() => setEditingIdx(i)} />
+              <SlotCard key={i} slot={slot} hideDays={hideDays} onPress={() => setEditingIdx(i)} />
             ))
         }
       </View>
@@ -1063,6 +1075,29 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
     setForm((p) => ({ ...p, [key]: value }));
   }
 
+  /**
+   * The first gabbai, editable as two plain fields.
+   *
+   * Reads through gabbaimOf so a record still on the old flat pair opens with
+   * its gabbai filled in, and WRITES only to gabbaim[0] — see the note by the
+   * fields. Clearing both empties the seat rather than leaving {name: ""},
+   * which would render as a nameless row in the app.
+   */
+  const gabbaiSeatList = gabbaimOf(form as Synagogue);
+  const gabbaiSeat = {
+    name:  gabbaiSeatList[0]?.name ?? '',
+    phone: gabbaiSeatList[0]?.phone ?? '',
+  };
+  const gabbaiExtra = Math.max(0, (form.gabbaim?.length ?? 0) - 1);
+
+  function setGabbaiSeat(name: string, phone: string) {
+    setForm((p) => {
+      const rest = (p.gabbaim ?? []).slice(1);
+      const head = name.trim() || phone.trim() ? [{ name: name.trim(), phone: phone.trim() || null }] : [];
+      return { ...p, gabbaim: [...head, ...rest] };
+    });
+  }
+
   function setSlots(type: PrayerKey, slots: PrayerTimeSlot[]) {
     setForm((p) => ({
       ...p,
@@ -1223,8 +1258,16 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
           <View style={s.card}>
             <Field label="רב"          value={form.rabbiName ?? form.rabbi ?? ''}  onChangeText={(v) => set('rabbiName', v)} />
             <Field label="טלפון רב"    value={form.rabbiPhone ?? ''}               onChangeText={(v) => set('rabbiPhone', v)} />
-            <Field label="גבאי"        value={form.gabbaiName ?? ''}               onChangeText={(v) => set('gabbaiName', v)} />
-            <Field label="טלפון גבאי"  value={form.gabbaiPhone ?? ''}              onChangeText={(v) => set('gabbaiPhone', v)} />
+            {/* Writes into gabbaim[0], never back into gabbaiName/gabbaiPhone.
+                Those two are being retired from the documents, and an editor
+                still writing them would quietly restore them on the next save.
+                Any further gabbaim on the record are preserved untouched —
+                editing more than one of them needs a list editor this is not. */}
+            <Field label="גבאי"        value={gabbaiSeat.name}                     onChangeText={(v) => setGabbaiSeat(v, gabbaiSeat.phone)} />
+            <Field label="טלפון גבאי"  value={gabbaiSeat.phone}                    onChangeText={(v) => setGabbaiSeat(gabbaiSeat.name, v)} />
+            {gabbaiExtra > 0 && (
+              <Text style={s.sectionHint}>ועוד {gabbaiExtra} גבאים ברשומה — נשמרים כמו שהם</Text>
+            )}
             <Field label="טלפון כללי"  value={form.phone ?? ''}                    onChangeText={(v) => set('phone', v)} />
           </View>
         </View>
@@ -1233,7 +1276,10 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
         <View style={s.section}>
           <Text style={s.sectionTitle}>מיקום</Text>
           <View style={s.card}>
-            <Field label="קישור Waze"    value={form.wazeLink ?? ''}        onChangeText={(v) => set('wazeLink', v || undefined)} />
+            {/* The link is a fallback now, not an override — see NavTarget.wazeLink.
+                Saying so here stops a gabbai pasting one and expecting it to win. */}
+            <Field label="קישור Waze"    value={form.wazeLink ?? ''}        onChangeText={(v) => set('wazeLink', v || undefined)}
+                   placeholder="משמש רק כשאין מיקום מדויק" />
             <Field label="הוראות ניווט" value={form.navigationNote ?? ''} onChangeText={(v) => set('navigationNote', v || undefined)} multiline />
             <TouchableOpacity style={s.locBtn} onPress={() => setEditingLoc(true)}>
               <Ionicons name={form.latitude ? 'location' : 'location-outline'} size={18} color={Colors.warning} />

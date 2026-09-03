@@ -78,7 +78,12 @@ const SynagogueRow = React.memo(function SynagogueRow({
                 <Text style={s.neighborhoodBadgeTxt}>{syn.neighborhood}</Text>
               </View>
             )}
-            {syn.rabbi && <Text style={s.cardRabbi}>רב: {syn.rabbi}</Text>}
+            {/* `rabbi` is the older of the two fields and is being retired, so
+                read both — this card was the one place still checking only it,
+                and showed nothing for a shul whose rabbi sits in rabbiName. */}
+            {!!(syn.rabbiName ?? syn.rabbi) && (
+              <Text style={s.cardRabbi}>רב: {syn.rabbiName ?? syn.rabbi}</Text>
+            )}
           </View>
         </View>
         <View style={s.cardRight}>

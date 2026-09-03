@@ -30,7 +30,17 @@ export interface NavTarget {
   longitude?: number;
   /** Used when no coordinates are stored — the app searches for this text. */
   address?: string;
-  /** Admin-provided Waze permalink, preferred over coordinates when present. */
+  /**
+   * Admin-provided Waze permalink. A LAST RESORT, below coordinates.
+   *
+   * It used to win over them, which meant it could only ever do one of two
+   * things: agree with the coordinates and add nothing, or disagree and send
+   * people somewhere else. Every one of these stored in Firestore is an opaque
+   * waze.com/ul/<hash>, so nobody — not the app, not the admin console, not a
+   * script — can tell which of the two it is. When a shul's pin is corrected
+   * the link silently keeps pointing at the old spot, and only iOS users who
+   * pick Waze are sent there.
+   */
   wazeLink?: string;
 }
 
@@ -92,14 +102,20 @@ function iosUrls(app: NavAppId, t: NavTarget): { primary: string; fallback: stri
       google: `comgooglemaps://?q=${q}`,
       apple:  `maps://?q=${q}`,
     }[app];
-    return { primary: t.wazeLink ?? search, fallback: webFallback(t) };
+    // With no coordinates a stored permalink genuinely beats a text search —
+    // but only for Waze. This used to be returned whichever app was tapped, so
+    // choosing Google Maps or Apple Maps opened Waze instead.
+    const link = app === 'waze' ? t.wazeLink : undefined;
+    return { primary: link ?? search, fallback: webFallback(t) };
   }
   const ll = `${t.latitude},${t.longitude}`;
   switch (app) {
     case 'waze':
+      // Coordinates win. See NavTarget.wazeLink for why the permalink no longer
+      // does — the pin we hold is checkable and the link is not.
       return {
-        primary:  t.wazeLink ?? `waze://?ll=${ll}&navigate=yes`,
-        fallback: t.wazeLink ?? `https://waze.com/ul?ll=${ll}&navigate=yes`,
+        primary:  `waze://?ll=${ll}&navigate=yes`,
+        fallback: `https://waze.com/ul?ll=${ll}&navigate=yes`,
       };
     case 'google':
       return {
