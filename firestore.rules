@@ -387,8 +387,48 @@ service cloud.firestore {
 
     // ── Analytics events ──────────────────────────────────────────────────────
     match /analyticsEvents/{eventId} {
-      allow create: if isSignedIn();
+      // Was `create: if isSignedIn()` and nothing else — any shape, any size,
+      // any uid, from any account including an anonymous guest.
+      //
+      // The uid is the least obvious of those. A row's uid is what
+      // deleteMyAccount deletes by, so a row carrying someone else's uid
+      // outlives the account it claims to belong to and no one can reach it
+      // again; and the console counts distinct uids as its active-user figure,
+      // which a forged uid inflates for free.
+      //
+      // Guests are excluded because they never produce these anyway: analytics
+      // is initialised from the profile document (loadAppUser), which a guest
+      // does not have. isRealAccount() therefore costs nothing here and takes
+      // free, unlimited anonymous sign-ups off the table as a write path.
+      //
+      // The shape is locked to exactly what trackScreen() sends. A document
+      // holds up to 1 MiB, so "unlimited rows" was really "unlimited MiB on
+      // your bill" — hasOnly is the half of this that closes that.
+      //
+      // Ranges rather than `is int`: getHours()/getDay() are whole numbers and
+      // the SDK writes them as integers, but the bound is what actually matters
+      // and `is number` cannot be broken by a serialisation detail.
+      allow create: if isRealAccount()
+        && request.resource.data.keys().hasOnly(
+             ['feature', 'cityId', 'uid', 'hour', 'dayOfWeek', 'date', 'ts'])
+        && request.resource.data.keys().hasAll(
+             ['feature', 'cityId', 'uid', 'hour', 'dayOfWeek', 'date', 'ts'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.feature is string
+        && request.resource.data.feature.size() <= 64
+        && request.resource.data.cityId is string
+        && request.resource.data.cityId.size() <= 64
+        && request.resource.data.hour is number
+        && request.resource.data.hour >= 0 && request.resource.data.hour <= 23
+        && request.resource.data.dayOfWeek is number
+        && request.resource.data.dayOfWeek >= 0 && request.resource.data.dayOfWeek <= 6
+        && request.resource.data.date is string
+        && request.resource.data.date.matches('\\d{4}-\\d{2}-\\d{2}')
+        && request.resource.data.ts is timestamp;
       allow read:   if isAdminRole();
+      // No update and no delete: a row is a fact about a moment. A departing
+      // user's rows are removed by deleteMyAccount through the Admin SDK, which
+      // does not pass through these rules at all.
     }
 
     // ── Push notification tokens ──────────────────────────────────────────────
