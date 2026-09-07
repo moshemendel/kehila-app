@@ -197,8 +197,25 @@ service cloud.firestore {
     // ── Users ────────────────────────────────────────────────────────────────
     match /users/{userId} {
       allow read: if isSignedIn() && (request.auth.uid == userId || isSuperAdminRole() || isCityAdminOf(resource.data.homeCityId));
+      // `roles` is guarded here for the same reason as `role`, and more urgently:
+      // userRoles() reads the ARRAY in preference to the singular field, so every
+      // privilege check in this file resolves through it. Guarding only `role` left
+      // the array free at creation — a fresh account (a guest session included,
+      // isSignedIn() covers anonymous) could seed roles: ['super_admin'] on its own
+      // document and hold every permission in the ruleset. The update rule below has
+      // always excluded `roles`; create is where it was missing, and a new document
+      // is something anyone can make.
+      //
+      // This also closes the escalation the pushTokens rule was written to prevent:
+      // that rule validates the token's roles against userDoc(), which is exactly
+      // what a seeded array would have poisoned.
+      //
+      // createUserDoc() (src/services/auth.ts) writes no `roles` field at all — the
+      // ['user'] branch is here so the rule stays true to userRoles()'s own default
+      // rather than forcing a client to omit the field to be allowed.
       allow create: if isSignedIn() && request.auth.uid == userId
         && (!('role' in request.resource.data) || request.resource.data.role == 'user')
+        && (!('roles' in request.resource.data) || request.resource.data.roles == ['user'])
         && (!('managedSynagogueIds' in request.resource.data) || request.resource.data.managedSynagogueIds.size() == 0)
         && (!('managedRestaurantIds' in request.resource.data) || request.resource.data.managedRestaurantIds.size() == 0);
       // NOBODY EDITS THEIR OWN PRIVILEGES. Both management branches below
