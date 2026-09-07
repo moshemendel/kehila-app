@@ -42,7 +42,9 @@
  * It no longer writes cities/city-1. That was a hardcoded six-field set() — a
  * replace, on a document that has since grown `modules`, `elevation`,
  * `nusachOptions` and `neighborhoods`. It could only ever delete them, silently
- * turning every held-back module back on. seed.mjs seeds the city.
+ * turning every held-back module back on. A city document is created in the
+ * admin console (Cities), which is the only thing that writes one now — seed.mjs
+ * used to, and was deleted along with the other spent one-offs.
  */
 
 import { initializeApp, cert } from 'firebase-admin/app';
