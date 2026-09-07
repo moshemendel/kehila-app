@@ -18,7 +18,9 @@ import { readFileSync } from 'fs';
 const sa = JSON.parse(readFileSync('scripts/serviceAccount.json', 'utf8'));
 initializeApp({ credential: cert(sa) });
 const db = getFirestore();
-const apiKey = readFileSync('scripts/seed.mjs', 'utf8').match(/apiKey:\s*"([^"]+)"/)[1];
+// The Web API key, read from the app's own config so there is only ever one
+// copy of it. It is public by design — it ships inside the client bundle.
+const apiKey = readFileSync('src/services/firebase.ts', 'utf8').match(/apiKey:\s*"([^"]+)"/)[1];
 
 const EMAIL = process.argv[2] ?? 'a0548408679@gmail.com';
 const BIZ   = process.argv[3] ?? 'CQlGMStH6c1pphwEtYPP';
