@@ -489,8 +489,16 @@ export interface EruvCoordinate {
 export interface EruvStatus {
   id: string;
   status: 'valid' | 'invalid' | 'unknown';
-  polygon?: EruvCoordinate[];                 // legacy single polygon (read-only compat)
-  polygons?: { points: EruvCoordinate[] }[];  // multi-polygon support (new canonical field)
+  /**
+   * The rings enclosing this eruv. Plural because one eruv can enclose areas
+   * that do not touch — Ma'ale Adumim's covers the city and נופי סלע, 3 km
+   * apart — while still being a single eruv with a single status.
+   *
+   * There was a `polygon` field here holding one flat ring, from before that
+   * was true. Nothing wrote to it after this replaced it, so it sat going
+   * stale; it was removed by scripts/remove-eruv-legacy-polygon.mjs.
+   */
+  polygons?: { points: EruvCoordinate[] }[];
   updatedAt: any;
   updatedBy: string;
   notes?: string;

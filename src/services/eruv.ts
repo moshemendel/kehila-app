@@ -30,12 +30,17 @@ export async function setEruvPolygon(cityId: string, polygons: EruvCoordinate[][
   }, { merge: true });
 }
 
-/** Returns all polygons from an EruvStatus, falling back to legacy single-polygon field. */
+/**
+ * Every closed ring that makes up this eruv.
+ *
+ * Always a list, even for one ring: an eruv can enclose separated areas, and
+ * Ma'ale Adumim's does — the city itself and נופי סלע, about 3 km apart with
+ * nothing joining them. That is one eruv with one status, not two eruvin, which
+ * is why the rings live inside the status document rather than being it.
+ */
 export function getEruvPolygons(status: import('../types').EruvStatus | null): EruvCoordinate[][] {
-  if (!status) return [];
-  if (status.polygons?.length) return status.polygons.map(p => p.points ?? []);
-  if (status.polygon?.length) return [status.polygon];
-  return [];
+  if (!status?.polygons?.length) return [];
+  return status.polygons.map(p => p.points ?? []);
 }
 
 export async function submitEruvReport(

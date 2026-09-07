@@ -80,3 +80,7 @@ data/travel/*.sample.json
 # worktrees it creates, each a full second checkout of this repo. `git add -A`
 # would otherwise commit a copy of the project inside the project.
 .claude/
+
+# Valhalla routing tiles built locally for buildTravelMatrix. Several GB,
+# reproducible from the OSM extract, and nothing reads them from here.
+/valhalla/
