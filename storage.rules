@@ -2,40 +2,140 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
+    // Every rule here was `request.auth != null` — any signed-in account, and
+    // that includes the anonymous guest sessions the app hands out for eruv
+    // push. A guest could overwrite a rabbanut kashrut certificate image, or
+    // upload into any synagogue, business or mikveh gallery in any city. The
+    // role model below mirrors firestore.rules so a file is writable by roughly
+    // the accounts that may write the document pointing at it.
+
+    function isSignedIn() { return request.auth != null; }
+
+    // Uploads only. request.resource is null on a delete, so this must never be
+    // reached by a delete rule — the expression would evaluate against null and
+    // the rule would deny. That is what the previous blanket `allow write` did:
+    // it covered create, update AND delete under one isImage() check, so every
+    // deleteObject() the console issued was refused, silently (the call site
+    // swallows it) leaving the file orphaned in the bucket. Hence the
+    // create/update and delete split on every path below.
+    //
+    // contentType is client-declared and therefore spoofable; it stops an
+    // accident, not an attacker. The size cap is the load-bearing half.
     function isImage() {
       return request.resource.size < 10 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }
 
-    // ── Public reads ──────────────────────────────────────────────────────────
-    match /{allPaths=**} {
-      allow read: if true;
+    // ── Role model — mirrors firestore.rules ──────────────────────────────────
+    // ONE document, always: the caller's own profile.
+    //
+    // The obvious design reads a second document — the synagogue/business/
+    // mikveh that owns the folder — to scope a manager to their own city, and
+    // Storage Rules do allow two. It is the wrong design here, because THE
+    // OWNING DOCUMENT OFTEN DOES NOT EXIST YET. "Add business" in the console
+    // and "duplicate mikveh" in the app both mint a client-side id and let the
+    // admin attach images before the first save, deliberately, so that backing
+    // out of the form leaves no orphaned record. A rule reading that document
+    // would deny every upload on the create path — the flow that matters most —
+    // and would do it as a plain permission error with nothing to point at.
+    //
+    // So city scoping stays where the cityId actually lives: firestore.rules
+    // gates the document write by city, and an image nobody can attach to a
+    // document is an inert orphan. What this file must stop, and now does, is
+    // strangers and ordinary users writing into these folders at all.
+    function userDoc() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    }
+    // Reads the roles ARRAY in preference to the singular field, exactly as
+    // firestore.rules' userRoles() does — the two must agree, or an account
+    // would be one role in the database and another in the bucket.
+    function userRoles() {
+      return userDoc().get('roles', ['user']);
+    }
+    function hasRole(role) {
+      return isSignedIn() && role in userRoles();
+    }
+    // city_admin/content_admin and above. Not city-scoped — see the note above.
+    function isContentManager() {
+      return isSignedIn() && userRoles().hasAny(
+        ['super_admin', 'dev', 'city_admin', 'content_admin']);
     }
 
     // ── Synagogue gallery ─────────────────────────────────────────────────────
+    // The gabbai branch is a real per-record grant: managedSynagogueIds is
+    // writable only by an admin (firestore.rules forbids self-edits of it), so
+    // membership scopes a gabbai to exactly the synagogues they were assigned.
+    function managesSynagogue(synId) {
+      return isContentManager() ||
+        (hasRole('gabbai') && synId in userDoc().get('managedSynagogueIds', []));
+    }
     match /synagogues/{synId}/gallery/{file} {
-      allow write: if request.auth != null && isImage();
+      allow read: if true;
+      allow create, update: if managesSynagogue(synId) && isImage();
+      allow delete: if managesSynagogue(synId);
     }
 
     // ── Business gallery ──────────────────────────────────────────────────────
+    // Gallery images are `images`/`imageUrl` on the business document, which
+    // firestore.rules puts in bizOperationsKeys() — the shop's own day-to-day.
+    // So: the assigned operator, or content management. Membership in
+    // managedRestaurantIds is the grant, whatever else the account is — the
+    // same test operatesBusiness() applies, and admin-written like the above.
+    function managesBusinessGallery(bizId) {
+      return isContentManager() ||
+        (isSignedIn() && bizId in userDoc().get('managedRestaurantIds', []));
+    }
     match /businesses/{bizId}/gallery/{file} {
-      allow write: if request.auth != null && isImage();
+      allow read: if true;
+      allow create, update: if managesBusinessGallery(bizId) && isImage();
+      allow delete: if managesBusinessGallery(bizId);
     }
 
     // ── Kosher certificate images ─────────────────────────────────────────────
+    // The operator is excluded ON PURPOSE, mirroring bizKashrutKeys(): a shop
+    // must not be able to write its own kashrut evidence. The document rule
+    // already refuses them `kosherCertificates`; leaving the image side open
+    // would have let an owner swap the picture under an entry the rabbanut
+    // controls, which is the part a customer actually looks at. That exclusion,
+    // not the city, is what this path is really defending.
+    function issuesKashrut() {
+      return isContentManager() || hasRole('kosher_manager');
+    }
     match /businesses/{bizId}/certificates/{certId}/{file} {
-      allow write: if request.auth != null && isImage();
+      allow read: if true;
+      allow create, update: if issuesKashrut() && isImage();
+      allow delete: if issuesKashrut();
     }
 
     // ── Mikveh gallery ────────────────────────────────────────────────────────
+    function managesMikveh() {
+      return isContentManager() || hasRole('mikveh_manager');
+    }
     match /mikvaot/{mikId}/gallery/{file} {
-      allow write: if request.auth != null && isImage();
+      allow read: if true;
+      allow create, update: if managesMikveh() && isImage();
+      allow delete: if managesMikveh();
     }
 
     // ── Eruv report images ────────────────────────────────────────────────────
+    // No longer world-readable: these are photographs a resident took of their
+    // own street, and eruvReports in firestore.rules is already manager-only.
+    // The app reaches them through the tokenized getDownloadURL() it stored on
+    // the report, and a download token does not pass through these rules, so
+    // display is unaffected — this closes bucket enumeration, not the app's
+    // own view.
+    function reviewsEruvReports() {
+      return isContentManager() || hasRole('eruv_manager');
+    }
     match /eruvReports/{userId}/{file} {
-      allow write: if request.auth != null && request.auth.uid == userId && isImage();
+      allow read: if isSignedIn() && (request.auth.uid == userId || reviewsEruvReports());
+      allow create, update: if isSignedIn() && request.auth.uid == userId && isImage();
+      allow delete: if isSignedIn() && (request.auth.uid == userId || reviewsEruvReports());
     }
 
+    // No catch-all. The previous `match /{allPaths=**} { allow read: if true }`
+    // published every object in the bucket, including any path added later by
+    // someone who never thought about this file. Anything not matched above is
+    // denied — a new upload path has to be granted here deliberately.
   }
 }
