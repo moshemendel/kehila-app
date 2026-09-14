@@ -243,6 +243,19 @@ service cloud.firestore {
       allow write: if isSuperAdminRole() || isCityAdminOf(cityId);
     }
 
+    // ── Areas — a regional council's settlements, or a plain city's own one ──
+    // Existed since the area-migration work, but never got a rule of its own —
+    // every read of it (useAreas in the app, the admin console's area pickers)
+    // was silently permission-denied this whole time. cityId is a field here,
+    // not the doc id (an area's own id is area-{cbsCode} or similar), so this
+    // follows the same request.resource/resource split as mikvaot/cemeteries,
+    // not cities' own isCityAdminOf(cityId).
+    match /areas/{areaId} {
+      allow read: if true;
+      allow create: if managesContentIn(request.resource.data.cityId);
+      allow update, delete: if managesContentIn(resource.data.cityId);
+    }
+
     // ── Users ────────────────────────────────────────────────────────────────
     // The tier-2 roles that appoint tier-3 operators (see delegates() below).
     // They can read their city's accounts, which is what finding someone to
