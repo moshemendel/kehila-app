@@ -597,9 +597,18 @@ service cloud.firestore {
     }
 
     // ── Eruv status ───────────────────────────────────────────────────────────
-    match /eruvStatus/{cityId} {
+    // {eruvId} used to be the cityId itself — one eruv per city. A regional
+    // council can hold several (one per settlement, or per settlement-group
+    // sharing one physical boundary), so cityId moved into the document like
+    // every other collection here, and access is checked the same way
+    // mikvaot/synagogues/businesses do it: request.resource for create
+    // (resource does not exist yet), resource for update/delete.
+    match /eruvStatus/{eruvId} {
       allow read: if true;
-      allow write: if managesContentIn(cityId) || hasCityRole('eruv_manager', cityId);
+      allow create: if managesContentIn(request.resource.data.cityId)
+                    || hasCityRole('eruv_manager', request.resource.data.cityId);
+      allow update, delete: if managesContentIn(resource.data.cityId)
+                    || hasCityRole('eruv_manager', resource.data.cityId);
     }
 
     // ── Eruv reports ──────────────────────────────────────────────────────────

@@ -46,8 +46,11 @@ export default function PrayerNotificationScheduler() {
    * queued. Read at write time — see the effect below for why that distinction
    * is the whole bug.
    */
-  const identity = useRef<{ uid: string | null; role: string | null; roles: string[] | null; cityId: string }>({
-    uid: null, role: null, roles: null, cityId,
+  const identity = useRef<{
+    uid: string | null; role: string | null; roles: string[] | null;
+    cityId: string; homeAreaId: string | null;
+  }>({
+    uid: null, role: null, roles: null, cityId, homeAreaId: null,
   });
 
   // Register push token for any logged-in user (registered or guest), independent of prayer scheduling.
@@ -57,13 +60,18 @@ export default function PrayerNotificationScheduler() {
     // Always the live Auth uid, never appUser.uid (a field self-reported on the
     // Firestore profile doc) — Firestore rules check pushTokens.uid against
     // request.auth.uid, so anything else risks a mismatch the rule will reject.
-    const uid   = firebaseUser?.uid ?? null;
-    const role  = appUser?.role  ?? (isGuest ? 'guest' : null);
-    const roles = appUser?.roles ?? (role ? [role] : null);
-    identity.current = { uid, role, roles, cityId };
+    const uid        = firebaseUser?.uid ?? null;
+    const role       = appUser?.role  ?? (isGuest ? 'guest' : null);
+    const roles      = appUser?.roles ?? (role ? [role] : null);
+    const homeAreaId = appUser?.homeAreaId ?? null;
+    identity.current = { uid, role, roles, cityId, homeAreaId };
 
     if (!uid || !role || !cityId) return;
-    const key = `${uid}:${cityId}`;
+    // homeAreaId is part of the key too — picking a settlement for the first
+    // time (or switching it) must re-register so an eruv/kashrut send scoped
+    // to that area actually reaches this device, the same way a cityId
+    // change already does.
+    const key = `${uid}:${cityId}:${homeAreaId ?? ''}`;
     if (registeredForKey.current === key) return;
 
     const timer = setTimeout(async () => {
@@ -87,14 +95,14 @@ export default function PrayerNotificationScheduler() {
       // reach it. So the guard belongs after the await, not before it.
       const now = identity.current;
       if (!now.uid || !now.role) return;
-      if (`${now.uid}:${now.cityId}` !== key) return; // a newer effect owns this
+      if (`${now.uid}:${now.cityId}:${now.homeAreaId ?? ''}` !== key) return; // a newer effect owns this
 
       registeredForKey.current = key;
       hasPermission.current = true;
-      registerPushToken(now.uid, now.cityId, now.role, now.roles ?? [now.role]);
+      registerPushToken(now.uid, now.cityId, now.role, now.roles ?? [now.role], now.homeAreaId ?? undefined);
     }, 3000);
     return () => clearTimeout(timer);
-  }, [appUser?.uid, isGuest, firebaseUser?.uid, cityId, appUser?.role]);
+  }, [appUser?.uid, isGuest, firebaseUser?.uid, cityId, appUser?.role, appUser?.homeAreaId]);
 
   async function reschedule() {
     if (IS_EXPO_GO || !enabled || !city || synagogues.length === 0) return;

@@ -11,12 +11,13 @@ import MapView, { Polygon, Region, MapPressEvent, Marker } from 'react-native-ma
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useEruvStatus } from '../../hooks/useEruv';
+import { useEruvStatuses } from '../../hooks/useEruv';
 import { useCityId } from '../../hooks/useCityId';
 import { useCity } from '../../hooks/useCity';
+import { useAreas } from '../../hooks/useAreas';
 import { useAuth } from '../../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
-import { submitEruvReport, getEruvPolygons } from '../../services/eruv';
+import { submitEruvReport, getEruvPolygons, findEruvForArea } from '../../services/eruv';
 import { useAnalyticsTrack } from '../../services/analytics';
 import { uploadImage } from '../../utils/uploadImage';
 import { Colors, Spacing, Radius } from '../../utils/theme';
@@ -38,7 +39,32 @@ export default function EruvScreen() {
   const { appUser } = useAuth();
   const [focused, setFocused] = useState(false);
   useFocusEffect(useCallback(() => { setFocused(true); return () => setFocused(false); }, []));
-  const { status, loading } = useEruvStatus(cityId, focused);
+
+  // Most tenants have exactly one eruv, and this stays invisible for them —
+  // see the "golden rule" in the architecture proposal. A regional council
+  // can have several (one per settlement); the chip row below only renders
+  // when there is more than one to choose from.
+  const { statuses, loading } = useEruvStatuses(cityId, focused);
+  const [selectedEruvId, setSelectedEruvId] = useState<string | null>(null);
+  const ownEruv = useMemo(
+    () => findEruvForArea(statuses, appUser?.homeAreaId),
+    [statuses, appUser?.homeAreaId],
+  );
+  const activeEruv = useMemo(
+    () => statuses.find((s) => s.id === selectedEruvId) ?? ownEruv ?? statuses[0] ?? null,
+    [statuses, selectedEruvId, ownEruv],
+  );
+  const status = activeEruv;
+
+  // Only fetched for the label fallback below — a council that has bothered
+  // to name its eruvin never touches this.
+  const { areas } = useAreas(cityId);
+  function eruvLabel(e: typeof activeEruv): string {
+    if (!e) return '';
+    if (e.label) return e.label;
+    const names = e.areaIds.map((id) => areas.find((a) => a.id === id)?.name).filter(Boolean);
+    return names.join(' + ') || 'עירוב';
+  }
 
   // ── Form state ────────────────────────────────────────────────────
   const [reportOpen,    setReportOpen]    = useState(false);
@@ -218,6 +244,7 @@ export default function EruvScreen() {
       }
       await submitEruvReport({
         cityId,
+        ...(activeEruv ? { eruvId: activeEruv.id } : {}),
         userId: appUser.uid,
         userDisplayName: appUser.displayName,
         type: reportType,
@@ -253,7 +280,7 @@ export default function EruvScreen() {
       <View style={[s.header, { paddingTop: top + 16, backgroundColor: statusColor }]}>
         <View style={s.headerRow}>
           <View style={{ flex: 1 }}>
-            <Text style={s.title}>עירוב</Text>
+            <Text style={s.title}>עירוב{statuses.length > 1 ? ` · ${eruvLabel(activeEruv)}` : ''}</Text>
             {!loading && (
               <View style={s.statusRow}>
                 <Ionicons name={statusIcon as any} size={18} color={Colors.white} />
@@ -266,6 +293,34 @@ export default function EruvScreen() {
           )}
         </View>
         {!loading && status?.notes ? <Text style={s.notesText}>{status.notes}</Text> : null}
+
+        {/* Settlement chips — only when this tenant has more than one eruv */}
+        {!loading && statuses.length > 1 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={s.eruvChipRow}
+            contentContainerStyle={{ gap: 8 }}
+          >
+            {statuses.map((e) => {
+              const active = e.id === activeEruv?.id;
+              return (
+                <TouchableOpacity
+                  key={e.id}
+                  style={[s.eruvChip, active && s.eruvChipActive]}
+                  onPress={() => setSelectedEruvId(e.id)}
+                  activeOpacity={0.75}
+                >
+                  <View style={[s.eruvChipDot, {
+                    backgroundColor: e.status === 'valid' ? Colors.success
+                      : e.status === 'invalid' ? Colors.danger : Colors.gold,
+                  }]} />
+                  <Text style={[s.eruvChipText, active && s.eruvChipTextActive]}>{eruvLabel(e)}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
       </View>
 
       {/* ── Map ─────────────────────────────────────────────────── */}
@@ -554,6 +609,18 @@ const s = StyleSheet.create({
   statusText:  { fontSize: 15, fontWeight: '700', color: Colors.white },
   updatedText: { fontSize: 11, color: 'rgba(255,255,255,0.7)', paddingBottom: 4 },
   notesText:   { fontSize: 13, color: 'rgba(255,255,255,0.85)', marginTop: 6, lineHeight: 18 },
+
+  // Settlement chips (multi-eruv tenants only)
+  eruvChipRow: { marginTop: 10 },
+  eruvChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 7, borderRadius: Radius.full,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+  },
+  eruvChipActive:     { backgroundColor: Colors.white },
+  eruvChipDot:        { width: 7, height: 7, borderRadius: 3.5 },
+  eruvChipText:       { fontSize: 12.5, fontWeight: '600', color: Colors.white },
+  eruvChipTextActive: { color: Colors.text },
 
   // Map overlays
   noPolygon:     { position: 'absolute', bottom: 140, left: 0, right: 0, alignItems: 'center', gap: 8 },

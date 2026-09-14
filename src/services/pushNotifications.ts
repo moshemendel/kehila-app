@@ -23,7 +23,14 @@ async function getDeviceId(): Promise<string> {
 
 // Saves this device's Expo push token to Firestore so admins can target it.
 // Fails silently — push token is a nice-to-have, never a hard requirement.
-export async function registerPushToken(uid: string, cityId: string, role: string, roles?: string[]): Promise<void> {
+//
+// homeAreaId lets a send be narrowed to one settlement of a regional council
+// (see sendPushToCity's areaIds param) — e.g. an eruv going down in Afikim
+// has no reason to page a resident of Ginosar, 20km away. Absent for a
+// single-area tenant, where every send is already city-wide and correct.
+export async function registerPushToken(
+  uid: string, cityId: string, role: string, roles?: string[], homeAreaId?: string,
+): Promise<void> {
   try {
     // THE ONE SOURCE THAT CANNOT LAG. The rule this write must satisfy is
     // `data.uid == request.auth.uid`, and request.auth.uid is whatever the Auth
@@ -58,6 +65,7 @@ export async function registerPushToken(uid: string, cityId: string, role: strin
       uid, cityId,
       role,
       roles: roles ?? [role],
+      ...(homeAreaId ? { homeAreaId } : {}),
       updatedAt: new Date(),
     });
   } catch (e: any) {
@@ -91,18 +99,25 @@ export async function clearPushToken(): Promise<void> {
 
 interface TokenEntry { docId: string; token: string; }
 
-// Sends a push notification to every device registered for the given city.
+// Sends a push notification to every device registered for the given city —
+// or, when areaIds is given, only devices whose owner's homeAreaId falls in
+// that set. A device with no homeAreaId on record (the resident never picked
+// a settlement, or this is a single-area tenant where cityId alone is always
+// enough) is skipped by an areaIds-filtered send rather than guessed at —
+// see PrayerNotificationScheduler for how homeAreaId reaches the token.
 export async function sendPushToCity(
   cityId: string,
   title: string,
   body: string,
   data?: Record<string, unknown>,
+  areaIds?: string[],
 ): Promise<void> {
   try {
     const snap = await getDocs(
       query(collection(db, 'pushTokens'), where('cityId', '==', cityId)),
     );
     const entries = snap.docs
+      .filter((d) => !areaIds || areaIds.includes(d.data().homeAreaId))
       .map((d) => ({ docId: d.id, token: d.data().token as string }))
       .filter((e) => Boolean(e.token));
     await _sendBatch(entries, title, body, data);

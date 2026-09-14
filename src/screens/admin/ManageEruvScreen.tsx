@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, TextInput, ActivityIndicator, Modal,
-  Image,
+  Image, Pressable,
 } from 'react-native';
 import { AppAlert as Alert } from '../../components/AppAlert';
 
@@ -10,12 +10,16 @@ import MapView, { Polygon, Marker, MapPressEvent, Region } from 'react-native-ma
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useEruvStatus, useEruvReports } from '../../hooks/useEruv';
+import { useEruvStatuses, useEruvReports } from '../../hooks/useEruv';
 import { useCityId } from '../../hooks/useCityId';
 import { useCity } from '../../hooks/useCity';
+import { useAreas } from '../../hooks/useAreas';
 import { useAuth } from '../../context/AuthContext';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
-import { setEruvStatus, setEruvPolygon, resolveEruvReport, getEruvPolygons } from '../../services/eruv';
+import {
+  setEruvStatus, setEruvPolygon, resolveEruvReport, getEruvPolygons,
+  findEruvForArea, createEruv,
+} from '../../services/eruv';
 import { sendPushToCity } from '../../services/pushNotifications';
 import { Colors, Spacing, Radius } from '../../utils/theme';
 import { EruvCoordinate } from '../../types';
@@ -63,7 +67,56 @@ export default function ManageEruvScreen() {
   const { appUser } = useAuth();
   const [focused, setFocused] = useState(false);
   useFocusEffect(useCallback(() => { setFocused(true); return () => setFocused(false); }, []));
-  const { status, loading } = useEruvStatus(cityId, focused);
+
+  // Most tenants have exactly one eruv, and the settlement row below stays
+  // hidden for them — see the "golden rule" in the architecture proposal. A
+  // regional council can have several; an eruv_manager there is expected to
+  // manage more than just their own settlement, so — unlike the read-only
+  // EruvScreen — this always shows the full row rather than only a fallback.
+  const { statuses, loading } = useEruvStatuses(cityId, focused);
+  const { areas } = useAreas(cityId);
+  const [selectedEruvId, setSelectedEruvId] = useState<string | null>(null);
+  const ownEruv = useMemo(
+    () => findEruvForArea(statuses, appUser?.homeAreaId),
+    [statuses, appUser?.homeAreaId],
+  );
+  const activeEruv = useMemo(
+    () => statuses.find((s) => s.id === selectedEruvId) ?? ownEruv ?? statuses[0] ?? null,
+    [statuses, selectedEruvId, ownEruv],
+  );
+  const status = activeEruv;
+  const eruvId = activeEruv?.id ?? null;
+
+  // Areas not yet covered by any of this tenant's eruvin — offered as
+  // one-tap "add a settlement" targets. A single-area city never has any,
+  // since its one area became its one eruv's areaIds the day this migrated.
+  const coveredAreaIds = useMemo(
+    () => new Set(statuses.flatMap((s) => s.areaIds ?? [])),
+    [statuses],
+  );
+  const uncoveredAreas = useMemo(
+    () => areas.filter((a) => !coveredAreaIds.has(a.id)),
+    [areas, coveredAreaIds],
+  );
+  const [addingEruv, setAddingEruv] = useState(false);
+
+  function eruvLabel(e: typeof activeEruv): string {
+    if (!e) return '';
+    if (e.label) return e.label;
+    const names = e.areaIds.map((id) => areas.find((a) => a.id === id)?.name).filter(Boolean);
+    return names.join(' + ') || 'עירוב';
+  }
+
+  async function handleAddEruv(area: { id: string; name: string }) {
+    setAddingEruv(false);
+    try {
+      const newId = await createEruv(cityId, [area.id], area.name, appUser?.uid ?? '');
+      setSelectedEruvId(newId);
+    } catch (e: any) {
+      Alert.alert('שגיאה', e.message);
+    }
+  }
+
   const { reports } = useEruvReports(cityId, focused);
 
   // Opening from the profile badge means the user is coming for the reports —
@@ -267,15 +320,21 @@ export default function ManageEruvScreen() {
   }
 
   async function handleSaveStatus() {
+    if (!eruvId) return;
     setSavingStatus(true);
     try {
-      await setEruvStatus(cityId, statusValue, notes, appUser?.uid ?? '');
+      await setEruvStatus(eruvId, statusValue, notes, appUser?.uid ?? '');
       Alert.alert('נשמר', 'מצב העירוב עודכן בהצלחה');
       const label = statusValue === 'valid' ? 'כשר ✓' : 'פגום ⚠️';
+      // areaIds narrows this to residents of the settlement(s) this eruv
+      // actually covers — on a single-eruv tenant that's everyone anyway,
+      // since its one area is the whole city.
       sendPushToCity(
         cityId,
-        `עירוב ${city?.name ?? ''} — ${label}`,
+        `עירוב ${eruvLabel(activeEruv)} — ${label}`,
         notes.trim() || (statusValue === 'valid' ? 'העירוב תקין' : 'העירוב אינו תקין'),
+        undefined,
+        activeEruv?.areaIds,
       ).catch(() => {});
     } catch (e: any) {
       Alert.alert('שגיאה', e.message);
@@ -285,11 +344,12 @@ export default function ManageEruvScreen() {
   }
 
   async function handleSavePolygon() {
+    if (!eruvId) return;
     const valid = polygons.filter(p => p.length >= 3);
     if (valid.length === 0) { Alert.alert('שגיאה', 'יש לסמן לפחות מצולע אחד עם 3 נקודות'); return; }
     setSavingPolygon(true);
     try {
-      await setEruvPolygon(cityId, valid);
+      await setEruvPolygon(eruvId, valid);
       setEditingPolygon(false);
       resetSegment();
       Alert.alert('נשמר', 'גבולות העירוב עודכנו בהצלחה');
@@ -362,6 +422,60 @@ export default function ManageEruvScreen() {
         })}
       </View>
 
+      {/* Settlement row — hidden for a plain single-eruv tenant */}
+      {!loading && (statuses.length > 1 || uncoveredAreas.length > 0) && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={s.settlementRow}
+          contentContainerStyle={s.settlementRowContent}
+        >
+          {statuses.map((e) => {
+            const active = e.id === activeEruv?.id;
+            return (
+              <TouchableOpacity
+                key={e.id}
+                style={[s.settlementChip, active && s.settlementChipActive]}
+                onPress={() => setSelectedEruvId(e.id)}
+                activeOpacity={0.75}
+              >
+                <View style={[s.settlementChipDot, {
+                  backgroundColor: e.status === 'valid' ? Colors.success
+                    : e.status === 'invalid' ? Colors.danger : Colors.gold,
+                }]} />
+                <Text style={[s.settlementChipText, active && s.settlementChipTextActive]}>{eruvLabel(e)}</Text>
+              </TouchableOpacity>
+            );
+          })}
+          {uncoveredAreas.length > 0 && (
+            <TouchableOpacity style={s.settlementAddChip} onPress={() => setAddingEruv(true)} activeOpacity={0.75}>
+              <Ionicons name="add" size={16} color={Colors.gold} />
+              <Text style={s.settlementAddChipText}>הוסף יישוב</Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+      )}
+
+      {/* Add-a-settlement picker */}
+      <Modal visible={addingEruv} transparent animationType="fade" onRequestClose={() => setAddingEruv(false)}>
+        <Pressable style={s.modalBackdrop} onPress={() => setAddingEruv(false)}>
+          <Pressable style={s.modalCard} onPress={() => {}}>
+            <Text style={s.modalTitle}>הוספת עירוב ליישוב</Text>
+            <ScrollView style={{ maxHeight: 360 }}>
+              {uncoveredAreas.map((a) => (
+                <TouchableOpacity key={a.id} style={s.modalRow} onPress={() => handleAddEruv(a)} activeOpacity={0.7}>
+                  <Text style={s.modalRowText}>{a.name}</Text>
+                  <Ionicons name="chevron-back-outline" size={16} color={Colors.textMuted} />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity style={s.modalCancelBtn} onPress={() => setAddingEruv(false)}>
+              <Text style={s.modalCancelText}>ביטול</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {loading ? (
         <ActivityIndicator color={Colors.gold} style={{ marginTop: 60 }} size="large" />
       ) : activeTab === 'status' ? (
@@ -394,7 +508,7 @@ export default function ManageEruvScreen() {
           <Text style={s.fieldLabel}>הערות (אופציונלי)</Text>
           <TextInput scrollEnabled={false} style={s.textInput} placeholder="הסבר קצר למשתמשים..." value={notes} onChangeText={setNotes}
             multiline numberOfLines={3} textAlign="right" textAlignVertical="top" placeholderTextColor={Colors.textMuted} />
-          <TouchableOpacity style={[s.saveBtn, savingStatus && s.saveBtnDisabled]} onPress={handleSaveStatus} disabled={savingStatus}>
+          <TouchableOpacity style={[s.saveBtn, (savingStatus || !eruvId) && s.saveBtnDisabled]} onPress={handleSaveStatus} disabled={savingStatus || !eruvId}>
             {savingStatus ? <ActivityIndicator size="small" color={Colors.white} /> : <Text style={s.saveBtnText}>שמור מצב</Text>}
           </TouchableOpacity>
         </ScrollView>
@@ -656,6 +770,43 @@ const s = StyleSheet.create({
   tabTextActive: { color: Colors.gold },
 
   tabContent: { padding: Spacing.md },
+
+  // ── Settlement row (multi-eruv tenants only) ────────────────────────
+  settlementRow: {
+    backgroundColor: Colors.cardBackground,
+    borderBottomWidth: 1, borderBottomColor: Colors.border,
+  },
+  settlementRowContent: { flexDirection: 'row', gap: 8, padding: Spacing.sm, paddingHorizontal: Spacing.md },
+  settlementChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 7, borderRadius: Radius.full,
+    backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.border,
+  },
+  settlementChipActive:     { backgroundColor: Colors.gold + '1A', borderColor: Colors.gold },
+  settlementChipDot:        { width: 7, height: 7, borderRadius: 3.5 },
+  settlementChipText:       { fontSize: 12.5, fontWeight: '600', color: Colors.textSecondary },
+  settlementChipTextActive: { color: Colors.text },
+  settlementAddChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 12, paddingVertical: 7, borderRadius: Radius.full,
+    borderWidth: 1, borderStyle: 'dashed', borderColor: Colors.gold,
+  },
+  settlementAddChipText: { fontSize: 12.5, fontWeight: '600', color: Colors.gold },
+
+  // ── Add-settlement modal ─────────────────────────────────────────────
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', padding: Spacing.lg },
+  modalCard: {
+    width: '100%', maxWidth: 380, backgroundColor: Colors.cardBackground,
+    borderRadius: Radius.lg, padding: Spacing.lg,
+  },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: Colors.text, marginBottom: Spacing.sm, textAlign: 'center' },
+  modalRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.border,
+  },
+  modalRowText:    { fontSize: 15, color: Colors.text, fontWeight: '500' },
+  modalCancelBtn:  { marginTop: Spacing.sm, paddingVertical: 12, alignItems: 'center' },
+  modalCancelText: { fontSize: 15, fontWeight: '600', color: Colors.textSecondary },
 
   sectionTitle: { fontSize: 15, fontWeight: '700', color: Colors.text, marginBottom: Spacing.sm },
   fieldLabel:   { fontSize: 14, fontWeight: '600', color: Colors.text, marginBottom: 6, marginTop: Spacing.sm },

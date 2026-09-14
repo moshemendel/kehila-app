@@ -558,6 +558,28 @@ export interface EruvCoordinate {
 
 export interface EruvStatus {
   id: string;
+  /**
+   * Until this field, the document id itself WAS the city id — one eruv per
+   * city, full stop. That held for a single-eruv city like Ma'ale Adumim, but
+   * not for a regional council: Emek HaYarden's own eruvin page names 10
+   * settlements each maintaining an independent physical eruv (a settlement's
+   * own security fence, or standalone צורת הפתח posts), unified halachically
+   * one at a time. A council can now hold several eruvStatus documents, so
+   * the id had to stop being the key and become a plain field like every
+   * other collection's cityId.
+   */
+  cityId: string;
+  /**
+   * Which of the tenant's areas this particular eruv covers — almost always
+   * one, but a pair sharing one physical boundary (אשדות יעקב איחוד+מאוחד)
+   * is two. A single-area city's one eruv still carries this — its one
+   * area's id — so every reader can treat "which areas does this eruv cover"
+   * the same way regardless of tenant size.
+   */
+  areaIds: string[];
+  /** Display name for when a tenant has more than one eruv, e.g. "עירוב
+   *  אפיקים". Unused (and unneeded) while a tenant has only one. */
+  label?: string;
   status: 'valid' | 'invalid' | 'unknown';
   /**
    * The rings enclosing this eruv. Plural because one eruv can enclose areas
@@ -577,6 +599,9 @@ export interface EruvStatus {
 export interface EruvReport {
   id: string;
   cityId: string;
+  /** Which eruv this report is about — unset on a single-eruv tenant (there is
+   *  only one it could mean) and on reports filed before this field existed. */
+  eruvId?: string;
   userId: string;
   userDisplayName?: string;
   type: 'breach' | 'question';
