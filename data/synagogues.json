@@ -141,7 +141,8 @@
                 }
             ],
             "selichotStartDate": null,
-            "selichotCustom": "sephardi"
+            "selichotCustom": "sephardi",
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-10",
@@ -273,7 +274,8 @@
                     "name": "סימון אילוז",
                     "phone": "050-5791024"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-11",
@@ -333,7 +335,8 @@
                     "name": "אורן מזרחי",
                     "phone": "050-5063547"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-12",
@@ -488,7 +491,8 @@
                     "name": "יורם רענן",
                     "phone": "052-7737727"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-13",
@@ -523,7 +527,8 @@
                     "name": "דורון סגל",
                     "phone": "050-6284176"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-14",
@@ -557,7 +562,8 @@
                     "name": "שי רחמני",
                     "phone": "052-8655561"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-15",
@@ -591,7 +597,8 @@
                     "name": "ראובן מנגסטו",
                     "phone": "053-4844223"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-16",
@@ -625,7 +632,8 @@
                     "name": "משה דיין",
                     "phone": "050-4175511"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-17",
@@ -768,7 +776,8 @@
                     "name": "רחמים יצקן",
                     "phone": "050-6209903"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-18",
@@ -825,7 +834,8 @@
                     "name": "לוי יצחק ג'ורנו",
                     "phone": "052-6111714"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-19",
@@ -972,7 +982,8 @@
                     "name": "משה אסייג",
                     "phone": "050-8511416"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-2",
@@ -1006,7 +1017,8 @@
                     "name": "מוטי פרץ",
                     "phone": "050-5506063"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-20",
@@ -1108,7 +1120,7 @@
                 }
             ],
             "notes": null,
-            "updatedAt": "2026-09-03T12:15:05.084Z",
+            "updatedAt": "2026-09-14T11:55:21.616Z",
             "wazeLink": null,
             "navigationNote": "בפארק מעל גני הילדים",
             "address": {
@@ -1124,13 +1136,13 @@
             ],
             "synagogueEvents": [
                 {
+                    "createdAt": "2026-07-20T14:26:28.582Z",
                     "startDate": "2026-07-23T13:30:00.000Z",
-                    "id": "ev_1784557588582",
-                    "isAlert": false,
-                    "description": "כן",
-                    "title": "חצי יום של תורה",
                     "category": "shiur",
-                    "createdAt": "2026-07-20T14:26:28.582Z"
+                    "description": "כן",
+                    "isAlert": false,
+                    "title": "חצי יום של תורה",
+                    "id": "ev_1784557588582"
                 }
             ],
             "shabbatSchedule": {
@@ -1185,7 +1197,8 @@
                         "dates": null
                     }
                 ]
-            }
+            },
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-21",
@@ -1219,7 +1232,8 @@
                     "name": "עמנואל טוביאנה",
                     "phone": "050-7426215"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-22",
@@ -1385,7 +1399,8 @@
                     "name": "שמואל איילון",
                     "phone": "052-8901550"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-23",
@@ -1442,7 +1457,8 @@
                     "name": "גיא נגדאי",
                     "phone": "054-6660542"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-24",
@@ -1470,7 +1486,8 @@
             "address": {
                 "he": "ככר יהלום",
                 "en": "Yahalom Square"
-            }
+            },
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-25",
@@ -1558,7 +1575,8 @@
                     "name": "שמואל פרידמן",
                     "phone": "054-8887527"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-26",
@@ -1650,7 +1668,8 @@
                     "name": "משה סוריט",
                     "phone": "050-8296386"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-27",
@@ -1696,7 +1715,8 @@
                     "name": "אהרן דנה",
                     "phone": "052-8899559"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-28",
@@ -1850,7 +1870,8 @@
                     "name": "ירון מחסומי",
                     "phone": "050-3971500"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-29",
@@ -1890,7 +1911,8 @@
             "address": {
                 "he": "דרך קדם 5",
                 "en": "Derech Kedem 5"
-            }
+            },
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-3",
@@ -1937,7 +1959,8 @@
                     "name": "מתי קופמן",
                     "phone": "052-8308040"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-30",
@@ -1966,7 +1989,8 @@
                 "he": "גבעת המייסדים",
                 "en": "Givat HaMeyasdim"
             },
-            "gabbaim": []
+            "gabbaim": [],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-31",
@@ -2012,7 +2036,8 @@
                     "name": "דלתות המלך",
                     "phone": "052-4890083"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-32",
@@ -2058,7 +2083,8 @@
                     "name": "מיכאל בליטי",
                     "phone": "053-7254030"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-33",
@@ -2118,7 +2144,8 @@
                     "name": "אברהם סוריט",
                     "phone": "050-8885790"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-34",
@@ -2183,7 +2210,8 @@
                     "name": "מיכאל פומרנץ",
                     "phone": "050-5670113"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-35",
@@ -2249,7 +2277,8 @@
                     "name": "נתן קרא-איוונוב",
                     "phone": "054-7718363"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-36",
@@ -2284,7 +2313,8 @@
                     "name": "עוז אריאל",
                     "phone": "050-9800446"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-37",
@@ -2330,7 +2360,8 @@
                     "name": "רן גבאי",
                     "phone": "052-5666834"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-38",
@@ -2365,7 +2396,8 @@
                     "name": "דניאל מינץ",
                     "phone": "050-4567844"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-39",
@@ -2464,7 +2496,8 @@
                     "name": "מיטל בוזגלו",
                     "phone": "050-9195054"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-4",
@@ -2498,7 +2531,8 @@
                     "name": "מתניה רייכמן",
                     "phone": "054-5243865"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-40",
@@ -2594,7 +2628,8 @@
                     "name": "בן ישעיה",
                     "phone": "050-6775063"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-41",
@@ -2720,7 +2755,8 @@
                     "name": "יחיאל וקנין",
                     "phone": "050-6613697"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-42",
@@ -2769,7 +2805,8 @@
                     "name": "יורן נאקי",
                     "phone": "050-5078579"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-43",
@@ -2902,7 +2939,8 @@
                     "name": "גרשון לוי",
                     "phone": "050-6775758"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-44",
@@ -2936,7 +2974,8 @@
                     "name": "עמנואל רווח",
                     "phone": "054-8318023"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-45",
@@ -3023,7 +3062,8 @@
                     "name": "מאיר דדון",
                     "phone": "054-5944840"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-46",
@@ -3069,7 +3109,8 @@
                     "name": "רב שמואל",
                     "phone": "052-7707488"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-47",
@@ -3229,7 +3270,8 @@
                     "name": "שמואל בכר",
                     "phone": "054-2888790"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-48",
@@ -3302,7 +3344,8 @@
                     "name": "אשר אבגי",
                     "phone": "050-9009895"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-49",
@@ -3348,7 +3391,8 @@
                     "name": "יעקב אהרון",
                     "phone": "050-6889977"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-5",
@@ -3446,7 +3490,8 @@
                     "name": "יעקב בנימין",
                     "phone": "053-3630906"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-50",
@@ -3598,7 +3643,8 @@
                     "name": "ירון אסלן",
                     "phone": "052-5040440"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-51",
@@ -3659,7 +3705,8 @@
                     "name": "יוסף סויסה",
                     "phone": "050-7701145"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-52",
@@ -3804,7 +3851,8 @@
                     "name": "אורי שבתאי",
                     "phone": "050-5772323"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-53",
@@ -3846,7 +3894,8 @@
                     "name": "יקיר חליבה",
                     "phone": "050-2287598"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-54",
@@ -3917,7 +3966,8 @@
                     "name": "גלעד ליבר",
                     "phone": "054-7884832"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-55",
@@ -4043,7 +4093,8 @@
                     "name": "ינון דוינו",
                     "phone": "052-5262535"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-56",
@@ -4130,7 +4181,8 @@
                     "name": "אילן לוי",
                     "phone": "050-6277933"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-57",
@@ -4236,7 +4288,8 @@
                     "name": "גיא קרסנטי",
                     "phone": "052-3995792"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-58",
@@ -4270,7 +4323,8 @@
                     "name": "ארז שעיבי",
                     "phone": "050-6275559"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-59",
@@ -4304,7 +4358,8 @@
                     "name": "שי מורלי",
                     "phone": "054-7887569"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-6",
@@ -4405,7 +4460,8 @@
                     "name": "ירון קלר",
                     "phone": "050-6775777"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-60",
@@ -4477,7 +4533,8 @@
                     "name": "בנצי אנדה",
                     "phone": "054-7887390"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-61",
@@ -4547,7 +4604,8 @@
                     "name": "הראל רווה",
                     "phone": "055-6616808"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-62",
@@ -4647,7 +4705,8 @@
                     "name": "אוריאל תאיר",
                     "phone": "054-4547374"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-63",
@@ -4713,7 +4772,8 @@
                     "name": "אריה כהן",
                     "phone": "052-7099978"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-64",
@@ -4747,7 +4807,8 @@
                     "name": "אבי משה",
                     "phone": "050-6235234"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-65",
@@ -4833,7 +4894,8 @@
                     "name": "עופר כהן",
                     "phone": "054-5666611"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-66",
@@ -4907,7 +4969,8 @@
                     "name": "מיכאל בן הרוש",
                     "phone": "052-2513632"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-67",
@@ -4941,7 +5004,8 @@
                     "name": "יונתן רוסנר",
                     "phone": "054-3040515"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-68",
@@ -5112,7 +5176,8 @@
                     "name": "שי פרץ",
                     "phone": "052-5665302"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-69",
@@ -5141,7 +5206,8 @@
             "address": {
                 "he": "מצפה נבו 23",
                 "en": "Mitzpe Nevo 23"
-            }
+            },
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-7",
@@ -5342,7 +5408,8 @@
                     "name": "שמעון מזרחי",
                     "phone": "050-8296491"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-8",
@@ -5376,7 +5443,8 @@
                     "name": "עודד שרעבי",
                     "phone": "054-5664488"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
         },
         {
             "id": "syn-9",
@@ -5519,7 +5587,306 @@
                     "name": "רונן ביטון",
                     "phone": "052-8604351"
                 }
-            ]
+            ],
+            "areaId": "area-default-city-1"
+        },
+        {
+            "id": "syn-70",
+            "cityId": "emek-hayarden",
+            "areaId": "area-176",
+            "name": "בית הכנסת אפיקים",
+            "nusach": [
+                "ספרד"
+            ],
+            "address": {
+                "he": "",
+                "en": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "חגי אביקסיס",
+                    "phone": "050-2177404"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "updatedAt": "2026-09-14T12:54:43.275Z"
+        },
+        {
+            "id": "syn-71",
+            "cityId": "emek-hayarden",
+            "areaId": "area-199",
+            "name": "בית הכנסת אשדות יעקב איחוד",
+            "nusach": [
+                "ספרד"
+            ],
+            "address": {
+                "he": "",
+                "en": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "ארנון גבאי",
+                    "phone": "050-8652638"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "updatedAt": "2026-09-14T12:54:43.275Z"
+        },
+        {
+            "id": "syn-72",
+            "cityId": "emek-hayarden",
+            "areaId": "area-62",
+            "name": "בית הכנסת דגניה א׳",
+            "nusach": [
+                "אשכנז"
+            ],
+            "address": {
+                "he": "",
+                "en": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "סיגל שושני",
+                    "phone": "052-3795688"
+                }
+            ],
+            "notes": "פעיל בחגי תשרי בלבד. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "updatedAt": "2026-09-14T12:54:43.275Z"
+        },
+        {
+            "id": "syn-73",
+            "cityId": "emek-hayarden",
+            "areaId": "area-79",
+            "name": "בית הכנסת דגניה ב׳",
+            "nusach": [
+                "ספרד"
+            ],
+            "address": {
+                "he": "",
+                "en": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "יריב ויצמן",
+                    "phone": "052-5554038"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "updatedAt": "2026-09-14T12:54:43.275Z"
+        },
+        {
+            "id": "syn-74",
+            "cityId": "emek-hayarden",
+            "areaId": "area-374",
+            "name": "בית הכנסת חוקוק",
+            "nusach": [
+                "עדות המזרח"
+            ],
+            "address": {
+                "he": "",
+                "en": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "תומר פרטוק",
+                    "phone": "054-2008055"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "updatedAt": "2026-09-14T12:54:43.275Z"
+        },
+        {
+            "id": "syn-75",
+            "cityId": "emek-hayarden",
+            "areaId": "area-57",
+            "name": "בית הכנסת כנרת קבוצה",
+            "nusach": [
+                "ספרד"
+            ],
+            "address": {
+                "he": "",
+                "en": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "עמוס מנחם",
+                    "phone": "052-8980552"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "updatedAt": "2026-09-14T12:54:43.275Z"
+        },
+        {
+            "id": "syn-76",
+            "cityId": "emek-hayarden",
+            "areaId": "area-63",
+            "name": "בית הכנסת כנרת מושבה",
+            "nusach": [
+                "ספרד"
+            ],
+            "address": {
+                "he": "",
+                "en": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "הרב בלוי",
+                    "phone": "054-2242279"
+                },
+                {
+                    "name": "שמוליק ממו",
+                    "phone": "050-7222115"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "updatedAt": "2026-09-14T12:54:43.275Z"
+        },
+        {
+            "id": "syn-77",
+            "cityId": "emek-hayarden",
+            "areaId": "area-273",
+            "name": "בית הכנסת עין גב",
+            "nusach": [
+                "עדות המזרח"
+            ],
+            "address": {
+                "he": "",
+                "en": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "צביקה נעים",
+                    "phone": "054-5658199"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "updatedAt": "2026-09-14T12:54:43.275Z"
+        },
+        {
+            "id": "syn-78",
+            "cityId": "emek-hayarden",
+            "areaId": "area-1104",
+            "name": "בית הכנסת פוריה כפר עבודה",
+            "nusach": [
+                "תימני"
+            ],
+            "address": {
+                "he": "",
+                "en": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "ישראל דשל",
+                    "phone": "050-6245327"
+                }
+            ],
+            "notes": "פעיל כל השבוע. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "updatedAt": "2026-09-14T12:54:43.275Z"
+        },
+        {
+            "id": "syn-79",
+            "cityId": "emek-hayarden",
+            "areaId": "area-1105",
+            "name": "בית הכנסת מעשה ידיו",
+            "nusach": [
+                "עדות המזרח"
+            ],
+            "address": {
+                "he": "",
+                "en": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "חיים בוסנינו",
+                    "phone": "055-6752177"
+                }
+            ],
+            "notes": "פעיל כל השבוע · פוריה נווה עובד. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "updatedAt": "2026-09-14T12:54:43.275Z"
+        },
+        {
+            "id": "syn-80",
+            "cityId": "emek-hayarden",
+            "areaId": "area-1105",
+            "name": "בית הכנסת המרכזי",
+            "nusach": [
+                "עדות המזרח"
+            ],
+            "address": {
+                "he": "",
+                "en": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "מאיר אלמלם",
+                    "phone": "052-2698109"
+                }
+            ],
+            "notes": "פעיל כל השבוע · פוריה נווה עובד. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "updatedAt": "2026-09-14T12:54:43.275Z"
+        },
+        {
+            "id": "syn-81",
+            "cityId": "emek-hayarden",
+            "areaId": "area-1105",
+            "name": "בית הכנסת עץ החיים",
+            "nusach": [
+                "עדות המזרח"
+            ],
+            "address": {
+                "he": "",
+                "en": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "רוני כהן",
+                    "phone": "050-2265638"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים · פוריה נווה עובד. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "updatedAt": "2026-09-14T12:54:43.275Z"
+        },
+        {
+            "id": "syn-82",
+            "cityId": "emek-hayarden",
+            "areaId": "area-264",
+            "name": "בית הכנסת שער הגולן",
+            "nusach": [
+                "ספרד"
+            ],
+            "address": {
+                "he": "",
+                "en": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "איציק עזרא",
+                    "phone": "052-3864339"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "updatedAt": "2026-09-14T12:54:43.275Z"
+        },
+        {
+            "id": "syn-83",
+            "cityId": "emek-hayarden",
+            "areaId": "area-719",
+            "name": "בית הכנסת תל קציר",
+            "nusach": [
+                "ספרד"
+            ],
+            "address": {
+                "he": "",
+                "en": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "אבי שמואל",
+                    "phone": "054-3030642"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "updatedAt": "2026-09-14T12:54:43.275Z"
         }
     ]
 }

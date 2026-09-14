@@ -235,6 +235,11 @@ export interface Shiur {
 export interface Synagogue {
   id: string;
   cityId: string;
+  /** Which of the tenant's areas this record belongs to — e.g. one
+   *  settlement of a regional council. Nothing reads this yet (see the
+   *  "golden rule" in the architecture proposal); it is written so the
+   *  data is there for when a screen needs to filter or group by it. */
+  areaId?: string;
   neighborhood?: string;
   name: string;
   nusach: string[];
@@ -318,6 +323,8 @@ export type BusinessType = "serving" | "factory"; // dine-in vs production (bake
 export interface Business {
   id: string;
   cityId: string;
+  /** Which of the tenant's areas this business is in — see Synagogue.areaId. */
+  areaId?: string;
   name: string;
   category: string;        // legacy single value (kept = categories[0] for back-compat)
   categories?: string[];   // multi-choice kashrut types: meat | dairy | pareve | vegan | cafe | bakery
@@ -412,6 +419,8 @@ export interface MikvehAppointment {
 export interface Mikveh {
   id: string;
   cityId: string;
+  /** Which of the tenant's areas this mikveh is in — see Synagogue.areaId. */
+  areaId?: string;
   name: string;
   type: MikvehType;
   neighborhood?: string;
