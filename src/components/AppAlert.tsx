@@ -137,7 +137,7 @@ export function AppAlertHost() {
   };
 
   return (
-    <BottomSheetModal visible={visible} onClose={dismiss} title={current?.title} maxHeight="60%">
+    <BottomSheetModal visible={visible} onClose={dismiss} title={current?.title} maxHeight="60%" sheetStyle={s.sheetPad}>
       {current && (
         <View>
           {!!current.message && <Text style={s.message}>{current.message}</Text>}
@@ -184,7 +184,13 @@ function AlertButtonView({ style, text, onPress }: { style: NonNullable<AppAlert
 }
 
 const s = StyleSheet.create({
-  message: { fontSize: 14, color: Colors.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: Spacing.lg },
+  // BottomSheetModal's `title` gets its own paddingHorizontal, but the sheet
+  // itself carries none — every other consumer supplies it via `sheetStyle`
+  // (see e.g. NavigationAppSheet, LocationEditModal). This was the one that
+  // didn't: the title sat properly inset while the message and buttons ran
+  // edge to edge into the sheet's rounded corners.
+  sheetPad: { paddingHorizontal: Spacing.lg },
+  message: { fontSize: 14, color: Colors.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: Spacing.md },
   input: {
     borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.sm,
     paddingHorizontal: 14, paddingVertical: 10, fontSize: 15, color: Colors.text,
