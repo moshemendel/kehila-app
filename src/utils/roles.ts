@@ -49,8 +49,25 @@ export interface RoleEntry {
   authority: boolean;
   /** Authority over published content — mirrors managesContentIn(). */
   content: boolean;
+  /**
+   * Where the role sits: 0 global, 1 city authority (city_admin), 2 a
+   * city-wide domain manager, 3 a per-object operator. Rows in the picker, and
+   * the shape of the hierarchy — a tier-3 role is appointed by its tier-2
+   * `parent` or by the city_admin, and is covered by both.
+   */
+  tier: 0 | 1 | 2 | 3;
   /** Needs specific items assigned to it before it means anything. */
-  manages?: 'synagogues' | 'businesses';
+  manages?: 'synagogues' | 'businesses' | 'mikvaot';
+  /**
+   * The array on the user document that holds the assignment. Named
+   * explicitly because `manages` does not determine it: mashgiach and
+   * business_manager both draw from businesses, into different arrays.
+   */
+  field?: 'managedSynagogueIds' | 'managedRestaurantIds' | 'managedMikvehIds' | 'supervisedBusinessIds';
+  /** The tier-2 role that may also appoint this one — mirrors the delegation
+   *  branch of the users update rule. Absent on business_manager: a shop
+   *  owner is appointed by the city_admin alone. */
+  parent?: UserRole;
 }
 
 export const ROLE_CATALOGUE = catalogue as RoleEntry[];
@@ -101,9 +118,20 @@ export const CONTENT_ROLES: UserRole[] = ROLE_CATALOGUE.filter((e) => e.content)
  */
 export const BLANKET_ROLES: UserRole[] = ROLE_CATALOGUE.filter((e) => e.blanket).map((e) => e.key);
 
-/** Roles that mean nothing until specific synagogues or businesses are assigned. */
+/** Roles that mean nothing until specific synagogues, businesses or mikvaot are assigned. */
 export const LIST_ROLES = new Set<UserRole>(
   ROLE_CATALOGUE.filter((e) => e.manages).map((e) => e.key),
+);
+
+/**
+ * tier-3 operator → the tier-2 domain manager that covers it and may appoint
+ * it: gabbai → synagogue_manager, mikveh_attendant → mikveh_manager,
+ * mashgiach → kosher_manager. Mirrors the delegates() branches of the users
+ * update rule. business_manager has no entry — a shop owner is the
+ * city_admin's to appoint.
+ */
+export const PARENT_ROLE: Partial<Record<UserRole, UserRole>> = Object.fromEntries(
+  ROLE_CATALOGUE.filter((e) => e.parent).map((e) => [e.key, e.parent as UserRole]),
 );
 
 /**

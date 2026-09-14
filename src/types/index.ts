@@ -54,6 +54,14 @@ export interface AppUser {
   roles?: UserRole[];
   managedSynagogueIds?: string[];
   managedRestaurantIds?: string[];
+  // The per-object assignments for the tier-3 roles, one array each. All four
+  // are admin-written — the users rules forbid self-edits and creates cannot
+  // seed them — and membership is the grant: attendsMikveh() and
+  // supervisesBusiness() in firestore.rules, as managesSynagogue's gabbai
+  // branch. A mashgiach's businesses are a separate array from a shop owner's
+  // because one account can be both, over different shops.
+  managedMikvehIds?: string[];      // mikveh_attendant
+  supervisedBusinessIds?: string[]; // mashgiach
   createdAt: Date;
 }
 

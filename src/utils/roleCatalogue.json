@@ -6,6 +6,7 @@
     "icon": "star-outline",
     "assignableBy": "super_admin",
     "scope": "global",
+    "tier": 0,
     "blanket": true,
     "authority": true,
     "content": true
@@ -17,6 +18,7 @@
     "icon": "code-slash-outline",
     "assignableBy": "super_admin",
     "scope": "global",
+    "tier": 0,
     "blanket": true,
     "authority": true,
     "content": true
@@ -28,6 +30,7 @@
     "icon": "key-outline",
     "assignableBy": "super_admin",
     "scope": "city",
+    "tier": 1,
     "blanket": true,
     "authority": true,
     "content": true
@@ -39,9 +42,22 @@
     "icon": "create-outline",
     "assignableBy": "city_admin",
     "scope": "city",
+    "tier": 2,
     "blanket": true,
     "authority": false,
     "content": true
+  },
+  {
+    "key": "synagogue_manager",
+    "label": "מנהל בתי כנסת",
+    "color": "primaryLight",
+    "icon": "business-outline",
+    "assignableBy": "city_admin",
+    "scope": "city",
+    "tier": 2,
+    "blanket": false,
+    "authority": false,
+    "content": false
   },
   {
     "key": "event_manager",
@@ -50,6 +66,7 @@
     "icon": "megaphone-outline",
     "assignableBy": "city_admin",
     "scope": "city",
+    "tier": 2,
     "blanket": false,
     "authority": false,
     "content": false
@@ -62,6 +79,7 @@
     "icon": "shield-checkmark-outline",
     "assignableBy": "city_admin",
     "scope": "city",
+    "tier": 2,
     "blanket": false,
     "authority": false,
     "content": false
@@ -73,6 +91,7 @@
     "icon": "water-outline",
     "assignableBy": "city_admin",
     "scope": "city",
+    "tier": 2,
     "blanket": false,
     "authority": false,
     "content": false
@@ -84,9 +103,25 @@
     "icon": "shield-outline",
     "assignableBy": "city_admin",
     "scope": "city",
+    "tier": 2,
     "blanket": false,
     "authority": false,
     "content": false
+  },
+  {
+    "key": "mashgiach",
+    "label": "משגיח כשרות",
+    "color": "success",
+    "icon": "shield-checkmark-outline",
+    "assignableBy": "city_admin",
+    "scope": "city",
+    "tier": 3,
+    "blanket": false,
+    "authority": false,
+    "content": false,
+    "manages": "businesses",
+    "field": "supervisedBusinessIds",
+    "parent": "kosher_manager"
   },
   {
     "key": "business_manager",
@@ -95,10 +130,27 @@
     "icon": "restaurant-outline",
     "assignableBy": "city_admin",
     "scope": "city",
+    "tier": 3,
     "blanket": false,
     "authority": false,
     "content": false,
-    "manages": "businesses"
+    "manages": "businesses",
+    "field": "managedRestaurantIds"
+  },
+  {
+    "key": "mikveh_attendant",
+    "label": "בלן/בלנית",
+    "color": "mikveh",
+    "icon": "water-outline",
+    "assignableBy": "city_admin",
+    "scope": "city",
+    "tier": 3,
+    "blanket": false,
+    "authority": false,
+    "content": false,
+    "manages": "mikvaot",
+    "field": "managedMikvehIds",
+    "parent": "mikveh_manager"
   },
   {
     "key": "gabbai",
@@ -107,10 +159,13 @@
     "icon": "business-outline",
     "assignableBy": "city_admin",
     "scope": "city",
+    "tier": 3,
     "blanket": false,
     "authority": false,
     "content": false,
-    "manages": "synagogues"
+    "manages": "synagogues",
+    "field": "managedSynagogueIds",
+    "parent": "synagogue_manager"
   },
   {
     "key": "user",
@@ -119,6 +174,7 @@
     "icon": "person-outline",
     "assignableBy": "city_admin",
     "scope": "city",
+    "tier": 3,
     "blanket": false,
     "authority": false,
     "content": false
