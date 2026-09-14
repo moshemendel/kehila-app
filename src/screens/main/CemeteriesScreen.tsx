@@ -11,12 +11,15 @@ import { useAnalyticsTrack } from '../../services/analytics';
 import { useCemeteries } from '../../hooks/useCemeteries';
 import { useCityId } from '../../hooks/useCityId';
 import { useAreas } from '../../hooks/useAreas';
+import { useNavigateTo } from '../../hooks/useNavigateTo';
+import { resolveNavTarget, hasNavTarget, NavTarget } from '../../utils/navigationApps';
 import { Colors, Spacing, Radius, CardShell } from '../../utils/theme';
 import { Cemetery } from '../../types';
 
-function CemeteryCard({ item, areaNames }: { item: Cemetery; areaNames: string }) {
+function CemeteryCard({ item, areaNames, navTarget, onNavigate }: {
+  item: Cemetery; areaNames: string; navTarget: NavTarget; onNavigate: (t: NavTarget) => void;
+}) {
   const call = () => { if (item.contactPhone) Linking.openURL(`tel:${item.contactPhone}`); };
-  const directions = () => { if (item.directionsUrl) Linking.openURL(item.directionsUrl); };
   return (
     <View style={s.card}>
       <View style={s.cardHeader}>
@@ -37,8 +40,8 @@ function CemeteryCard({ item, areaNames }: { item: Cemetery; areaNames: string }
         </View>
       )}
 
-      {!!item.directionsUrl && (
-        <TouchableOpacity style={s.directionsBtn} onPress={directions} activeOpacity={0.75}>
+      {hasNavTarget(navTarget) && (
+        <TouchableOpacity style={s.directionsBtn} onPress={() => onNavigate(navTarget)} activeOpacity={0.75}>
           <Ionicons name="navigate-outline" size={14} color={Colors.cemetery} />
           <Text style={s.directionsTxt}>ניווט</Text>
         </TouchableOpacity>
@@ -56,15 +59,27 @@ export default function CemeteriesScreen() {
   const [focused, setFocused] = useState(false);
   useFocusEffect(useCallback(() => { setFocused(true); return () => setFocused(false); }, []));
   const { cemeteries, loading } = useCemeteries(cityId, focused);
-  // Only fetched to show which settlement(s) a cemetery serves — a plain
-  // city's one cemetery has one area and this renders nothing extra for it.
+  // Areas do double duty here: naming which settlement(s) a cemetery serves
+  // (nothing extra rendered for a plain city's one area), and as the
+  // fallback pin for the ~4 of these 18 that only have a bare Waze link and
+  // no coordinates of their own — see resolveNavTarget.
   const { areas } = useAreas(cityId);
+  const { go: navigateTo, sheet: navSheet } = useNavigateTo();
 
   function areaNamesFor(c: Cemetery): string {
     return (c.areaIds ?? [])
       .map((id) => areas.find((a) => a.id === id)?.name)
       .filter(Boolean)
       .join(' + ');
+  }
+
+  // A cemetery's areaIds can be plural (shared between two kibbutzim); the
+  // fallback only needs one point to aim at, so the first is enough.
+  function navTargetFor(c: Cemetery): NavTarget {
+    return resolveNavTarget(
+      { latitude: c.latitude, longitude: c.longitude, areaId: c.areaIds?.[0], wazeLink: c.directionsUrl },
+      areas,
+    );
   }
 
   return (
@@ -90,10 +105,14 @@ export default function CemeteriesScreen() {
           showsVerticalScrollIndicator={false}
         >
           {cemeteries.map((c) => (
-            <CemeteryCard key={c.id} item={c} areaNames={areaNamesFor(c)} />
+            <CemeteryCard
+              key={c.id} item={c} areaNames={areaNamesFor(c)}
+              navTarget={navTargetFor(c)} onNavigate={navigateTo}
+            />
           ))}
         </ScrollView>
       )}
+      {navSheet}
     </View>
   );
 }

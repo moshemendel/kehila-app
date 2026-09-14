@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigateTo } from '../../hooks/useNavigateTo';
+import { resolveNavTarget, hasNavTarget } from '../../utils/navigationApps';
+import { useAreas } from '../../hooks/useAreas';
 import ReportListingButton from '../../components/ReportListingButton';
 import EditListingButton from '../../components/EditListingButton';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
@@ -275,6 +277,7 @@ export default function SynagogueDetailScreen() {
     [synagogues, fetched, route.params.synagogueId],
   );
   const cityId              = useCityId();
+  const { areas }           = useAreas(cityId);
   const todayZmanim         = useTodayZmanim(cityId);
   const { friday: fridayZmanim, shabbat: shabbatZmanim } = useShabbatZmanim(cityId);
   const { isFavorite, getFavoriteSetting, setFavorite, removeFavorite } = useFavorites();
@@ -378,8 +381,16 @@ export default function SynagogueDetailScreen() {
 
   // ── syn is guaranteed non-null from here ──────────────────────────────────
   const fav      = isFavorite(syn.id);
+  const navTarget = resolveNavTarget(
+    { latitude: syn.latitude, longitude: syn.longitude, address: synAddress(syn), areaId: syn.areaId, wazeLink: syn.wazeLink },
+    areas,
+  );
+  // Only true precise coordinates gate the little chevron next to the address
+  // row below (it means "this exact pin is tappable") — the fallback area pin
+  // still makes the separate "get directions" button below work, just isn't
+  // claimed as the shul's own exact location.
   const hasNav   = !!(syn.latitude && syn.longitude);
-  const navTarget = { latitude: syn.latitude, longitude: syn.longitude, address: synAddress(syn), wazeLink: syn.wazeLink };
+  const canNavigate = hasNavTarget(navTarget);
 
   const nusachValues = Array.isArray(syn.nusach) ? syn.nusach.filter(Boolean) : (syn.nusach ? [syn.nusach as unknown as string] : []);
   const primaryNusach = nusachValues[0] ?? '';
@@ -558,9 +569,9 @@ export default function SynagogueDetailScreen() {
             )}
 
             {/* Action buttons — same layout as business / mikveh */}
-            {(hasNav || !!syn.wazeLink || hasPhone) && (
+            {(canNavigate || hasPhone) && (
               <View style={st.actionsRow}>
-                {(hasNav || !!syn.wazeLink) && (
+                {canNavigate && (
                   <TouchableOpacity
                     style={[st.actionBtn, st.actionBtnPrimary, { backgroundColor: nusachColor, borderColor: nusachColor }]}
                     onPress={() => navigateTo(navTarget)}

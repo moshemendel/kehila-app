@@ -11,6 +11,8 @@ import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import ReportListingButton from '../../components/ReportListingButton';
 import EditListingButton from '../../components/EditListingButton';
 import { useNavigateTo } from '../../hooks/useNavigateTo';
+import { resolveNavTarget } from '../../utils/navigationApps';
+import { useAreas } from '../../hooks/useAreas';
 import { Business, KosherCertificate, DayKey } from '../../types';
 import { getBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../../services/businesses';
 import { businessHoursForDay } from '../../utils/appointmentSlots';
@@ -67,6 +69,7 @@ export default function BusinessDetailScreen() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [certModal, setCertModal] = useState<string | null>(null);
+  const { areas } = useAreas(business?.cityId ?? '');
 
   useEffect(() => {
     getBusiness(businessId)
@@ -264,7 +267,7 @@ export default function BusinessDetailScreen() {
             {/* Address → maps */}
             <TouchableOpacity
               style={styles.metaRow}
-              onPress={() => navigateTo({ latitude: business.latitude, longitude: business.longitude, address: business.address })}
+              onPress={() => navigateTo(resolveNavTarget({ latitude: business.latitude, longitude: business.longitude, address: business.address, areaId: business.areaId }, areas))}
               activeOpacity={0.7}
             >
               <Ionicons name="location-outline" size={15} color={Colors.kosher} />
@@ -311,7 +314,7 @@ export default function BusinessDetailScreen() {
               )}
               <TouchableOpacity
                 style={[styles.actionBtn, styles.actionBtnPrimary]}
-                onPress={() => navigateTo({ latitude: business.latitude, longitude: business.longitude, address: business.address })}
+                onPress={() => navigateTo(resolveNavTarget({ latitude: business.latitude, longitude: business.longitude, address: business.address, areaId: business.areaId }, areas))}
               >
                 <Ionicons name="navigate" size={18} color="#fff" />
                 <Text style={[styles.actionBtnTxt, { color: '#fff' }]}>ניווט</Text>

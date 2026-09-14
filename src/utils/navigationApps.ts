@@ -1,4 +1,5 @@
 import { Linking, Platform } from 'react-native';
+import { Area } from '../types';
 
 /**
  * Opening a destination in whatever navigation app the user prefers.
@@ -46,6 +47,38 @@ export interface NavTarget {
 
 const hasCoords = (t: NavTarget): t is NavTarget & { latitude: number; longitude: number } =>
   typeof t.latitude === 'number' && typeof t.longitude === 'number';
+
+/**
+ * Best NavTarget available for a record that may not have its own precise
+ * pin yet — most of what was imported from mdjv.org.il (58 businesses, most
+ * of 15 synagogues, some cemeteries) has neither coordinates nor a real
+ * address, only a generic regional one ("עמק הירדן") that turns "get
+ * directions" into a search for the whole council instead of the actual
+ * place. Falling back to the record's own area — already geocoded for
+ * every one of a council's real settlements, or a plain city's one
+ * isDefault area — gets a user to the right VILLAGE even before someone
+ * pins the exact building. Falls back further to the record's own address
+ * text, or nothing, if even the area is unknown.
+ */
+export function resolveNavTarget(
+  record: { latitude?: number; longitude?: number; address?: string; areaId?: string; wazeLink?: string },
+  areas: Area[],
+): NavTarget {
+  if (hasCoords(record)) {
+    return { latitude: record.latitude, longitude: record.longitude, address: record.address, wazeLink: record.wazeLink };
+  }
+  const area = areas.find((a) => a.id === record.areaId);
+  if (area) {
+    return { latitude: area.latitude, longitude: area.longitude, address: record.address || area.name, wazeLink: record.wazeLink };
+  }
+  return { address: record.address, wazeLink: record.wazeLink };
+}
+
+/** Whether resolveNavTarget's result is actually usable — a real pin, a
+ *  fallback area pin, an address to search, or a stored Waze link. */
+export function hasNavTarget(t: NavTarget): boolean {
+  return hasCoords(t) || !!t.address || !!t.wazeLink;
+}
 
 /** True when the platform can show its own "open with" chooser. */
 export const HAS_NATIVE_CHOOSER = Platform.OS === 'android';
