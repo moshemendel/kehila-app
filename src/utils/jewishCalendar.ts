@@ -151,8 +151,13 @@ export function getUpcomingFast(date: Date = new Date(), maxLookAheadDays = 1): 
     try { isMajorFast = cal.isYomKippur(); } catch {}
     if (!isMajorFast) {
       try {
-        const idx = cal.getYomTovIndex();
-        isMajorFast = idx === 11; // JewishCalendar.TISHA_BEAV
+        // Was `idx === 11` — off by one library constant. 11 is
+        // JewishCalendar.FAST_OF_GEDALYAH, not TISHA_BEAV (7); every year,
+        // this made Tzom Gedaliah render as if it began the evening before,
+        // like Yom Kippur/Tisha B'Av actually do, instead of at dawn on the
+        // fast day itself like every minor fast does. Named constant instead
+        // of either magic number, so this can't happen again.
+        isMajorFast = cal.getYomTovIndex() === JewishCalendar.TISHA_BEAV;
       } catch {}
     }
 
