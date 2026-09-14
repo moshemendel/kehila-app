@@ -5412,6 +5412,234 @@
             "areaId": "area-default-city-1"
         },
         {
+            "id": "syn-70",
+            "cityId": "emek-hayarden",
+            "areaId": "area-176",
+            "name": "בית הכנסת אפיקים",
+            "nusach": [
+                "ספרד"
+            ],
+            "address": {
+                "en": "",
+                "he": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "חגי אביקסיס",
+                    "phone": "050-2177404"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "weeklySchedule": {}
+        },
+        {
+            "id": "syn-71",
+            "cityId": "emek-hayarden",
+            "areaId": "area-199",
+            "name": "בית הכנסת אשדות יעקב איחוד",
+            "nusach": [
+                "ספרד"
+            ],
+            "address": {
+                "en": "",
+                "he": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "ארנון גבאי",
+                    "phone": "050-8652638"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "weeklySchedule": {}
+        },
+        {
+            "id": "syn-72",
+            "cityId": "emek-hayarden",
+            "areaId": "area-62",
+            "name": "בית הכנסת דגניה א׳",
+            "nusach": [
+                "אשכנז"
+            ],
+            "address": {
+                "en": "",
+                "he": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "סיגל שושני",
+                    "phone": "052-3795688"
+                }
+            ],
+            "notes": "פעיל בחגי תשרי בלבד. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "weeklySchedule": {}
+        },
+        {
+            "id": "syn-73",
+            "cityId": "emek-hayarden",
+            "areaId": "area-79",
+            "name": "בית הכנסת דגניה ב׳",
+            "nusach": [
+                "ספרד"
+            ],
+            "address": {
+                "en": "",
+                "he": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "יריב ויצמן",
+                    "phone": "052-5554038"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "weeklySchedule": {}
+        },
+        {
+            "id": "syn-74",
+            "cityId": "emek-hayarden",
+            "areaId": "area-374",
+            "name": "בית הכנסת חוקוק",
+            "nusach": [
+                "עדות המזרח"
+            ],
+            "address": {
+                "en": "",
+                "he": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "תומר פרטוק",
+                    "phone": "054-2008055"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "weeklySchedule": {}
+        },
+        {
+            "id": "syn-75",
+            "cityId": "emek-hayarden",
+            "areaId": "area-57",
+            "name": "בית הכנסת כנרת קבוצה",
+            "nusach": [
+                "ספרד"
+            ],
+            "address": {
+                "en": "",
+                "he": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "עמוס מנחם",
+                    "phone": "052-8980552"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "weeklySchedule": {}
+        },
+        {
+            "id": "syn-76",
+            "cityId": "emek-hayarden",
+            "areaId": "area-63",
+            "name": "בית הכנסת כנרת מושבה",
+            "nusach": [
+                "ספרד"
+            ],
+            "address": {
+                "en": "",
+                "he": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "הרב בלוי",
+                    "phone": "054-2242279"
+                },
+                {
+                    "name": "שמוליק ממו",
+                    "phone": "050-7222115"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "weeklySchedule": {}
+        },
+        {
+            "id": "syn-77",
+            "cityId": "emek-hayarden",
+            "areaId": "area-273",
+            "name": "בית הכנסת עין גב",
+            "nusach": [
+                "עדות המזרח"
+            ],
+            "address": {
+                "en": "",
+                "he": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "צביקה נעים",
+                    "phone": "054-5658199"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "weeklySchedule": {}
+        },
+        {
+            "id": "syn-78",
+            "cityId": "emek-hayarden",
+            "areaId": "area-1104",
+            "name": "בית הכנסת פוריה כפר עבודה",
+            "nusach": [
+                "תימני"
+            ],
+            "address": {
+                "en": "",
+                "he": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "ישראל דשל",
+                    "phone": "050-6245327"
+                }
+            ],
+            "notes": "פעיל כל השבוע. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "weeklySchedule": {}
+        },
+        {
+            "id": "syn-79",
+            "cityId": "emek-hayarden",
+            "areaId": "area-1105",
+            "name": "בית הכנסת מעשה ידיו",
+            "nusach": [
+                "עדות המזרח"
+            ],
+            "address": {
+                "en": "",
+                "he": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "חיים בוסנינו",
+                    "phone": "055-6752177"
+                }
+            ],
+            "notes": "פעיל כל השבוע · פוריה נווה עובד. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il) שחרית 6:45 (חול). מקור: ביקורת גוגל מפות (אברהם איבי גרסטל, ממליץ מקומי).",
+            "weeklySchedule": {
+                "shacharit": [
+                    {
+                        "time": "06:45",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ]
+            }
+        },
+        {
             "id": "syn-8",
             "cityId": "city-1",
             "neighborhood": "נופי סלע (07)",
@@ -5445,6 +5673,104 @@
                 }
             ],
             "areaId": "area-default-city-1"
+        },
+        {
+            "id": "syn-80",
+            "cityId": "emek-hayarden",
+            "areaId": "area-1105",
+            "name": "בית הכנסת המרכזי",
+            "nusach": [
+                "עדות המזרח"
+            ],
+            "address": {
+                "en": "",
+                "he": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "מאיר אלמלם",
+                    "phone": "052-2698109"
+                }
+            ],
+            "notes": "פעיל כל השבוע · פוריה נווה עובד. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il) שחרית 6:45, הודו 7:00 (חול), נוסח עדות המזרח. מקור: ביקורת גוגל מפות (אברהם איבי גרסטל, ממליץ מקומי).",
+            "weeklySchedule": {
+                "shacharit": [
+                    {
+                        "time": "06:45",
+                        "days": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "id": "syn-81",
+            "cityId": "emek-hayarden",
+            "areaId": "area-1105",
+            "name": "בית הכנסת עץ החיים",
+            "nusach": [
+                "עדות המזרח"
+            ],
+            "address": {
+                "en": "",
+                "he": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "רוני כהן",
+                    "phone": "050-2265638"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים · פוריה נווה עובד. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "weeklySchedule": {}
+        },
+        {
+            "id": "syn-82",
+            "cityId": "emek-hayarden",
+            "areaId": "area-264",
+            "name": "בית הכנסת שער הגולן",
+            "nusach": [
+                "ספרד"
+            ],
+            "address": {
+                "en": "",
+                "he": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "איציק עזרא",
+                    "phone": "052-3864339"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "weeklySchedule": {}
+        },
+        {
+            "id": "syn-83",
+            "cityId": "emek-hayarden",
+            "areaId": "area-719",
+            "name": "בית הכנסת תל קציר",
+            "nusach": [
+                "ספרד"
+            ],
+            "address": {
+                "en": "",
+                "he": ""
+            },
+            "gabbaim": [
+                {
+                    "name": "אבי שמואל",
+                    "phone": "054-3030642"
+                }
+            ],
+            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
+            "weeklySchedule": {}
         },
         {
             "id": "syn-9",
@@ -5589,304 +5915,6 @@
                 }
             ],
             "areaId": "area-default-city-1"
-        },
-        {
-            "id": "syn-70",
-            "cityId": "emek-hayarden",
-            "areaId": "area-176",
-            "name": "בית הכנסת אפיקים",
-            "nusach": [
-                "ספרד"
-            ],
-            "address": {
-                "he": "",
-                "en": ""
-            },
-            "gabbaim": [
-                {
-                    "name": "חגי אביקסיס",
-                    "phone": "050-2177404"
-                }
-            ],
-            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
-            "updatedAt": "2026-09-14T12:54:43.275Z"
-        },
-        {
-            "id": "syn-71",
-            "cityId": "emek-hayarden",
-            "areaId": "area-199",
-            "name": "בית הכנסת אשדות יעקב איחוד",
-            "nusach": [
-                "ספרד"
-            ],
-            "address": {
-                "he": "",
-                "en": ""
-            },
-            "gabbaim": [
-                {
-                    "name": "ארנון גבאי",
-                    "phone": "050-8652638"
-                }
-            ],
-            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
-            "updatedAt": "2026-09-14T12:54:43.275Z"
-        },
-        {
-            "id": "syn-72",
-            "cityId": "emek-hayarden",
-            "areaId": "area-62",
-            "name": "בית הכנסת דגניה א׳",
-            "nusach": [
-                "אשכנז"
-            ],
-            "address": {
-                "he": "",
-                "en": ""
-            },
-            "gabbaim": [
-                {
-                    "name": "סיגל שושני",
-                    "phone": "052-3795688"
-                }
-            ],
-            "notes": "פעיל בחגי תשרי בלבד. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
-            "updatedAt": "2026-09-14T12:54:43.275Z"
-        },
-        {
-            "id": "syn-73",
-            "cityId": "emek-hayarden",
-            "areaId": "area-79",
-            "name": "בית הכנסת דגניה ב׳",
-            "nusach": [
-                "ספרד"
-            ],
-            "address": {
-                "he": "",
-                "en": ""
-            },
-            "gabbaim": [
-                {
-                    "name": "יריב ויצמן",
-                    "phone": "052-5554038"
-                }
-            ],
-            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
-            "updatedAt": "2026-09-14T12:54:43.275Z"
-        },
-        {
-            "id": "syn-74",
-            "cityId": "emek-hayarden",
-            "areaId": "area-374",
-            "name": "בית הכנסת חוקוק",
-            "nusach": [
-                "עדות המזרח"
-            ],
-            "address": {
-                "he": "",
-                "en": ""
-            },
-            "gabbaim": [
-                {
-                    "name": "תומר פרטוק",
-                    "phone": "054-2008055"
-                }
-            ],
-            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
-            "updatedAt": "2026-09-14T12:54:43.275Z"
-        },
-        {
-            "id": "syn-75",
-            "cityId": "emek-hayarden",
-            "areaId": "area-57",
-            "name": "בית הכנסת כנרת קבוצה",
-            "nusach": [
-                "ספרד"
-            ],
-            "address": {
-                "he": "",
-                "en": ""
-            },
-            "gabbaim": [
-                {
-                    "name": "עמוס מנחם",
-                    "phone": "052-8980552"
-                }
-            ],
-            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
-            "updatedAt": "2026-09-14T12:54:43.275Z"
-        },
-        {
-            "id": "syn-76",
-            "cityId": "emek-hayarden",
-            "areaId": "area-63",
-            "name": "בית הכנסת כנרת מושבה",
-            "nusach": [
-                "ספרד"
-            ],
-            "address": {
-                "he": "",
-                "en": ""
-            },
-            "gabbaim": [
-                {
-                    "name": "הרב בלוי",
-                    "phone": "054-2242279"
-                },
-                {
-                    "name": "שמוליק ממו",
-                    "phone": "050-7222115"
-                }
-            ],
-            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
-            "updatedAt": "2026-09-14T12:54:43.275Z"
-        },
-        {
-            "id": "syn-77",
-            "cityId": "emek-hayarden",
-            "areaId": "area-273",
-            "name": "בית הכנסת עין גב",
-            "nusach": [
-                "עדות המזרח"
-            ],
-            "address": {
-                "he": "",
-                "en": ""
-            },
-            "gabbaim": [
-                {
-                    "name": "צביקה נעים",
-                    "phone": "054-5658199"
-                }
-            ],
-            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
-            "updatedAt": "2026-09-14T12:54:43.275Z"
-        },
-        {
-            "id": "syn-78",
-            "cityId": "emek-hayarden",
-            "areaId": "area-1104",
-            "name": "בית הכנסת פוריה כפר עבודה",
-            "nusach": [
-                "תימני"
-            ],
-            "address": {
-                "he": "",
-                "en": ""
-            },
-            "gabbaim": [
-                {
-                    "name": "ישראל דשל",
-                    "phone": "050-6245327"
-                }
-            ],
-            "notes": "פעיל כל השבוע. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
-            "updatedAt": "2026-09-14T12:54:43.275Z"
-        },
-        {
-            "id": "syn-79",
-            "cityId": "emek-hayarden",
-            "areaId": "area-1105",
-            "name": "בית הכנסת מעשה ידיו",
-            "nusach": [
-                "עדות המזרח"
-            ],
-            "address": {
-                "he": "",
-                "en": ""
-            },
-            "gabbaim": [
-                {
-                    "name": "חיים בוסנינו",
-                    "phone": "055-6752177"
-                }
-            ],
-            "notes": "פעיל כל השבוע · פוריה נווה עובד. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
-            "updatedAt": "2026-09-14T12:54:43.275Z"
-        },
-        {
-            "id": "syn-80",
-            "cityId": "emek-hayarden",
-            "areaId": "area-1105",
-            "name": "בית הכנסת המרכזי",
-            "nusach": [
-                "עדות המזרח"
-            ],
-            "address": {
-                "he": "",
-                "en": ""
-            },
-            "gabbaim": [
-                {
-                    "name": "מאיר אלמלם",
-                    "phone": "052-2698109"
-                }
-            ],
-            "notes": "פעיל כל השבוע · פוריה נווה עובד. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
-            "updatedAt": "2026-09-14T12:54:43.275Z"
-        },
-        {
-            "id": "syn-81",
-            "cityId": "emek-hayarden",
-            "areaId": "area-1105",
-            "name": "בית הכנסת עץ החיים",
-            "nusach": [
-                "עדות המזרח"
-            ],
-            "address": {
-                "he": "",
-                "en": ""
-            },
-            "gabbaim": [
-                {
-                    "name": "רוני כהן",
-                    "phone": "050-2265638"
-                }
-            ],
-            "notes": "פעיל בשבתות וחגים · פוריה נווה עובד. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
-            "updatedAt": "2026-09-14T12:54:43.275Z"
-        },
-        {
-            "id": "syn-82",
-            "cityId": "emek-hayarden",
-            "areaId": "area-264",
-            "name": "בית הכנסת שער הגולן",
-            "nusach": [
-                "ספרד"
-            ],
-            "address": {
-                "he": "",
-                "en": ""
-            },
-            "gabbaim": [
-                {
-                    "name": "איציק עזרא",
-                    "phone": "052-3864339"
-                }
-            ],
-            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
-            "updatedAt": "2026-09-14T12:54:43.275Z"
-        },
-        {
-            "id": "syn-83",
-            "cityId": "emek-hayarden",
-            "areaId": "area-719",
-            "name": "בית הכנסת תל קציר",
-            "nusach": [
-                "ספרד"
-            ],
-            "address": {
-                "he": "",
-                "en": ""
-            },
-            "gabbaim": [
-                {
-                    "name": "אבי שמואל",
-                    "phone": "054-3030642"
-                }
-            ],
-            "notes": "פעיל בשבתות וחגים. מקור: אתר המועצה הדתית כנרות עמק הירדן (mdjv.org.il)",
-            "updatedAt": "2026-09-14T12:54:43.275Z"
         }
     ]
 }
