@@ -780,13 +780,16 @@ export default function HomeScreen() {
 
               <View style={styles.fastTimesRow}>
                 <View style={styles.fastTimeCol}>
-                  <Text style={styles.fastTimeLabel}>
-                    {fastInfo.isMajorFast ? 'כניסת הצום' : 'עלות השחר'}
-                  </Text>
+                  {/* Plain "fast begins/ends" wording rather than the
+                      astronomical terms (עלות השחר, צאת הכוכבים) the times
+                      are actually computed from — isMajorFast still decides
+                      *which* time gets shown (see fastInfo above), it just no
+                      longer needs to change the label too. */}
+                  <Text style={styles.fastTimeLabel}>תחילת הצום</Text>
                   <Text style={styles.fastBigTime}>{fastInfo.startTime}</Text>
                 </View>
                 <View style={styles.fastTimeCol}>
-                  <Text style={styles.fastTimeLabel}>צאת הכוכבים</Text>
+                  <Text style={styles.fastTimeLabel}>צאת הצום</Text>
                   <Text style={styles.fastBigTime}>{fastInfo.endTime}</Text>
                 </View>
               </View>
