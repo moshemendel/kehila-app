@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TextInput,
-  TouchableOpacity, ActivityIndicator, Alert, Animated,
+  View, Text, ScrollView, StyleSheet,
+  TextInput, TouchableOpacity, ActivityIndicator, Animated,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import MapView, { Marker, Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';

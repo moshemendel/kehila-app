@@ -1,8 +1,11 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, TextInput, Image,
-  ScrollView, ActivityIndicator, Alert, Animated, Pressable, PanResponder,
+  View, Text, StyleSheet, TouchableOpacity,
+  TextInput, Image, ScrollView, ActivityIndicator,
+  Animated, Pressable, PanResponder,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import * as ImagePicker from 'expo-image-picker';
 import MapView, { Polygon, Region, MapPressEvent, Marker } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';

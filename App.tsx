@@ -21,6 +21,7 @@ import { SynagogueEventRemindersProvider } from './src/context/SynagogueEventRem
 import { ManagerAlertsProvider } from './src/context/ManagerAlertsContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import { navigationRef, navigateFromNotification } from './src/navigation/navigationRef';
+import { AppAlertHost } from './src/components/AppAlert';
 
 I18nManager.forceRTL(true);
 
@@ -74,6 +75,12 @@ export default function App() {
     <ErrorBoundary>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
+          {/* Mounted once, here, so AppAlert.alert()/.prompt() — RN Alert's
+              drop-in replacement — can be called imperatively from anywhere
+              (event handlers, promise chains) without needing a hook. Needs
+              SafeAreaProvider (BottomSheetModal reads insets) but nothing
+              below it, so it sits above the data providers. */}
+          <AppAlertHost />
           <AuthProvider>
             <ZmanimSettingsProvider>
               <ZmanimProvider>

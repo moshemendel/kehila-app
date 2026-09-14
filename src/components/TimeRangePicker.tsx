@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  Modal, Alert,
+  Modal,
 } from 'react-native';
+import { AppAlert as Alert } from './AppAlert';
+
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Radius, Spacing } from '../utils/theme';
 import { DrumWheel, DRUM_H, DRUM_ITEM_H } from './DrumWheel';

@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAnalyticsTrack } from '../../services/analytics';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Linking, FlatList, Alert,
+  View, Text, ScrollView, StyleSheet,
+  TouchableOpacity, ActivityIndicator, Linking, FlatList,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';

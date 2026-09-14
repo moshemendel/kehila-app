@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, ActivityIndicator, Alert,
+  View, Text, ScrollView, StyleSheet,
+  TouchableOpacity, TextInput, ActivityIndicator,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';

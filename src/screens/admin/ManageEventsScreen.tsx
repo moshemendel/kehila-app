@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TextInput,
-  TouchableOpacity, Alert, ActivityIndicator, Switch,
+  View, Text, ScrollView, StyleSheet,
+  TextInput, TouchableOpacity, ActivityIndicator, Switch,
   KeyboardAvoidingView, Platform, Modal,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import DateTimePicker from '@react-native-community/datetimepicker';
 import TimePicker from '../../components/TimePicker';
 import LocationPicker from '../../components/LocationPicker';
