@@ -111,11 +111,35 @@ service cloud.firestore {
          && userDoc().homeCityId == targetCityId)
       );
     }
+    // Three rungs: content authority, the city's synagogue_manager (every shul
+    // in town), and a gabbai (the shuls in managedSynagogueIds). Each tier-3
+    // operator here is covered by its tier-2 domain manager — the shape the
+    // mikveh and kashrut helpers below repeat.
     function managesSynagogue(synId, synCityId) {
       return isSignedIn() && (
         managesContentIn(synCityId) ||
+        hasCityRole('synagogue_manager', synCityId) ||
         (hasRole('gabbai') && synId in userDoc().managedSynagogueIds)
       );
+    }
+    // mikveh_attendant (a balan/balanit) is per-mikveh, as gabbai is
+    // per-synagogue: the grant is membership in managedMikvehIds, admin-written
+    // like the other assignment arrays (the users rules forbid self-edits of it
+    // and creates cannot seed it). No city check — only an admin of that city
+    // could have put the id there. mikveh_manager, the tier above, stays
+    // city-wide; before the attendant role existed it was the only mikveh
+    // role, so the women's mikveh's balanit had the run of the men's.
+    function attendsMikveh(mikId) {
+      return isSignedIn() && hasRole('mikveh_attendant')
+          && mikId in userDoc().get('managedMikvehIds', []);
+    }
+    // mashgiach is per-business under kosher_manager: a supervisor of the
+    // shops in supervisedBusinessIds, and of their kashrut keys only. A
+    // separate array from managedRestaurantIds because one account may own
+    // one shop and supervise another.
+    function supervisesBusiness(bizId) {
+      return isSignedIn() && hasRole('mashgiach')
+          && bizId in userDoc().get('supervisedBusinessIds', []);
     }
     // Who may see who booked a mikveh. The appointments rules used
     // isAdminRole(), which is unscoped — so a city_admin of one city could read
@@ -125,15 +149,17 @@ service cloud.firestore {
     // content_admin is deliberately absent, as it was under isAdminRole(). The
     // deputy role covers what the app publishes; an appointment is not content.
     //
-    // Replaces `isAdminRole() || hasCityRole('mikveh_manager', ...)` — one
-    // roles lookup and one homeCityId lookup for both roles at once, and
-    // super_admin short-circuits before the mikveh document is read at all,
-    // so this costs fewer reads than the pair it replaces rather than more.
+    // super_admin/dev unscoped; a city_admin or mikveh_manager for the mikveh's
+    // city; and the attendant assigned to this mikveh. The attendant branch
+    // reads only the caller's profile — membership is the grant — so a balanit
+    // checking her own bookings never fetches the mikveh document; only the
+    // city-scoped branches need it, for the city.
     function managesMikvehAppointments(mikId) {
       return isSignedIn() && (
         isSuperAdminRole() ||
         (userRoles().hasAny(['city_admin', 'mikveh_manager'])
-         && userDoc().homeCityId == mikvehCityId(mikId))
+         && userDoc().homeCityId == mikvehCityId(mikId)) ||
+        attendsMikveh(mikId)
       );
     }
     // kosher_manager: city-wide cert access
@@ -183,6 +209,10 @@ service cloud.firestore {
                   ? bizIdentityKeys().concat(bizKashrutKeys()).concat(bizOperationsKeys()) : [])
         .concat(hasCityRole('kosher_manager', bizCityId)
                   ? bizIdentityKeys().concat(bizKashrutKeys()) : [])
+        // A mashgiach gets the kashrut keys of the shops assigned to them and
+        // not the identity keys: correcting a name or address is the city's
+        // kosher_manager's call, the certificate on the wall is the mashgiach's.
+        .concat(supervisesBusiness(bizId) ? bizKashrutKeys() : [])
         .concat(operatesBusiness(bizId) ? bizOperationsKeys() : []);
     }
     function managesBusiness(bizId, bizCityId) {
@@ -214,8 +244,19 @@ service cloud.firestore {
     }
 
     // ── Users ────────────────────────────────────────────────────────────────
+    // The tier-2 roles that appoint tier-3 operators (see delegates() below).
+    // They can read their city's accounts, which is what finding someone to
+    // appoint requires — a widening from city_admin-only, accepted because a
+    // city_admin already trusted each of them with a domain.
+    function isDomainManagerIn(cityId) {
+      return isSignedIn()
+        && userRoles().hasAny(['synagogue_manager', 'mikveh_manager', 'kosher_manager'])
+        && userDoc().homeCityId == cityId;
+    }
     match /users/{userId} {
-      allow read: if isSignedIn() && (request.auth.uid == userId || isSuperAdminRole() || isCityAdminOf(resource.data.homeCityId));
+      allow read: if isSignedIn() && (request.auth.uid == userId || isSuperAdminRole()
+                    || isCityAdminOf(resource.data.homeCityId)
+                    || isDomainManagerIn(resource.data.homeCityId));
       // `roles` is guarded here for the same reason as `role`, and more urgently:
       // userRoles() reads the ARRAY in preference to the singular field, so every
       // privilege check in this file resolves through it. Guarding only `role` left
@@ -236,7 +277,9 @@ service cloud.firestore {
         && (!('role' in request.resource.data) || request.resource.data.role == 'user')
         && (!('roles' in request.resource.data) || request.resource.data.roles == ['user'])
         && (!('managedSynagogueIds' in request.resource.data) || request.resource.data.managedSynagogueIds.size() == 0)
-        && (!('managedRestaurantIds' in request.resource.data) || request.resource.data.managedRestaurantIds.size() == 0);
+        && (!('managedRestaurantIds' in request.resource.data) || request.resource.data.managedRestaurantIds.size() == 0)
+        && (!('managedMikvehIds' in request.resource.data) || request.resource.data.managedMikvehIds.size() == 0)
+        && (!('supervisedBusinessIds' in request.resource.data) || request.resource.data.supervisedBusinessIds.size() == 0);
       // NOBODY EDITS THEIR OWN PRIVILEGES. Both management branches below
       // exclude the caller's own document, which is what the third branch is
       // for: it lets anyone maintain their own profile while forbidding role,
@@ -252,7 +295,41 @@ service cloud.firestore {
       // A city_admin can manage users within their own homeCityId scope, but
       // cannot reassign a user's homeCityId — moving someone to a different
       // city's administration is a super_admin-only action.
+      // ── Delegation ────────────────────────────────────────────────────────
+      // A tier-2 domain manager may appoint and dismiss their domain's tier-3
+      // operators: synagogue_manager → gabbai, mikveh_manager →
+      // mikveh_attendant, kosher_manager → mashgiach. It is the third way an
+      // account gets changed by someone other than itself, after super_admin
+      // and city_admin, and deliberately the narrowest: ONLY the one role and
+      // its one assignment array, on an account in the manager's own city that
+      // holds no authority, and nothing else about it.
+      //
+      // Checked by difference, not by listing what is allowed. The affected
+      // keys must lie within {role, roles, <array>}; the roles array with the
+      // operator role (and the 'user' placeholder) removed must be identical
+      // before and after, so no other role rides along; and the singular role
+      // may only stay, become the operator role, or fall back to 'user'. Slip
+      // city_admin into the array, move the account to another city, or touch
+      // someone who is already a city_admin, and one of these fails.
+      //
+      // `roles` may be absent on a profile predating the array, hence the
+      // get() with the singular role as its default on the before side.
+      function delegates(operatorRole, arrayKey, managerRole) {
+        return hasCityRole(managerRole, resource.data.homeCityId)
+          && request.auth.uid != userId
+          && !grantsAuthority(resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['role', 'roles', arrayKey])
+          && request.resource.data.get('roles', []).removeAll([operatorRole, 'user']).toSet()
+               == resource.data.get('roles', [resource.data.get('role', 'user')])
+                    .removeAll([operatorRole, 'user']).toSet()
+          && (request.resource.data.get('role', 'user') == resource.data.get('role', 'user')
+              || request.resource.data.get('role', 'user') in [operatorRole, 'user']);
+      }
       allow update: if (isSuperAdminRole() && request.auth.uid != userId) ||
+        delegates('gabbai',           'managedSynagogueIds',   'synagogue_manager') ||
+        delegates('mikveh_attendant', 'managedMikvehIds',      'mikveh_manager') ||
+        delegates('mashgiach',        'supervisedBusinessIds', 'kosher_manager') ||
         (isCityAdminOf(resource.data.homeCityId) &&
          request.auth.uid != userId &&
          // Neither the account as it stands nor as it would be may hold
@@ -269,6 +346,8 @@ service cloud.firestore {
          !('roles' in request.resource.data.diff(resource.data).affectedKeys()) &&
          !('managedSynagogueIds' in request.resource.data.diff(resource.data).affectedKeys()) &&
          !('managedRestaurantIds' in request.resource.data.diff(resource.data).affectedKeys()) &&
+         !('managedMikvehIds' in request.resource.data.diff(resource.data).affectedKeys()) &&
+         !('supervisedBusinessIds' in request.resource.data.diff(resource.data).affectedKeys()) &&
          // A city_admin's homeCityId is their admin jurisdiction — letting them move it
          // themselves would be self-service privilege escalation to another city, so
          // only non-city_admin accounts may self-edit homeCityId (e.g. a regular user
@@ -317,8 +396,14 @@ service cloud.firestore {
     // ── Mikvaot ──────────────────────────────────────────────────────────────
     match /mikvaot/{mikId} {
       allow read: if true;
-      allow create: if managesContentIn(request.resource.data.cityId) || hasCityRole('mikveh_manager', request.resource.data.cityId);
-      allow update, delete: if managesContentIn(resource.data.cityId) || hasCityRole('mikveh_manager', resource.data.cityId);
+      // Creating a mikveh is a city-level act — content authority or the city's
+      // mikveh_manager. An attendant is assigned to a mikveh that already
+      // exists; she has no standing over one that does not.
+      allow create: if managesContentIn(request.resource.data.cityId)
+                    || hasCityRole('mikveh_manager', request.resource.data.cityId);
+      allow update, delete: if managesContentIn(resource.data.cityId)
+                    || hasCityRole('mikveh_manager', resource.data.cityId)
+                    || attendsMikveh(mikId);
 
       // Appointment docs store userId — reads restricted to the owner or a
       // mikveh manager/admin. Regular users get slot occupancy from the
@@ -561,9 +646,11 @@ service cloud.firestore {
         return (resource.data.entityType == 'synagogue'
                  && managesSynagogue(resource.data.entityId, resource.data.cityId))
             || (resource.data.entityType == 'business'
-                 && managesBusiness(resource.data.entityId, resource.data.cityId))
+                 && (managesBusiness(resource.data.entityId, resource.data.cityId)
+                     || supervisesBusiness(resource.data.entityId)))
             || (resource.data.entityType == 'mikveh'
-                 && hasCityRole('mikveh_manager', resource.data.cityId))
+                 && (hasCityRole('mikveh_manager', resource.data.cityId)
+                     || attendsMikveh(resource.data.entityId)))
             || (resource.data.entityType == 'event'
                  && hasCityRole('event_manager', resource.data.cityId));
         // 'gemach' has no dedicated manager role — admins only, via the checks below.
