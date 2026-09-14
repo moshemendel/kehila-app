@@ -66,3 +66,12 @@ export async function updateUserCity(uid: string, cityId: string): Promise<void>
 export async function updateUserHomeCity(uid: string, cityId: string): Promise<void> {
   await updateDoc(doc(db, 'users', uid), { cityId, homeCityId: cityId });
 }
+
+// Which of the tenant's areas this resident lives in. Unlike homeCityId this
+// carries no admin-jurisdiction meaning and no city_admin restriction — it is
+// a plain personal fact, freely self-editable by anyone (the Firestore rule's
+// self-edit branch blocks a fixed list of privileged fields and allows
+// everything else, so this needed no rule change to be writable).
+export async function updateUserHomeArea(uid: string, areaId: string): Promise<void> {
+  await updateDoc(doc(db, 'users', uid), { homeAreaId: areaId });
+}

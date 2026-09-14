@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
 import { auth } from '../services/firebase';
 import { getUserDoc, reloadAuthUser, appUserCacheKey } from '../services/auth';
-import { updateUserCity, updateUserHomeCity } from '../services/users';
+import { updateUserCity, updateUserHomeCity, updateUserHomeArea } from '../services/users';
 import { getGuestCityId, setGuestCityId } from '../services/guestCity';
 import { initAnalytics, clearAnalytics } from '../services/analytics';
 import { AppUser } from '../types';
@@ -38,6 +38,7 @@ interface AuthContextValue {
   refreshUser: (user?: User) => Promise<void>;
   switchCity: (cityId: string) => Promise<void>;
   updateHomeCity: (cityId: string) => Promise<void>;
+  updateHomeArea: (areaId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -55,6 +56,7 @@ const AuthContext = createContext<AuthContextValue>({
   refreshUser: async () => {},
   switchCity: async () => {},
   updateHomeCity: async () => {},
+  updateHomeArea: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -172,6 +174,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await updateUserHomeCity(firebaseUser.uid, cityId);
   }
 
+  // Which area within the current tenant this resident lives in — e.g. which
+  // of עמק הירדן's settlements. No jurisdiction meaning the way homeCityId
+  // has for a city_admin, so no equivalent restriction: anyone may set this.
+  async function updateHomeArea(areaId: string) {
+    if (isDemo) {
+      setAppUser((u) => u ? { ...u, homeAreaId: areaId } : u);
+      return;
+    }
+    if (!firebaseUser) return;
+    setAppUser((u) => u ? { ...u, homeAreaId: areaId } : u);
+    await updateUserHomeArea(firebaseUser.uid, areaId);
+  }
+
   useEffect(() => {
     let unsub: (() => void) | undefined;
     try {
@@ -239,7 +254,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Guests have no address to confirm, and demo mode isn't a real account.
         needsEmailVerification: !!firebaseUser && !firebaseUser.isAnonymous && !isDemo && !emailVerified,
         refreshAuthState,
-        loginAsDemo, exitDemo, refreshUser, switchCity, updateHomeCity,
+        loginAsDemo, exitDemo, refreshUser, switchCity, updateHomeCity, updateHomeArea,
       }}
     >
       {children}

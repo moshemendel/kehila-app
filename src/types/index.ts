@@ -50,6 +50,15 @@ export interface AppUser {
   // cityId, which is just a personal "what city am I browsing" preference that anyone
   // (including managers) can freely switch without affecting their admin scope.
   homeCityId?: string;
+  // Which of the tenant's Areas this resident lives in — e.g. which of עמק
+  // הירדן's 22 settlements. Unrelated to homeCityId's admin-jurisdiction
+  // meaning: this is a plain personal fact with no privilege attached, so it
+  // carries no city_admin-style write restriction. Unset for every account
+  // today (there is no picker yet for anyone but a regional-council resident
+  // to need one) and for a plain single-area city it never will be — the
+  // area-aware code that reads it falls back to the tenant's one isDefault
+  // area, which is exactly the coordinates cityId already pointed at.
+  homeAreaId?: string;
   role: UserRole;
   roles?: UserRole[];
   managedSynagogueIds?: string[];
@@ -90,6 +99,50 @@ export interface City {
    * a release. See utils/modules.ts.
    */
   modules?: CityModules;
+  /**
+   * 'regional_council' for a tenant with more than one area under it (a
+   * council spanning several settlements); absent or 'city' for the ordinary
+   * single-area case. Display only — cityId stays the tenant key either way,
+   * and every rule and read site keyed on it is unaffected. See areaLabel.
+   */
+  kind?: 'city' | 'regional_council';
+  /** What an Area is called in THIS tenant's own UI — "יישוב" for a regional
+   *  council, "שכונה"/"רובע" for a city divided into neighbourhoods. Absent
+   *  for a plain single-area city, which never shows the word at all. */
+  areaLabel?: string;
+}
+
+/**
+ * A tenant's sub-place: a settlement in a regional council, a neighbourhood
+ * in a city divided into them. Carries what the city document holds only
+ * once — coordinates, elevation, a presence radius — so zmanim, the eruv and
+ * "which minyan is near me" can answer per settlement instead of per tenant.
+ *
+ * Every city has at least one Area: `isDefault: true`, seeded with the
+ * city's own coordinates by scripts/backfillDefaultAreas.mjs. A plain city
+ * like מעלה אדומים has exactly that one and nothing reads areas.length > 1
+ * for it, so no area-aware control ever renders there — see the "golden
+ * rule" in the architecture proposal this type implements.
+ */
+export interface Area {
+  id: string;
+  cityId: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  elevation?: number;
+  /** Presence-detection radius in km — see the architecture proposal §05. */
+  radiusKm?: number;
+  /** Official CBS locality code, where the area has one (a real settlement).
+   *  Absent for a city neighbourhood, which the state has no code for. */
+  cbsCode?: string;
+  /** The one area every city always has, seeded from the city's own
+   *  coordinates. What area-aware code falls back to when nothing more
+   *  specific (a user's homeAreaId, a record's own areaId) is set. */
+  isDefault?: boolean;
+  /** For a neighbourhood nested inside another area, if that is ever needed.
+   *  Every area imported or backfilled so far is top-level (null). */
+  parentId?: string | null;
 }
 
 // Zmanim anchors for relative prayer time slots

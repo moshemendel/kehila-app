@@ -15,15 +15,21 @@ import { useZmanimSettings } from '../../context/ZmanimSettingsContext';
 import { useAuth } from '../../context/AuthContext';
 import { useCities } from '../../hooks/useCities';
 import { useCityId } from '../../hooks/useCityId';
+import { useAreas } from '../../hooks/useAreas';
 import { ZMANIM_PRESETS } from '../../utils/zmanim';
 
 export default function ZmanimSettingsScreen() {
   const navigation = useNavigation();
   const { top, bottom } = useSafeAreaInsets();
   const { settings, setSettings, gpsLocation, setGpsLocation } = useZmanimSettings();
-  const { switchCity } = useAuth();
+  const { switchCity, updateHomeArea, appUser } = useAuth();
   const cityId = useCityId();
   const { cities, loading: citiesLoading } = useCities();
+  // Almost every tenant has exactly one area (itself), and this list stays
+  // hidden for those — see the "golden rule" in the architecture proposal.
+  // Only a regional council like עמק הירדן, with one row per settlement, ever
+  // shows this section.
+  const { areas } = useAreas(cityId);
   const [gpsLoading, setGpsLoading] = useState(false);
 
   const activePreset = ZMANIM_PRESETS.find(p =>
@@ -162,6 +168,37 @@ export default function ZmanimSettingsScreen() {
           )}
         </View>
 
+        {/* ── Area (only for multi-area tenants — a regional council) ── */}
+        {areas.length > 1 && (
+          <>
+            <Text style={[s.sectionTitle, { marginTop: 28 }]}>היישוב שלי</Text>
+            <Text style={s.sectionHint}>לחישוב מדויק יותר של זמני היום לפי היישוב שבו אתה גר</Text>
+            <View style={s.card}>
+              {areas.map((area, idx) => {
+                const active = appUser?.homeAreaId
+                  ? area.id === appUser.homeAreaId
+                  : !!area.isDefault;
+                return (
+                  <TouchableOpacity
+                    key={area.id}
+                    style={[s.row, idx < areas.length - 1 && s.rowDivider]}
+                    onPress={() => updateHomeArea(area.id)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[s.radioOuter, active && s.radioOuterActive]}>
+                      {active && <View style={s.radioInner} />}
+                    </View>
+                    <View style={s.rowContent}>
+                      <Text style={[s.rowTitle, active && s.rowTitleActive]}>{area.name}</Text>
+                    </View>
+                    {active && <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </>
+        )}
+
         {/* ── Method ── */}
         <Text style={[s.sectionTitle, { marginTop: 28 }]}>שיטת חישוב</Text>
         <View style={s.card}>
@@ -273,6 +310,7 @@ const s = StyleSheet.create({
   // List
   list:         { padding: Spacing.md, paddingTop: Spacing.lg },
   sectionTitle: { fontSize: 13, fontWeight: '700', color: Colors.textMuted, marginBottom: 8, paddingHorizontal: 4 },
+  sectionHint:  { fontSize: 12, color: Colors.textMuted, marginTop: -4, marginBottom: 8, paddingHorizontal: 4 },
 
   // Card
   card: {

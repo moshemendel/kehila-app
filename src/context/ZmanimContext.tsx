@@ -1,9 +1,38 @@
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useCityId } from '../hooks/useCityId';
 import { useCity } from '../hooks/useCity';
+import { useAreas } from '../hooks/useAreas';
+import { useAuth } from './AuthContext';
 import { useZmanimSettings } from './ZmanimSettingsContext';
 import { useAppForegroundTick } from '../hooks/useAppForegroundTick';
 import { calcZmanim, ZmanimResult } from '../utils/zmanim';
+import { City, Area } from '../types';
+
+/**
+ * The point zmanim get computed from: the resident's own area if they've
+ * picked one, else the tenant's one isDefault area, else the city document
+ * itself — three levels of fallback so this never has nothing to return
+ * while city/areas are still loading.
+ *
+ * The METHOD is untouched on purpose — elevation is still passed as 0 below,
+ * unchanged, "always sea-level per Rav Ovadia" as it always was. What this
+ * fixes is which point that method runs on: today every resident of a
+ * multi-area tenant shared the one city-level point regardless of which of
+ * its areas they actually live in. A halachic ruling on whether terrain
+ * should adjust the times themselves (the architecture proposal's §08) is a
+ * separate, still-open question — this is a geographic correction, not one.
+ */
+function resolveZmanimPoint(city: City | null, areas: Area[], homeAreaId?: string) {
+  if (!city) return null;
+  const area = (homeAreaId ? areas.find((a) => a.id === homeAreaId) : undefined)
+    ?? areas.find((a) => a.isDefault)
+    ?? null;
+  return {
+    latitude:  area?.latitude  ?? city.latitude,
+    longitude: area?.longitude ?? city.longitude,
+    timezone:  city.timezone || 'Asia/Jerusalem',
+  };
+}
 
 /**
  * Today's zmanim for the city being browsed, computed once.
@@ -29,24 +58,31 @@ const ZmanimContext = createContext<Ctx | null>(null);
 export function ZmanimProvider({ children }: { children: ReactNode }) {
   const cityId = useCityId();
   const { city } = useCity(cityId);
+  const { areas } = useAreas(cityId);
+  const { appUser } = useAuth();
   const { settings } = useZmanimSettings();
   // Without this, `new Date()` below is evaluated once at mount and the answer
   // is stale after a background/resume the next day.
   const foregroundTick = useAppForegroundTick();
 
+  const point = useMemo(
+    () => resolveZmanimPoint(city, areas, appUser?.homeAreaId),
+    [city, areas, appUser?.homeAreaId],
+  );
+
   const zmanim = useMemo(() => {
-    if (!city) return null;
+    if (!point) return null;
     return calcZmanim(
       new Date(),
-      city.latitude,
-      city.longitude,
+      point.latitude,
+      point.longitude,
       settings,
-      city.timezone || 'Asia/Jerusalem',
+      point.timezone,
       0, // elevation always sea-level per Rav Ovadia
       0, // mountainAngle: ZmanimScreen computes daily; the home widget uses astronomical netz
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [city, settings, foregroundTick]);
+  }, [point, settings, foregroundTick]);
 
   const value = useMemo(() => ({ cityId, zmanim }), [cityId, zmanim]);
 
