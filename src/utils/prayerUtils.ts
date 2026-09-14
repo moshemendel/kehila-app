@@ -57,8 +57,16 @@ export function resolveSlotTime(slot: PrayerTimeSlot, zmanim?: ZmanimResult | nu
   return minutesToDisplay(Math.max(0, Math.round(totalMin)));
 }
 
+// weeklySchedule is typed as required on Synagogue, but that promise is only
+// as good as whatever wrote the document — a synagogue imported from a
+// source that never gave structured prayer times (see the mdjv.org.il
+// import), or one created and not yet filled in by its gabbai, legitimately
+// has none. Crashed the home screen's "next minyan" card, PrayerTimesCard
+// and SynagogueDetailScreen on exactly that: `weeklySchedule.shacharit`
+// with no weeklySchedule at all threw "Cannot read property 'shacharit' of
+// undefined" for every one of the 14 just-imported Emek HaYarden shuls.
 export function getTodaySchedule(
-  weeklySchedule: WeeklySchedule,
+  weeklySchedule: WeeklySchedule | undefined,
   shabbatSchedule?: ShabbatSchedule,
   zmanim?: ZmanimResult | null,
 ): PrayerTimes | null {
@@ -82,9 +90,9 @@ export function getTodaySchedule(
       .filter(Boolean);
 
   return {
-    shacharit: filter(weeklySchedule.shacharit),
-    mincha: filter(weeklySchedule.mincha),
-    maariv: filter(weeklySchedule.maariv),
+    shacharit: filter(weeklySchedule?.shacharit),
+    mincha: filter(weeklySchedule?.mincha),
+    maariv: filter(weeklySchedule?.maariv),
   };
 }
 

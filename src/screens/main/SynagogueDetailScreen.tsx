@@ -427,7 +427,7 @@ export default function SynagogueDetailScreen() {
    * "ש" badge than a shiur with nowhere to appear.
    */
   const allShiurim = [
-    ...(syn.weeklySchedule.shiurim ?? []),
+    ...(syn.weeklySchedule?.shiurim ?? []),
     ...(syn.shabbatSchedule?.shiurim ?? []),
     ...(syn.shiurim ?? []),
   ];
@@ -716,7 +716,7 @@ export default function SynagogueDetailScreen() {
                 )}
               </View>
               <View style={st.sectionCard}>
-                {(syn.weeklySchedule.selichot ?? []).map((slot, i) => (
+                {(syn.weeklySchedule?.selichot ?? []).map((slot, i) => (
                   <View key={i} style={st.weekSlotRow}>
                     <Text style={[st.weekSlotTime, { color: Colors.gold }]}>
                       {getSlotLabel(slot, todayZmanim)}
