@@ -231,7 +231,7 @@ export default function ProfileScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>ניהול</Text>
             <View style={styles.card}>
-              {(roles.includes('gabbai') || canManageContent) && (
+              {(roles.includes('gabbai') || roles.includes('synagogue_manager') || canManageContent) && (
                 <MenuRow icon="business-outline" label="ניהול בית כנסת" color={Colors.primaryLight}
                   onPress={() => openManage('ManageSynagogue')} />
               )}
@@ -239,7 +239,7 @@ export default function ProfileScreen() {
                 <MenuRow icon="restaurant-outline" label="ניהול בתי עסק" color={Colors.kosher}
                   onPress={() => openManage('ManageBusiness')} />
               )}
-              {(roles.includes('kosher_manager') || canManageContent) && (
+              {(roles.includes('kosher_manager') || roles.includes('mashgiach') || canManageContent) && (
                 <MenuRow icon="shield-checkmark-outline" label="ניהול כשרות" color={Colors.success}
                   onPress={() => openManage('ManageKosher')} />
               )}
@@ -249,7 +249,7 @@ export default function ProfileScreen() {
                   onPress={() => openManage('ManageEvents',
                     alerts.pendingEvents > 0 ? { initialTab: 'pending' } : undefined)} />
               )}
-              {(roles.includes('mikveh_manager') || canManageContent) && (
+              {(roles.includes('mikveh_manager') || roles.includes('mikveh_attendant') || canManageContent) && (
                 <MenuRow icon="water-outline" label="ניהול מקוואות" color={Colors.mikveh}
                   onPress={() => openManage('ManageMikveh')} />
               )}

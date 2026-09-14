@@ -12,7 +12,7 @@ import { useCityId } from '../../hooks/useCityId';
 import { AppUser, UserRole } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import {
-  rolesOf, ADMIN_ROLES, ROLE_PRIORITY, BLANKET_ROLES, LIST_ROLES,
+  rolesOf, ADMIN_ROLES, ROLE_PRIORITY, BLANKET_ROLES, LIST_ROLES, PARENT_ROLE,
   ROLE_LABELS, ROLE_COLORS, ROLE_ICONS, assignableBy, isCityScoped, computePrimaryRole,
 } from '../../utils/roles';
 
@@ -35,9 +35,19 @@ type SubListState = { syn: boolean; rest: boolean };
  * brings back whatever they held underneath instead of silently losing it.
  */
 function subsumedRoles(roles: UserRole[]): Set<UserRole> {
+  const out = new Set<UserRole>();
   const top = ROLE_PRIORITY.findIndex((r) => roles.includes(r));
-  if (top === -1 || !BLANKET_ROLES.includes(ROLE_PRIORITY[top])) return new Set();
-  return new Set(ROLE_PRIORITY.slice(top + 1));
+  if (top !== -1 && BLANKET_ROLES.includes(ROLE_PRIORITY[top])) {
+    ROLE_PRIORITY.slice(top + 1).forEach((r) => out.add(r));
+  }
+  // One tier down, the same principle: a synagogue_manager already reaches
+  // every shul, so gabbai adds nothing to them — likewise mikveh_manager over
+  // mikveh_attendant and kosher_manager over mashgiach. The catalogue's
+  // `parent` says which covers which.
+  for (const [child, parent] of Object.entries(PARENT_ROLE)) {
+    if (roles.includes(parent as UserRole)) out.add(child as UserRole);
+  }
+  return out;
 }
 
 

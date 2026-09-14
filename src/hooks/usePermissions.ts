@@ -68,6 +68,8 @@ export function usePermissions(): ListingPermissions {
     const homeCityId = appUser?.homeCityId ?? '';
     const synIds     = appUser?.managedSynagogueIds ?? [];
     const bizIds     = appUser?.managedRestaurantIds ?? [];
+    const mikIds     = appUser?.managedMikvehIds ?? [];
+    const supIds     = appUser?.supervisedBusinessIds ?? [];
 
     // super_admin and dev are unscoped; a city_admin only administers their own.
     const isSuperAdmin        = hasRole('super_admin') || hasRole('dev');
@@ -95,7 +97,10 @@ export function usePermissions(): ListingPermissions {
 
       switch (entityType) {
         case 'synagogue':
-          return admin || (hasRole('gabbai') && synIds.includes(entityId))
+          // Mirrors managesSynagogue(): content authority, the city's
+          // synagogue_manager, or the gabbai assigned to this shul.
+          return admin || hasCityRole('synagogue_manager', entityCityId)
+              || (hasRole('gabbai') && synIds.includes(entityId))
             ? [{ route: 'ManageSynagogue', label: 'עריכת בית הכנסת' }] : [];
 
         case 'business': {
@@ -109,14 +114,21 @@ export function usePermissions(): ListingPermissions {
           }
           // City-wide certificate review reaches every business, but only its
           // certificates, mashgiach and the identity they are issued against.
-          if (admin || hasCityRole('kosher_manager', entityCityId)) {
+          // A mashgiach reaches the same screen for the shops assigned to them
+          // (supervisesBusiness in the rules — kashrut keys only).
+          if (admin || hasCityRole('kosher_manager', entityCityId)
+              || (hasRole('mashgiach') && supIds.includes(entityId))) {
             out.push({ route: 'ManageKosher', label: 'עריכת כשרות' });
           }
           return out;
         }
 
         case 'mikveh':
+          // Content authority, the city's mikveh_manager, or the attendant
+          // assigned to this mikveh (attendsMikveh in the rules) — she reaches
+          // hers, not every mikveh in the city.
           return admin || hasCityRole('mikveh_manager', entityCityId)
+              || (hasRole('mikveh_attendant') && mikIds.includes(entityId))
             ? [{ route: 'ManageMikveh', label: 'עריכת המקווה' }] : [];
         case 'gemach':
           // Whoever submitted a gemach keeps the right to correct it.

@@ -107,9 +107,13 @@ export function buildReportQueries(cityId: string, user: AppUser | null): Query[
 
   const queries: Query[] = [];
 
+  // synagogue_manager covers every synagogue in the city (managesSynagogue in rules)
+  if (roles.includes('synagogue_manager')) {
+    queries.push(query(col, where('cityId', '==', cityId), where('entityType', '==', 'synagogue')));
+  }
   // gabbai → only reports about synagogues they manage
   const synIds = (user.managedSynagogueIds ?? []).slice(0, IN_LIMIT);
-  if (roles.includes('gabbai') && synIds.length > 0) {
+  if (roles.includes('gabbai') && !roles.includes('synagogue_manager') && synIds.length > 0) {
     queries.push(query(col,
       where('cityId', '==', cityId),
       where('entityType', '==', 'synagogue'),
@@ -129,8 +133,27 @@ export function buildReportQueries(cityId: string, user: AppUser | null): Query[
   if (roles.includes('kosher_manager')) {
     queries.push(query(col, where('cityId', '==', cityId), where('entityType', '==', 'business')));
   }
+  // mashgiach → only the shops assigned to them (supervisesBusiness in rules).
+  // Skipped when kosher_manager already covers the whole city above.
+  const supIds = (user.supervisedBusinessIds ?? []).slice(0, IN_LIMIT);
+  if (roles.includes('mashgiach') && !roles.includes('kosher_manager') && supIds.length > 0) {
+    queries.push(query(col,
+      where('cityId', '==', cityId),
+      where('entityType', '==', 'business'),
+      where('entityId', 'in', supIds)));
+  }
+  // mikveh_manager covers every mikveh in the city
   if (roles.includes('mikveh_manager')) {
     queries.push(query(col, where('cityId', '==', cityId), where('entityType', '==', 'mikveh')));
+  }
+  // mikveh_attendant → only the mikvaot assigned to them (attendsMikveh in
+  // rules). The rule is per-mikveh, so an unfiltered query would be refused.
+  const mikIds = (user.managedMikvehIds ?? []).slice(0, IN_LIMIT);
+  if (roles.includes('mikveh_attendant') && !roles.includes('mikveh_manager') && mikIds.length > 0) {
+    queries.push(query(col,
+      where('cityId', '==', cityId),
+      where('entityType', '==', 'mikveh'),
+      where('entityId', 'in', mikIds)));
   }
   if (roles.includes('event_manager')) {
     queries.push(query(col, where('cityId', '==', cityId), where('entityType', '==', 'event')));

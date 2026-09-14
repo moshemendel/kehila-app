@@ -732,6 +732,9 @@ export default function ManageKosherScreen() {
   // grants kosher_manager access to every business regardless of managedRestaurantIds.
   const isKosherManager = roles.includes('kosher_manager');
   const managed = appUser?.managedRestaurantIds ?? [];
+  // A mashgiach is the per-shop rung under kosher_manager — the shops in
+  // supervisedBusinessIds, kashrut keys only (supervisesBusiness in the rules).
+  const supervised = roles.includes('mashgiach') ? (appUser?.supervisedBusinessIds ?? []) : [];
 
   // A kosher business is born here (in kashrut management), then it appears in
   // "ניהול עסקים" for editing business info. A manager can be assigned afterwards,
@@ -771,7 +774,7 @@ export default function ManageKosherScreen() {
   }
 
   const visible = businesses
-    .filter((r) => isAdmin || isKosherManager || managed.includes(r.id))
+    .filter((r) => isAdmin || isKosherManager || managed.includes(r.id) || supervised.includes(r.id))
     .filter((r) => !search || r.name.includes(search) || r.address.includes(search));
 
   // Matched against `visible`, not the whole collection: `visible` is where this
