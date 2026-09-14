@@ -66,7 +66,7 @@ service firebase.storage {
     // writable only by an admin (firestore.rules forbids self-edits of it), so
     // membership scopes a gabbai to exactly the synagogues they were assigned.
     function managesSynagogue(synId) {
-      return isContentManager() ||
+      return isContentManager() || hasRole('synagogue_manager') ||
         (hasRole('gabbai') && synId in userDoc().get('managedSynagogueIds', []));
     }
     match /synagogues/{synId}/gallery/{file} {
@@ -98,23 +98,31 @@ service firebase.storage {
     // would have let an owner swap the picture under an entry the rabbanut
     // controls, which is the part a customer actually looks at. That exclusion,
     // not the city, is what this path is really defending.
-    function issuesKashrut() {
-      return isContentManager() || hasRole('kosher_manager');
+    // kosher_manager city-wide; a mashgiach for the shops in
+    // supervisedBusinessIds, mirroring supervisesBusiness() in firestore.rules.
+    function issuesKashrut(bizId) {
+      return isContentManager() || hasRole('kosher_manager') ||
+        (hasRole('mashgiach') && bizId in userDoc().get('supervisedBusinessIds', []));
     }
     match /businesses/{bizId}/certificates/{certId}/{file} {
       allow read: if true;
-      allow create, update: if issuesKashrut() && isImage();
-      allow delete: if issuesKashrut();
+      allow create, update: if issuesKashrut(bizId) && isImage();
+      allow delete: if issuesKashrut(bizId);
     }
 
     // ── Mikveh gallery ────────────────────────────────────────────────────────
-    function managesMikveh() {
-      return isContentManager() || hasRole('mikveh_manager');
+    // mikveh_manager is city-wide; the attendant branch is per-mikveh,
+    // mirroring firestore.rules' attendsMikveh(): membership in
+    // managedMikvehIds is the grant, and the array is admin-written. Still one
+    // document — the caller's profile.
+    function managesMikveh(mikId) {
+      return isContentManager() || hasRole('mikveh_manager') ||
+        (hasRole('mikveh_attendant') && mikId in userDoc().get('managedMikvehIds', []));
     }
     match /mikvaot/{mikId}/gallery/{file} {
       allow read: if true;
-      allow create, update: if managesMikveh() && isImage();
-      allow delete: if managesMikveh();
+      allow create, update: if managesMikveh(mikId) && isImage();
+      allow delete: if managesMikveh(mikId);
     }
 
     // ── Eruv report images ────────────────────────────────────────────────────

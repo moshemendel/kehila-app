@@ -9,10 +9,13 @@ export type UserRole =
   | 'dev'
   | 'city_admin'
   | 'content_admin'
+  | 'synagogue_manager'
   | 'event_manager'
   | 'kosher_manager'
   | 'mikveh_manager'
   | 'eruv_manager'
+  | 'mashgiach'
   | 'business_manager'
+  | 'mikveh_attendant'
   | 'gabbai'
   | 'user';

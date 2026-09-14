@@ -1,7 +1,7 @@
 /**
  * Publishes the catalogues, so nothing has to keep a second copy of them.
  *
- *   node scripts/sync-catalogue.mjs [--check]
+ *   node scripts/sync-catalogue.mjs [--check | --no-publish]
  *
  * Two lists in this repo are read by more than one program: the modules a city
  * can run, and the roles an account can hold. Each is declared in exactly one
@@ -29,12 +29,18 @@
  *
  * --check verifies the generated files are current without writing or
  * publishing, for running before a build.
+ *
+ * --no-publish writes the generated files and stops. For when the catalogue
+ * changes shape — a new field the console does not read yet — and the app
+ * must compile against the new union before the console is ready to render
+ * what the document would now carry. The publish is a separate, later run.
  */
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { readFileSync, writeFileSync } from 'fs';
 
-const CHECK = process.argv.includes('--check');
+const CHECK      = process.argv.includes('--check');
+const NO_PUBLISH = process.argv.includes('--no-publish');
 
 /**
  * type   the exported TypeScript union name
@@ -66,10 +72,31 @@ const CATALOGUES = [
       'collapse a role set down to the single `role` field the rules read, so',
       'reordering an entry changes which role an account reports as its primary.',
     ],
-    check: (r) =>
-      r.assignableBy !== 'city_admin' && r.assignableBy !== 'super_admin'
-        ? `${r.key}: assignableBy must be "city_admin" or "super_admin"`
-        : null,
+    check: (r, all) => {
+      if (r.assignableBy !== 'city_admin' && r.assignableBy !== 'super_admin')
+        return `${r.key}: assignableBy must be "city_admin" or "super_admin"`;
+      // tier: 0 global, 1 city authority, 2 city-wide domain manager, 3 per-object
+      // operator. The console lays the picker out in these rows.
+      if (![0, 1, 2, 3].includes(r.tier))
+        return `${r.key}: tier must be 0, 1, 2 or 3`;
+      // A per-object role names both the collection it draws from and the
+      // user-document array that holds the assignment. Two roles may draw from
+      // one collection with different arrays (mashgiach and business_manager
+      // both pick businesses), so neither can be inferred from the other.
+      if (!!r.manages !== !!r.field)
+        return `${r.key}: manages and field must be given together`;
+      if (r.manages && r.tier !== 3)
+        return `${r.key}: only a tier-3 role takes a manages/field assignment`;
+      // parent: the tier-2 role that may also appoint this one (delegation).
+      // Must exist and must actually be tier 2.
+      if (r.parent !== undefined) {
+        const p = all.find((e) => e.key === r.parent);
+        if (!p) return `${r.key}: parent "${r.parent}" is not in the catalogue`;
+        if (p.tier !== 2) return `${r.key}: parent "${r.parent}" is tier ${p.tier}, not 2`;
+        if (r.tier !== 3) return `${r.key}: only a tier-3 role has a parent`;
+      }
+      return null;
+    },
   },
 ];
 
@@ -93,7 +120,7 @@ for (const cat of CATALOGUES) {
       process.exit(1);
     }
     seen.add(entry.key);
-    const err = cat.check?.(entry);
+    const err = cat.check?.(entry, list);
     if (err) {
       console.error(`${cat.source}: ${err}`);
       process.exit(1);
@@ -129,6 +156,10 @@ for (const cat of CATALOGUES) {
 }
 
 if (CHECK) process.exit(stale ? 1 : 0);
+if (NO_PUBLISH) {
+  console.log('not published (--no-publish) — run again without it when the console is ready');
+  process.exit(0);
+}
 
 initializeApp({ credential: cert(JSON.parse(readFileSync('scripts/serviceAccount.json', 'utf8'))) });
 const db = getFirestore();

@@ -30,9 +30,10 @@ const TYPE_OPTIONS: { key: Mikveh['type']; label: string }[] = [
 function EditForm({ mikveh, onBack }: { mikveh: Mikveh; onBack: () => void }) {
   const navigation = useNavigation<any>();
   const { appUser } = useAuth();
-  const roles = appUser?.roles ?? (appUser?.role ? [appUser.role] : []);
-  // Mirrors the mikvaot rule: content authority, or the mikveh specialist.
-  const isAdmin = managesContent(appUser) || roles.includes('mikveh_manager');
+  // Gates adding a neighbourhood option to the CITY, which is not something an
+  // attendant does — the mikveh itself is already hers by the time this renders
+  // (the list only offers what `visible` allows).
+  const isAdmin = managesContent(appUser);
   const [form, setForm] = useState<Mikveh>({ ...mikveh });
   const [saving, setSaving] = useState(false);
   const [editingLoc, setEditingLoc] = useState(false);
@@ -263,13 +264,13 @@ export default function ManageMikvehScreen() {
   const [adding, setAdding] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  // A user can hold several roles at once — check the full array (falling back
-  // to the single primary role for accounts saved before roles[] existed),
-  // not just appUser.role, so a mikveh_manager without any higher role still
-  // sees the add button.
+  // Mirrors the mikvaot rules. Content authority and the city's mikveh_manager
+  // create, duplicate and see every mikveh; an attendant (mikveh_attendant)
+  // sees and edits the ones in her managedMikvehIds and nothing else — the
+  // same shape as a gabbai and managedSynagogueIds in ManageSynagogueScreen.
   const roles = appUser?.roles ?? (appUser?.role ? [appUser.role] : []);
-  // Mirrors the mikvaot rule: content authority, or the mikveh specialist.
   const isAdmin = managesContent(appUser) || roles.includes('mikveh_manager');
+  const managed = roles.includes('mikveh_attendant') ? (appUser?.managedMikvehIds ?? []) : [];
 
   async function handleCreate(values: Record<string, string>) {
     setCreating(true);
@@ -327,7 +328,9 @@ export default function ManageMikvehScreen() {
     ]);
   }
 
-  const visible = mikvaot.filter((m) => !search || m.name.includes(search) || m.address.includes(search));
+  const visible = mikvaot
+    .filter((m) => isAdmin || managed.includes(m.id))
+    .filter((m) => !search || m.name.includes(search) || m.address.includes(search));
 
   // Matched against `visible`, not the whole collection: `visible` is where this
   // screen encodes who may edit what, and a deep link that searched past it
@@ -429,9 +432,11 @@ export default function ManageMikvehScreen() {
                     </View>
                   )}
                 </View>
-                <TouchableOpacity onPress={() => handleDuplicateMikveh(m)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                  <Ionicons name="copy-outline" size={20} color={Colors.primary} />
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity onPress={() => handleDuplicateMikveh(m)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Ionicons name="copy-outline" size={20} color={Colors.primary} />
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity onPress={() => handleDeleteMikveh(m)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                   <Ionicons name="trash-outline" size={20} color={Colors.danger} />
                 </TouchableOpacity>

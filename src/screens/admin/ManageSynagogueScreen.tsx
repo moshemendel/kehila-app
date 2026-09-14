@@ -1002,7 +1002,11 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
   syn: Synagogue; onBack: () => void; isDemo: boolean; userId: string; userName: string;
 }) {
   const { appUser } = useAuth();
-  const isAdmin = managesContent(appUser);
+  // Content authority or the city's synagogue_manager — mirrors the two
+  // city-wide rungs of managesSynagogue() in firestore.rules; a gabbai is the
+  // per-shul rung, scoped by managedSynagogueIds.
+  const isAdmin = managesContent(appUser)
+    || (appUser?.roles ?? (appUser?.role ? [appUser.role] : [])).includes('synagogue_manager');
   const { options: nusachOptions, addOption: addNusach, labelFor: nusachLabel } = useNusachOptions(syn.cityId);
   const [showAddNusach, setShowAddNusach] = useState(false);
   const [newNusachText, setNewNusachText] = useState('');
@@ -1591,7 +1595,11 @@ export default function ManageSynagogueScreen() {
   const deepLinked = useRef(!!focusId);
   const [adding,   setAdding]   = useState(false);
   const [creating, setCreating] = useState(false);
-  const isAdmin = managesContent(appUser);
+  // Content authority or the city's synagogue_manager — mirrors the two
+  // city-wide rungs of managesSynagogue() in firestore.rules; a gabbai is the
+  // per-shul rung, scoped by managedSynagogueIds.
+  const isAdmin = managesContent(appUser)
+    || (appUser?.roles ?? (appUser?.role ? [appUser.role] : [])).includes('synagogue_manager');
   const managed = appUser?.managedSynagogueIds ?? [];
   const { options: nusachOptions } = useNusachOptions(cityId);
 
