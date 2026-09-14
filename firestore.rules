@@ -117,6 +117,25 @@ service cloud.firestore {
         (hasRole('gabbai') && synId in userDoc().managedSynagogueIds)
       );
     }
+    // Who may see who booked a mikveh. The appointments rules used
+    // isAdminRole(), which is unscoped — so a city_admin of one city could read
+    // every appointment in every other city. That is the most sensitive data
+    // the app holds, and the one place the city boundary most needs to hold.
+    //
+    // content_admin is deliberately absent, as it was under isAdminRole(). The
+    // deputy role covers what the app publishes; an appointment is not content.
+    //
+    // Replaces `isAdminRole() || hasCityRole('mikveh_manager', ...)` — one
+    // roles lookup and one homeCityId lookup for both roles at once, and
+    // super_admin short-circuits before the mikveh document is read at all,
+    // so this costs fewer reads than the pair it replaces rather than more.
+    function managesMikvehAppointments(mikId) {
+      return isSignedIn() && (
+        isSuperAdminRole() ||
+        (userRoles().hasAny(['city_admin', 'mikveh_manager'])
+         && userDoc().homeCityId == mikvehCityId(mikId))
+      );
+    }
     // kosher_manager: city-wide cert access
     // business_manager: only their assigned businesses (stored in managedRestaurantIds)
     // Being listed in managedRestaurantIds is what makes an account a shop's
@@ -307,18 +326,15 @@ service cloud.firestore {
       match /appointments/{appointmentId} {
         allow read:   if isSignedIn()
                          && (resource.data.userId == request.auth.uid
-                             || isAdminRole()
-                             || hasCityRole('mikveh_manager', mikvehCityId(mikId)));
+                             || managesMikvehAppointments(mikId));
         allow create: if isRealAccount()
                          && request.resource.data.userId == request.auth.uid;
         allow update: if isSignedIn()
                          && (resource.data.userId == request.auth.uid
-                             || isAdminRole()
-                             || hasCityRole('mikveh_manager', mikvehCityId(mikId)));
+                             || managesMikvehAppointments(mikId));
         allow delete: if isSignedIn()
                          && (resource.data.userId == request.auth.uid
-                             || isAdminRole()
-                             || hasCityRole('mikveh_manager', mikvehCityId(mikId)));
+                             || managesMikvehAppointments(mikId));
       }
 
       // Non-identifying mirror of active bookings (date/time/apptId only, no
@@ -344,8 +360,7 @@ service cloud.firestore {
                          && request.resource.data.date is string
                          && request.resource.data.time is string
                          && getAfter(/databases/$(database)/documents/mikvaot/$(mikId)/appointments/$(request.resource.data.apptId)).data.userId == request.auth.uid;
-        allow delete: if isAdminRole()
-                         || hasCityRole('mikveh_manager', mikvehCityId(mikId))
+        allow delete: if managesMikvehAppointments(mikId)
                          || (isSignedIn() && 'apptId' in resource.data
                              && get(/databases/$(database)/documents/mikvaot/$(mikId)/appointments/$(resource.data.apptId)).data.userId == request.auth.uid)
                          // Legacy docs: mirror id == appointment id
@@ -387,15 +402,76 @@ service cloud.firestore {
 
     // ── Analytics events ──────────────────────────────────────────────────────
     match /analyticsEvents/{eventId} {
-      allow create: if isSignedIn();
+      // Was `create: if isSignedIn()` and nothing else — any shape, any size,
+      // any uid, from any account including an anonymous guest.
+      //
+      // The uid is the least obvious of those. A row's uid is what
+      // deleteMyAccount deletes by, so a row carrying someone else's uid
+      // outlives the account it claims to belong to and no one can reach it
+      // again; and the console counts distinct uids as its active-user figure,
+      // which a forged uid inflates for free.
+      //
+      // Guests are excluded because they never produce these anyway: analytics
+      // is initialised from the profile document (loadAppUser), which a guest
+      // does not have. isRealAccount() therefore costs nothing here and takes
+      // free, unlimited anonymous sign-ups off the table as a write path.
+      //
+      // The shape is locked to exactly what trackScreen() sends. A document
+      // holds up to 1 MiB, so "unlimited rows" was really "unlimited MiB on
+      // your bill" — hasOnly is the half of this that closes that.
+      //
+      // Ranges rather than `is int`: getHours()/getDay() are whole numbers and
+      // the SDK writes them as integers, but the bound is what actually matters
+      // and `is number` cannot be broken by a serialisation detail.
+      allow create: if isRealAccount()
+        && request.resource.data.keys().hasOnly(
+             ['feature', 'cityId', 'uid', 'hour', 'dayOfWeek', 'date', 'ts'])
+        && request.resource.data.keys().hasAll(
+             ['feature', 'cityId', 'uid', 'hour', 'dayOfWeek', 'date', 'ts'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.feature is string
+        && request.resource.data.feature.size() <= 64
+        && request.resource.data.cityId is string
+        && request.resource.data.cityId.size() <= 64
+        && request.resource.data.hour is number
+        && request.resource.data.hour >= 0 && request.resource.data.hour <= 23
+        && request.resource.data.dayOfWeek is number
+        && request.resource.data.dayOfWeek >= 0 && request.resource.data.dayOfWeek <= 6
+        && request.resource.data.date is string
+        && request.resource.data.date.matches('\\d{4}-\\d{2}-\\d{2}')
+        && request.resource.data.ts is timestamp;
       allow read:   if isAdminRole();
+      // No update and no delete: a row is a fact about a moment. A departing
+      // user's rows are removed by deleteMyAccount through the Admin SDK, which
+      // does not pass through these rules at all.
     }
 
     // ── Push notification tokens ──────────────────────────────────────────────
     // Keyed by device id (not uid) so one physical device never ends up with more than
     // one token doc, even if multiple accounts have logged into it over time.
     match /pushTokens/{deviceId} {
-      allow read: if isAdminRole();
+      // The device roster for a city: token, uid, role and city, one row per
+      // phone. isAdminRole() is unscoped, so a city_admin could read every
+      // city's — and PILOT_TEST_PLAN already describes the intent as "their own
+      // city's roster", which the rule had never actually said.
+      //
+      // Safe to scope because of how the two readers query. The console's
+      // notification page only offers "all cities" when canPickCity is true,
+      // which is super_admin or an unscoped dev — and both take the first
+      // branch here, so that unfiltered read still works. Every other caller
+      // (CityDashboard, StatsPage, the app's sendPushToCity/sendPushToRoles)
+      // already passes where('cityId', '==', …), which is exactly the
+      // constraint a per-document rule needs to allow a list.
+      //
+      // homeCityId, not cityId: the permanent jurisdiction, matching
+      // isCityAdminOf everywhere else. cityId is the freely-switchable
+      // browsing preference, and pushing to a city because you happen to be
+      // looking at it is the thing being closed here.
+      function managesPushTokensIn(tokenCityId) {
+        return isSuperAdminRole() ||
+          (hasRole('city_admin') && tokenCityId == userDoc().homeCityId);
+      }
+      allow read: if managesPushTokensIn(resource.data.cityId);
       // uid must be the caller's own — and role must match their real Firestore
       // role (or literally 'guest' for anonymous sessions), not whatever the
       // client claims. Without the role check, any signed-in user could write
@@ -426,7 +502,7 @@ service cloud.firestore {
                                         && request.resource.data.roles == ['guest']));
       // Admins can prune stale/legacy tokens (e.g. Expo's DeviceNotRegistered
       // cleanup); a device can also self-delete its own token doc on logout.
-      allow delete: if isAdminRole() ||
+      allow delete: if managesPushTokensIn(resource.data.cityId) ||
         (isSignedIn() && resource.data.uid == request.auth.uid);
     }
 

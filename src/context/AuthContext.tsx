@@ -83,7 +83,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   function loginAsDemo() {
     setAppUser(DEMO_USER);
     setIsDemo(true);
-    initAnalytics(DEMO_USER.uid, DEMO_USER.cityId);
+    // Demo sessions are not tracked. DEMO_USER.uid is the literal 'demo', not
+    // an Auth uid, and analyticsEvents now requires a row's uid to be the
+    // caller's own — so these writes could only ever be denied (silently, since
+    // trackScreen swallows the rejection). Clearing rather than simply dropping
+    // the call: leaving the module's context set would have attributed the demo
+    // walkthrough to whoever was signed in before it started.
+    clearAnalytics();
   }
 
   function exitDemo() {
