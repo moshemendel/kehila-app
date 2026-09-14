@@ -44,11 +44,12 @@ import {
 import { formatHebrewDate }  from '../../utils/hebrewDate';
 import { getJewishDayInfo, getUpcomingFast, getUpcomingYomTov } from '../../utils/jewishCalendar';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
-import { MainTabParamList }  from '../../types';
+import { MainTabParamList, City } from '../../types';
 import { calcZmanim, minToStr } from '../../utils/zmanim';
 import { useModules, isOffered, isComingSoon, ModuleKey } from '../../utils/modules';
 import { ComingSoonBadge } from '../../components/ComingSoon';
 import EmailVerificationBanner from '../../components/EmailVerificationBanner';
+import CityPicker from '../../components/CityPicker';
 
 // ─────────────────────────────────────────────────────────────────
 type Nav = BottomTabNavigationProp<MainTabParamList>;
@@ -101,7 +102,8 @@ function fmtCountdown(diffMin: number): string {
 export default function HomeScreen() {
   const managerAlerts = useManagerAlertsFeed();
   useAnalyticsTrack('home');
-  const { appUser, refreshUser }  = useAuth();
+  const { appUser, refreshUser, switchCity }  = useAuth();
+  const [cityPickerOpen, setCityPickerOpen] = useState(false);
   const navigation   = useNavigation<Nav>();
   const cityId       = useCityId();
   const { top, bottom } = useSafeAreaInsets();
@@ -421,7 +423,15 @@ export default function HomeScreen() {
           <View style={styles.greetingCol}>
             <Text style={styles.greeting}>{greeting} 👋</Text>
             <Text style={styles.userName}>{appUser?.displayName ?? 'אורח'}</Text>
-            <Text style={styles.cityName}>📍 {cityName}</Text>
+            <TouchableOpacity
+              style={styles.cityRow}
+              onPress={() => setCityPickerOpen(true)}
+              activeOpacity={0.7}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            >
+              <Text style={styles.cityName}>📍 {cityName}</Text>
+              <Ionicons name="chevron-down" size={13} color="rgba(255,255,255,0.7)" />
+            </TouchableOpacity>
           </View>
 
           {/* Date badge */}
@@ -804,6 +814,13 @@ export default function HomeScreen() {
 
       </View>
       </ScrollView>
+
+      <CityPicker
+        visible={cityPickerOpen}
+        selectedCityId={cityId}
+        onSelect={async (c: City) => { await switchCity(c.id); }}
+        onClose={() => setCityPickerOpen(false)}
+      />
     </View>
   );
 }
@@ -825,7 +842,8 @@ const styles = StyleSheet.create({
   greetingCol: { flex: 1, marginRight: Spacing.sm },
   greeting:   { fontSize: 14, color: 'rgba(255,255,255,0.75)' },
   userName:   { fontSize: 22, fontWeight: '800', color: Colors.white, marginTop: 2 },
-  cityName:   { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 4 },
+  cityRow:    { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4, alignSelf: 'flex-start' },
+  cityName:   { fontSize: 13, color: 'rgba(255,255,255,0.7)' },
 
   dayBadge: {
     backgroundColor: 'rgba(255,255,255,0.15)',
