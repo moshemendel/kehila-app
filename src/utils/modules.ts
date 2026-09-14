@@ -61,7 +61,7 @@ export type CityModules = Partial<Record<ModuleKey, ModuleState>>;
 const COLORS: Record<string, string> = {
   primary: Colors.primary, kosher: Colors.kosher, mikveh: Colors.mikveh,
   events: Colors.events, gold: Colors.gold, shacharit: Colors.shacharit,
-  gemach: '#B06B3A',
+  gemach: '#B06B3A', cemetery: Colors.cemetery,
 };
 
 export const MODULE_INFO: Partial<Record<ModuleKey, {

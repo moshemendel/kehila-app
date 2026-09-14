@@ -63,6 +63,7 @@ const QUICK_LINKS = [
   { icon: 'calendar-outline',      customIcon: EventsIcon,              label: 'אירועים',      tab: 'Events'      as const, color: Colors.events   },
   { icon: 'shield-outline',        customIcon: EruvIcon,                label: 'עירוב',         tab: 'Eruv'        as const, color: Colors.gold     },
   { icon: 'gift-outline',          customIcon: GemachIcon,              label: 'גמ"ח',          tab: 'Gemach'      as const, color: '#B06B3A'        },
+  { icon: 'flower-outline',        customIcon: undefined,               label: 'בית עלמין',   tab: 'Cemeteries'  as const, color: Colors.cemetery  },
   { icon: 'person-circle-outline', customIcon: undefined,               label: 'פרופיל',      tab: 'Profile'     as const, color: Colors.primary   },
 ];
 

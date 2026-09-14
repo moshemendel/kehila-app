@@ -12,6 +12,7 @@ export type ModuleKey =
   | 'Events'
   | 'Eruv'
   | 'Gemach'
+  | 'Cemeteries'
   | 'Selichot'
   | 'mikvehBooking'
   | 'zmanimSettings';

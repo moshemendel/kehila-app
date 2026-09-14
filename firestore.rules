@@ -620,6 +620,16 @@ service cloud.firestore {
       allow delete: if managesContentIn(resource.data.cityId);
     }
 
+    // ── Cemeteries — public read; content authority writes ───────────────────
+    // No dedicated operator role (unlike mikveh_manager/attendsMikveh) — the
+    // roles catalogue has nothing between a gabbai and a full content admin
+    // for this, and a static contact/directions record doesn't need one yet.
+    match /cemeteries/{cemeteryId} {
+      allow read: if true;
+      allow create: if managesContentIn(request.resource.data.cityId);
+      allow update, delete: if managesContentIn(resource.data.cityId);
+    }
+
     // ── Gemachs — public read; admin or the original submitter can write ─────
     match /gemachs/{gemachId} {
       allow read: if true;

@@ -440,6 +440,31 @@ export interface Mikveh {
   updatedAt?: Date;
 }
 
+// ── Cemeteries ────────────────────────────────────────────────────────────────
+
+export interface Cemetery {
+  id: string;
+  cityId: string;
+  /**
+   * Which of the tenant's area(s) this cemetery serves — plural because one
+   * cemetery can serve more than one settlement (Emek HaYarden's own burial
+   * page lists אשדות יעקב איחוד+מאוחד and כנרת קבוצה+מושבה as sharing one
+   * each), the same reason EruvStatus.areaIds is plural. A single-area city's
+   * one cemetery still carries this — its one area's id.
+   */
+  areaIds: string[];
+  name: string;
+  contactName?: string;
+  contactPhone?: string;
+  /** A ready-to-open directions link as the source gave it — Waze or Google
+   *  Maps, whichever that was. Opened as-is; not parsed for coordinates. */
+  directionsUrl?: string;
+  latitude?: number;
+  longitude?: number;
+  notes?: string;
+  updatedAt?: any;
+}
+
 // ---- Kashrut updates (a dedicated feed, separate from community events) ----
 
 export interface KashrutUpdate {
@@ -547,6 +572,7 @@ export type MainTabParamList = {
   Events: undefined;
   Eruv: undefined;
   Gemach: undefined;
+  Cemeteries: undefined;
   Selichot: undefined;
   Profile: undefined;
 };

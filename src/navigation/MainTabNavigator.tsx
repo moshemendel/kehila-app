@@ -18,6 +18,7 @@ import EventsScreen      from '../screens/main/EventsScreen';
 import ProfileScreen     from '../screens/main/ProfileScreen';
 import EruvScreen        from '../screens/main/EruvScreen';
 import GemachScreen      from '../screens/main/GemachScreen';
+import CemeteriesScreen  from '../screens/main/CemeteriesScreen';
 import SearchScreen      from '../screens/main/SearchScreen';
 import SelichotScreen    from '../screens/main/SelichotScreen';
 
@@ -67,6 +68,7 @@ const TAB_INFO: Record<TabName, TabInfo> = {
   Events:      { icon: 'calendar-outline',   iconActive: 'calendar',   label: 'אירועים',   color: Colors.events    },
   Eruv:        { icon: 'shield-outline',     iconActive: 'shield',     label: 'עירוב',     color: Colors.gold      },
   Gemach:      { icon: 'gift-outline',       iconActive: 'gift',       label: 'גמ"ח',      color: '#B06B3A'        },
+  Cemeteries:  { icon: 'flower-outline',     iconActive: 'flower',     label: 'בית עלמין', color: Colors.cemetery  },
   Selichot:    { icon: 'moon-outline',       iconActive: 'moon',       label: 'סליחות',    color: Colors.gold      },
   Profile:     { icon: 'person-outline',     iconActive: 'person',     label: 'פרופיל',   color: Colors.primary   },
 };
@@ -87,12 +89,13 @@ const SECTION_TABS: { name: ModuleKey; screen: React.ComponentType<any> }[] = [
   { name: 'Events',      screen: EventsScreen },
   { name: 'Eruv',        screen: EruvScreen },
   { name: 'Gemach',      screen: GemachScreen },
+  { name: 'Cemeteries',  screen: CemeteriesScreen },
   { name: 'Selichot',    screen: SelichotScreen },
 ];
 
 const ALL_TABS: TabName[] = [
   'Home','Search','Synagogues','PrayerTimes','Zmanim',
-  'Businesses','Mikveh','Events','Eruv','Gemach','Selichot','Profile',
+  'Businesses','Mikveh','Events','Eruv','Gemach','Cemeteries','Selichot','Profile',
 ];
 
 // Default: 4 bar slots (More fixed in center, remaining 4 go to popup)

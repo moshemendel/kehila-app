@@ -72,6 +72,15 @@
     "soonText": "רשימת הגמ\"חים בעיר נאספת כעת ותיפתח בקרוב."
   },
   {
+    "key": "Cemeteries",
+    "kind": "section",
+    "label": "קבורה ובית עלמין",
+    "hint": "בתי עלמין ואנשי קשר",
+    "icon": "flower-outline",
+    "color": "cemetery",
+    "soonText": "רשימת בתי העלמין ואנשי הקשר נאספת כעת."
+  },
+  {
     "key": "Selichot",
     "kind": "section",
     "label": "סליחות",

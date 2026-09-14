@@ -31,6 +31,7 @@ export const Colors = {
   shacharit: '#C2600A',   // amber morning — shacharit prayer
   mincha:    '#2E6DB4',   // = primary     — mincha prayer
   maariv:    '#5B3594',   // = events      — maariv / night
+  cemetery:  '#5C6670',   // muted slate   — cemeteries / burial
 
   // ── System states ───────────────────────────────────────────────────────
   success: '#1B6B47',   // = kosher green
