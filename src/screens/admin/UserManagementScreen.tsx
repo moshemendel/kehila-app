@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Alert, TextInput,
+  View, Text, ScrollView, StyleSheet,
+  TouchableOpacity, ActivityIndicator, TextInput,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { getUsersByCity, setUserRoles } from '../../services/users';

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from 'react-native';
+import { AppAlert as Alert } from './AppAlert';
+
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheetModal from './BottomSheetModal';
 import { submitContentReport } from '../services/reports';

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput,
-  Alert, ActivityIndicator, ScrollView,
+  View, Text, StyleSheet, FlatList,
+  TouchableOpacity, TextInput, ActivityIndicator, ScrollView,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import BottomSheetModal from '../../components/BottomSheetModal';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';

@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Share, Linking, Alert, Platform,
+  View, Text, ScrollView, StyleSheet,
+  TouchableOpacity, Share, Linking, Platform,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';

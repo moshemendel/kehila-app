@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TextInput,
-  TouchableOpacity, Alert, ActivityIndicator, Switch,
+  View, Text, ScrollView, StyleSheet,
+  TextInput, TouchableOpacity, ActivityIndicator, Switch,
   KeyboardAvoidingView, Platform, Modal,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';

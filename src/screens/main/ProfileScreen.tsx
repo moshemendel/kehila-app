@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Switch, Linking,
+  View, Text, ScrollView, StyleSheet,
+  TouchableOpacity, ActivityIndicator, Switch, Linking,
   Platform,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';

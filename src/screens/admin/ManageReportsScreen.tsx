@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, RefreshControl, Alert,
+  View, Text, ScrollView, StyleSheet,
+  TouchableOpacity, ActivityIndicator, RefreshControl,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { setReportStatus, fetchReportsFor } from '../../services/reports';

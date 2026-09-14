@@ -1,8 +1,11 @@
 import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput,
-  Alert, ActivityIndicator, Modal, Image,
+  View, Text, StyleSheet, TouchableOpacity,
+  ScrollView, TextInput, ActivityIndicator, Modal,
+  Image,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import MapView, { Polygon, Marker, MapPressEvent, Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';

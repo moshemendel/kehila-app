@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TextInput,
-  TouchableOpacity, Alert, ActivityIndicator, Switch,
+  View, Text, ScrollView, StyleSheet,
+  TextInput, TouchableOpacity, ActivityIndicator, Switch,
 } from 'react-native';
+import { AppAlert as Alert } from './AppAlert';
+
 import BottomSheetModal from './BottomSheetModal';
 import { Ionicons } from '@expo/vector-icons';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';

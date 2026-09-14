@@ -1,7 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, Alert,
+  View, Text, StyleSheet, TouchableOpacity,
+  FlatList, TextInput,
 } from 'react-native';
+import { AppAlert as Alert } from './AppAlert';
+
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheetModal from './BottomSheetModal';
 import { Colors, Spacing, Radius } from '../utils/theme';

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TextInput,
-  TouchableOpacity, Alert, ActivityIndicator, Switch,
+  View, Text, ScrollView, StyleSheet,
+  TextInput, TouchableOpacity, ActivityIndicator, Switch,
   KeyboardAvoidingView, Platform, Modal,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useBusinessesFeed } from '../../context/BusinessesContext';

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TextInput,
-  TouchableOpacity, Alert, ActivityIndicator,
-  KeyboardAvoidingView, Platform,
+  View, Text, ScrollView, StyleSheet,
+  TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';

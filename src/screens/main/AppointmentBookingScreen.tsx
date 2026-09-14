@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Alert, Modal, ScrollView,
+  ActivityIndicator, Modal, ScrollView,
 } from 'react-native';
+import { AppAlert as Alert } from '../../components/AppAlert';
+
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
