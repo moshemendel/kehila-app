@@ -5,6 +5,8 @@ export type GemachCategory =
 export interface Gemach {
   id: string;
   cityId: string;
+  /** Which of the tenant's areas this gemach is in — see Synagogue.areaId. */
+  areaId?: string;
   name: string;
   category: GemachCategory;
   description?: string;
@@ -508,6 +510,8 @@ export interface SynagogueAnnouncement {
 export interface CommunityEvent {
   id: string;
   cityId: string;
+  /** Which of the tenant's areas this event is in/for — see Synagogue.areaId. */
+  areaId?: string;
   title: string;
   description: string;
   category: EventCategory;
