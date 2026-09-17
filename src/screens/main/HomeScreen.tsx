@@ -647,7 +647,7 @@ export default function HomeScreen() {
             activeOpacity={0.85}
           >
             <View style={styles.shabbatLeft}>
-              <Text style={styles.shabbatEmoji}>🕯</Text>
+              <Image source={require('../../../assets/images/candles.png')} style={styles.shabbatEmoji} resizeMode="contain" />
             </View>
             <View style={styles.shabbatBody}>
               <Text style={styles.shabbatHeading}>{shabbat.heading}</Text>
@@ -976,7 +976,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: Colors.gold + '18',
   },
-  shabbatEmoji:      { fontSize: 30 },
+  shabbatEmoji:      { width: 40, height: 40 },
   shabbatBody:       { flex: 1, paddingVertical: 14, paddingHorizontal: 16 },
   shabbatHeading:    { fontSize: 14, color: Colors.text, fontWeight: '700', textAlign: 'center', marginBottom: 10 },
   shabbatTimesRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { Colors, Spacing, Radius } from '../utils/theme';
@@ -24,7 +24,7 @@ export default function ShabbatClosedScreen({ title, kind, parasha, reopenAt, on
       <StatusBar style="light" />
 
       <View style={styles.center}>
-        <Text style={styles.candle}>🕯️</Text>
+        <Image source={require('../../assets/images/candles.png')} style={styles.candle} resizeMode="contain" />
         <Text style={styles.title}>{title}</Text>
         {!!parasha && <Text style={styles.parasha}>{parasha}</Text>}
 
@@ -35,7 +35,7 @@ export default function ShabbatClosedScreen({ title, kind, parasha, reopenAt, on
 
         {!!reopenAt && (
           <View style={styles.reopenBox}>
-            <Text style={styles.reopenLabel}>האפליקציה תיפתח מחדש {reopenWord}</Text>
+            <Text style={styles.reopenLabel}>האפליקציה תשוב לפעול {reopenWord}</Text>
             <Text style={styles.reopenTime}>{reopenAt}</Text>
           </View>
         )}
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   fill:    { flex: 1 },
   center:  { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
 
-  candle:  { fontSize: 72, marginBottom: Spacing.md },
+  candle:  { width: 130, height: 130, marginBottom: Spacing.md },
   title:   { fontSize: 34, fontWeight: '800', color: Colors.white, textAlign: 'center', letterSpacing: 1 },
   parasha: { fontSize: 16, color: 'rgba(255,255,255,0.8)', marginTop: 6, textAlign: 'center' },
 
@@ -63,8 +63,8 @@ const styles = StyleSheet.create({
   msg:     { fontSize: 18, color: Colors.white, fontWeight: '600', textAlign: 'center' },
   msgSub:  { fontSize: 14, color: 'rgba(255,255,255,0.75)', textAlign: 'center', marginTop: 6 },
 
-  reopenBox:   { marginTop: Spacing.xl, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: Radius.lg, paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md },
-  reopenLabel: { fontSize: 13, color: 'rgba(255,255,255,0.85)' },
+  reopenBox:   { marginTop: Spacing.xl, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: Radius.lg, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md },
+  reopenLabel: { fontSize: 12.5, color: 'rgba(255,255,255,0.85)' },
   reopenTime:  { fontSize: 30, fontWeight: '800', color: Colors.goldBright, marginTop: 4 },
 
   devBtn:  { position: 'absolute', bottom: 28, alignSelf: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: Radius.full, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
