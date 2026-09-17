@@ -18,11 +18,11 @@ import { useAuth } from '../../context/AuthContext';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import {
   setEruvStatus, setEruvPolygon, resolveEruvReport, getEruvPolygons,
-  findEruvForArea, createEruv,
+  findEruvForArea, createEruv, updateEruvAreas,
 } from '../../services/eruv';
 import { sendPushToCity } from '../../services/pushNotifications';
 import { Colors, Spacing, Radius } from '../../utils/theme';
-import { EruvCoordinate } from '../../types';
+import { EruvCoordinate, EruvStatus } from '../../types';
 
 const DEFAULT_REGION: Region = {
   latitude: 31.7767, longitude: 35.2988, latitudeDelta: 0.03, longitudeDelta: 0.03,
@@ -98,7 +98,26 @@ export default function ManageEruvScreen() {
     () => areas.filter((a) => !coveredAreaIds.has(a.id)),
     [areas, coveredAreaIds],
   );
-  const [addingEruv, setAddingEruv] = useState(false);
+
+  // Create/edit picker — same UI for a brand-new eruv (checking one or more
+  // uncovered settlements) and for editing an existing one's areaIds
+  // (checking its own settlements plus any still-uncovered ones).
+  type EruvPicker = { mode: 'create' } | { mode: 'edit'; eruv: EruvStatus };
+  const [picker, setPicker] = useState<EruvPicker | null>(null);
+  const [pickerSelected, setPickerSelected] = useState<Set<string>>(new Set());
+  const [pickerLabel, setPickerLabel] = useState('');
+  const [pickerSaving, setPickerSaving] = useState(false);
+
+  // Areas selectable in the picker: for a new eruv, whatever's uncovered;
+  // for editing an existing one, that plus its own current areas (which read
+  // as "covered" globally, but must stay checkable so they can be kept or
+  // unchecked) — everything covered by ANOTHER eruv stays hidden either way.
+  const pickerAvailableAreas = useMemo(() => {
+    if (!picker) return [];
+    if (picker.mode === 'create') return uncoveredAreas;
+    const ownIds = new Set(picker.eruv.areaIds ?? []);
+    return areas.filter((a) => ownIds.has(a.id) || !coveredAreaIds.has(a.id));
+  }, [picker, areas, uncoveredAreas, coveredAreaIds]);
 
   function eruvLabel(e: typeof activeEruv): string {
     if (!e) return '';
@@ -107,13 +126,43 @@ export default function ManageEruvScreen() {
     return names.join(' + ') || 'עירוב';
   }
 
-  async function handleAddEruv(area: { id: string; name: string }) {
-    setAddingEruv(false);
+  function openCreatePicker() {
+    setPicker({ mode: 'create' });
+    setPickerSelected(new Set());
+    setPickerLabel('');
+  }
+
+  function openEditPicker(eruv: EruvStatus) {
+    setPicker({ mode: 'edit', eruv });
+    setPickerSelected(new Set(eruv.areaIds ?? []));
+    setPickerLabel(eruv.label ?? '');
+  }
+
+  function togglePickerArea(id: string) {
+    setPickerSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  async function handleConfirmPicker() {
+    if (!picker || pickerSelected.size === 0) return;
+    const areaIds = Array.from(pickerSelected);
+    const label = pickerLabel.trim();
+    setPickerSaving(true);
     try {
-      const newId = await createEruv(cityId, [area.id], area.name, appUser?.uid ?? '');
-      setSelectedEruvId(newId);
+      if (picker.mode === 'create') {
+        const newId = await createEruv(cityId, areaIds, label || undefined, appUser?.uid ?? '');
+        setSelectedEruvId(newId);
+      } else {
+        await updateEruvAreas(picker.eruv.id, areaIds, label, appUser?.uid ?? '');
+      }
+      setPicker(null);
     } catch (e: any) {
       Alert.alert('שגיאה', e.message);
+    } finally {
+      setPickerSaving(false);
     }
   }
 
@@ -422,56 +471,100 @@ export default function ManageEruvScreen() {
         })}
       </View>
 
-      {/* Settlement row — hidden for a plain single-eruv tenant */}
-      {!loading && (statuses.length > 1 || uncoveredAreas.length > 0) && (
+      {/* Settlement row — hidden for a plain single-area tenant. Shown
+          whenever there's more than one area at all (not just more than one
+          eruv, or uncovered areas left) so a regional council whose
+          settlements are already fully assigned into eruvin still has a way
+          to reach the edit picker below — otherwise a council with e.g. 2
+          settlements both already in one combined eruv would have no UI
+          left to reach it. */}
+      {!loading && areas.length > 1 && (
+        <View style={s.settlementRow}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={s.settlementRow}
           contentContainerStyle={s.settlementRowContent}
         >
           {statuses.map((e) => {
             const active = e.id === activeEruv?.id;
             return (
-              <TouchableOpacity
-                key={e.id}
-                style={[s.settlementChip, active && s.settlementChipActive]}
-                onPress={() => setSelectedEruvId(e.id)}
-                activeOpacity={0.75}
-              >
-                <View style={[s.settlementChipDot, {
-                  backgroundColor: e.status === 'valid' ? Colors.success
-                    : e.status === 'invalid' ? Colors.danger : Colors.gold,
-                }]} />
-                <Text style={[s.settlementChipText, active && s.settlementChipTextActive]}>{eruvLabel(e)}</Text>
-              </TouchableOpacity>
+              <View key={e.id} style={[s.settlementChip, active && s.settlementChipActive]}>
+                <TouchableOpacity
+                  style={s.settlementChipMain}
+                  onPress={() => setSelectedEruvId(e.id)}
+                  activeOpacity={0.75}
+                >
+                  <View style={[s.settlementChipDot, {
+                    backgroundColor: e.status === 'valid' ? Colors.success
+                      : e.status === 'invalid' ? Colors.danger : Colors.gold,
+                  }]} />
+                  <Text style={[s.settlementChipText, active && s.settlementChipTextActive]}>{eruvLabel(e)}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={s.settlementChipEditBtn}
+                  onPress={() => openEditPicker(e)}
+                  activeOpacity={0.6}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="pencil" size={12} color={active ? Colors.text : Colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
             );
           })}
           {uncoveredAreas.length > 0 && (
-            <TouchableOpacity style={s.settlementAddChip} onPress={() => setAddingEruv(true)} activeOpacity={0.75}>
+            <TouchableOpacity style={s.settlementAddChip} onPress={openCreatePicker} activeOpacity={0.75}>
               <Ionicons name="add" size={16} color={Colors.gold} />
-              <Text style={s.settlementAddChipText}>הוסף יישוב</Text>
+              <Text style={s.settlementAddChipText}>עירוב חדש</Text>
             </TouchableOpacity>
           )}
         </ScrollView>
+        </View>
       )}
 
-      {/* Add-a-settlement picker */}
-      <Modal visible={addingEruv} transparent animationType="fade" onRequestClose={() => setAddingEruv(false)}>
-        <Pressable style={s.modalBackdrop} onPress={() => setAddingEruv(false)}>
+      {/* Create/edit picker — which settlements this eruv covers */}
+      <Modal visible={picker !== null} transparent animationType="fade" onRequestClose={() => setPicker(null)}>
+        <Pressable style={s.modalBackdrop} onPress={() => setPicker(null)}>
           <Pressable style={s.modalCard} onPress={() => {}}>
-            <Text style={s.modalTitle}>הוספת עירוב ליישוב</Text>
-            <ScrollView style={{ maxHeight: 360 }}>
-              {uncoveredAreas.map((a) => (
-                <TouchableOpacity key={a.id} style={s.modalRow} onPress={() => handleAddEruv(a)} activeOpacity={0.7}>
-                  <Text style={s.modalRowText}>{a.name}</Text>
-                  <Ionicons name="chevron-back-outline" size={16} color={Colors.textMuted} />
-                </TouchableOpacity>
-              ))}
+            <Text style={s.modalTitle}>{picker?.mode === 'edit' ? 'עריכת יישובי העירוב' : 'עירוב חדש'}</Text>
+            <TextInput
+              style={s.modalLabelInput}
+              placeholder="שם תצוגה (אופציונלי)"
+              value={pickerLabel}
+              onChangeText={setPickerLabel}
+              textAlign="right"
+              placeholderTextColor={Colors.textMuted}
+            />
+            <ScrollView style={{ maxHeight: 320 }}>
+              {pickerAvailableAreas.map((a) => {
+                const checked = pickerSelected.has(a.id);
+                return (
+                  <TouchableOpacity key={a.id} style={s.modalRow} onPress={() => togglePickerArea(a.id)} activeOpacity={0.7}>
+                    <Ionicons name={checked ? 'checkbox' : 'square-outline'} size={20} color={checked ? Colors.gold : Colors.textMuted} />
+                    <Text style={s.modalRowText}>{a.name}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+              {pickerAvailableAreas.length === 0 && (
+                <Text style={[s.emptyText, { textAlign: 'center', paddingVertical: Spacing.md }]}>אין יישובים זמינים</Text>
+              )}
             </ScrollView>
-            <TouchableOpacity style={s.modalCancelBtn} onPress={() => setAddingEruv(false)}>
-              <Text style={s.modalCancelText}>ביטול</Text>
-            </TouchableOpacity>
+            {pickerSelected.size === 0 && (
+              <Text style={s.pickerHint}>בחר לפחות יישוב אחד</Text>
+            )}
+            <View style={s.modalBtnRow}>
+              <TouchableOpacity style={s.modalCancelBtn} onPress={() => setPicker(null)}>
+                <Text style={s.modalCancelText}>ביטול</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.saveBtn, s.modalConfirmBtn, (pickerSelected.size === 0 || pickerSaving) && s.saveBtnDisabled]}
+                onPress={handleConfirmPicker}
+                disabled={pickerSelected.size === 0 || pickerSaving}
+              >
+                {pickerSaving
+                  ? <ActivityIndicator size="small" color={Colors.white} />
+                  : <Text style={s.saveBtnText}>{picker?.mode === 'edit' ? 'שמור' : 'צור עירוב'}</Text>}
+              </TouchableOpacity>
+            </View>
           </Pressable>
         </Pressable>
       </Modal>
@@ -772,17 +865,33 @@ const s = StyleSheet.create({
   tabContent: { padding: Spacing.md },
 
   // ── Settlement row (multi-eruv tenants only) ────────────────────────
+  // height lives on this wrapping View, not on the ScrollView itself: an
+  // explicit height directly on a horizontal ScrollView here proved
+  // unreliable — it was inconsistently overridden per-tab (confirmed by
+  // temporarily coloring it: ~190px on one tab, nearly the full screen on
+  // another, same component and style both times), sized instead by
+  // whatever flex space its sibling tab content left it. A plain View's
+  // height is honored reliably, so the ScrollView now just fills this one.
   settlementRow: {
+    height: 56,
     backgroundColor: Colors.cardBackground,
     borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
-  settlementRowContent: { flexDirection: 'row', gap: 8, padding: Spacing.sm, paddingHorizontal: Spacing.md },
+  // alignItems pinned explicitly: this row's chips carry no padding/height of
+  // their own anymore (that moved to settlementChipMain/EditBtn so the two
+  // touch targets inside one chip could differ), so with the flex row's
+  // default 'stretch' they had nothing of their own to resist being stretched
+  // to the ScrollView's own (unconstrained, and so surprisingly large) cross-
+  // axis size — a short label hid this, a long one made it obvious.
+  settlementRowContent: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: Spacing.sm, paddingHorizontal: Spacing.md },
   settlementChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, paddingVertical: 7, borderRadius: Radius.full,
+    flexDirection: 'row', alignItems: 'center', borderRadius: Radius.full,
     backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.border,
+    overflow: 'hidden',
   },
   settlementChipActive:     { backgroundColor: Colors.gold + '1A', borderColor: Colors.gold },
+  settlementChipMain:       { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 7 },
+  settlementChipEditBtn:    { paddingHorizontal: 8, paddingVertical: 7 },
   settlementChipDot:        { width: 7, height: 7, borderRadius: 3.5 },
   settlementChipText:       { fontSize: 12.5, fontWeight: '600', color: Colors.textSecondary },
   settlementChipTextActive: { color: Colors.text },
@@ -793,20 +902,31 @@ const s = StyleSheet.create({
   },
   settlementAddChipText: { fontSize: 12.5, fontWeight: '600', color: Colors.gold },
 
-  // ── Add-settlement modal ─────────────────────────────────────────────
+  // ── Eruv create/edit modal ────────────────────────────────────────────
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', padding: Spacing.lg },
   modalCard: {
     width: '100%', maxWidth: 380, backgroundColor: Colors.cardBackground,
     borderRadius: Radius.lg, padding: Spacing.lg,
   },
   modalTitle: { fontSize: 16, fontWeight: '700', color: Colors.text, marginBottom: Spacing.sm, textAlign: 'center' },
+  modalLabelInput: {
+    borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.md,
+    paddingHorizontal: Spacing.sm, paddingVertical: 9, fontSize: 14, color: Colors.text,
+    backgroundColor: Colors.background, marginBottom: Spacing.sm,
+  },
   modalRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
-  modalRowText:    { fontSize: 15, color: Colors.text, fontWeight: '500' },
-  modalCancelBtn:  { marginTop: Spacing.sm, paddingVertical: 12, alignItems: 'center' },
-  modalCancelText: { fontSize: 15, fontWeight: '600', color: Colors.textSecondary },
+  modalRowText: { fontSize: 15, color: Colors.text, fontWeight: '500' },
+  pickerHint:   { fontSize: 12.5, color: Colors.textMuted, textAlign: 'center', marginTop: Spacing.sm },
+  modalBtnRow:  { flexDirection: 'row', gap: 8, marginTop: Spacing.md },
+  modalCancelBtn: {
+    flex: 1, paddingVertical: 12, alignItems: 'center',
+    borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border,
+  },
+  modalCancelText:  { fontSize: 15, fontWeight: '600', color: Colors.textSecondary },
+  modalConfirmBtn:  { flex: 1, marginTop: 0, paddingVertical: 12 },
 
   sectionTitle: { fontSize: 15, fontWeight: '700', color: Colors.text, marginBottom: Spacing.sm },
   fieldLabel:   { fontSize: 14, fontWeight: '600', color: Colors.text, marginBottom: 6, marginTop: Spacing.sm },

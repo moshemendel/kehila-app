@@ -1,6 +1,6 @@
 import {
   doc, collection, setDoc, addDoc, updateDoc,
-  onSnapshot, query, where, serverTimestamp,
+  onSnapshot, query, where, serverTimestamp, deleteField,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { EruvStatus, EruvReport, EruvCoordinate } from '../types';
@@ -52,6 +52,26 @@ export async function createEruv(
     updatedAt: serverTimestamp(),
   });
   return ref.id;
+}
+
+/** Changes which of the tenant's areas an existing eruv covers, and/or its
+ *  display label — e.g. moving a settlement between two eruvin (uncheck +
+ *  save here, then check it into the other eruv), or merging a second
+ *  settlement into one that started single. label='' clears a custom label
+ *  back to eruvLabel()'s auto joined-names fallback rather than leaving a
+ *  stale one in place. */
+export async function updateEruvAreas(
+  eruvId: string,
+  areaIds: string[],
+  label: string,
+  updatedBy: string,
+) {
+  await setDoc(doc(db, 'eruvStatus', eruvId), {
+    areaIds,
+    label: label ? label : deleteField(),
+    updatedBy,
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
 }
 
 export async function setEruvStatus(
