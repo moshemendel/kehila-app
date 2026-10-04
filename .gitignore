@@ -84,3 +84,6 @@ data/travel/*.sample.json
 # Valhalla routing tiles built locally for buildTravelMatrix. Several GB,
 # reproducible from the OSM extract, and nothing reads them from here.
 /valhalla/
+
+# JetBrains IDE settings
+.idea/
