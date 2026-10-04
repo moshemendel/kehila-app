@@ -14,11 +14,10 @@ import { useSynagoguesFeed } from '../../context/SynagoguesContext';
 import { useCityId } from '../../hooks/useCityId';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCity } from '../../hooks/useCity';
-import { useTodayZmanim } from '../../hooks/useTodayZmanim';
 import { useFavorites } from '../../context/FavoritesContext';
 import { Colors, Spacing, Radius, Shadow, CardShell } from '../../utils/theme';
 import { haversineKm, formatDist } from '../../utils/location';
-import { getSlotLabel } from '../../utils/prayerUtils';
+import { slotRuleLabel } from '../../utils/prayerUtils';
 import { Synagogue } from '../../types';
 import FilterBar from '../../components/FilterBar';
 import FavoriteFilterChip from '../../components/FavoriteFilterChip';
@@ -130,7 +129,6 @@ export default function SynagoguesScreen() {
   const cardSlide = useRef(new Animated.Value(400)).current;
 
   const { isFavorite, getFavoriteSetting, setFavorite, removeFavorite } = useFavorites();
-  const todayZmanim = useTodayZmanim(cityId);
 
   // ── Modal options ──────────────────────────────────────────────────────────
   const modalOptions = useMemo<ModalOptions>(() => {
@@ -139,7 +137,7 @@ export default function SynagoguesScreen() {
     const buildSlots = (type: 'shacharit' | 'mincha' | 'maariv') =>
       (modalSyn.weeklySchedule?.[type] ?? []).map((slot, i) => ({
         index: i,
-        label: getSlotLabel(slot, todayZmanim),
+        label: slotRuleLabel(slot),
         notes: slot.notes ?? undefined,
       }));
     const shiurim = collectShiurim(modalSyn).map((sh, i) => ({
@@ -147,7 +145,7 @@ export default function SynagoguesScreen() {
       daysLabel: sh.days === 'daily' ? 'יומי' : formatDays(sh.days as number[]),
     }));
     return { shacharit: buildSlots('shacharit'), mincha: buildSlots('mincha'), maariv: buildSlots('maariv'), shiurim };
-  }, [modalSyn, todayZmanim]);
+  }, [modalSyn]);
 
   // ── Map region ─────────────────────────────────────────────────────────────
   const mapRegion = useMemo<Region>(() => {

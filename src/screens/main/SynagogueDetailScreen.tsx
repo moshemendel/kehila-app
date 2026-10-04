@@ -26,7 +26,7 @@ import { useSynagogueEventReminders } from '../../context/SynagogueEventReminder
 import { splitAnnouncements } from '../../utils/synagogueAnnouncements';
 import FavoritePrayerModal, { ModalOptions } from '../../components/FavoritePrayerModal';
 import EventReminderModal from '../../components/EventReminderModal';
-import { getSlotLabel, describeAnchor } from '../../utils/prayerUtils';
+import { getSlotLabel, slotRuleLabel } from '../../utils/prayerUtils';
 import { collectShiurim } from '../../utils/prayerNotifications';
 import { gabbaimOf, contactPhoneOf } from '../../utils/synagogueContacts';
 import {
@@ -170,7 +170,7 @@ function WeekSlotTime({ slot, color }: { slot: PrayerTimeSlot; color: string }) 
   if (slot.anchor) {
     return (
       <Text style={[st.weekSlotFormula, { color }]}>
-        {describeAnchor(slot.anchor, slot.offsetMin ?? 0, slot.proportional)}
+        {slotRuleLabel(slot)}
       </Text>
     );
   }
@@ -315,7 +315,9 @@ export default function SynagogueDetailScreen() {
     const buildSlots = (type: 'shacharit' | 'mincha' | 'maariv') =>
       (syn.weeklySchedule?.[type] ?? []).map((slot, i) => ({
         index: i,
-        label: getSlotLabel(slot, todayZmanim),
+        // The rule, not today's time — the reminder fires every day the slot
+        // runs, each at that day's own time.
+        label: slotRuleLabel(slot),
         notes: slot.notes ?? undefined,
       }));
     const shiurim = collectShiurim(syn).map((sh, i) => ({
@@ -331,7 +333,7 @@ export default function SynagogueDetailScreen() {
       maariv:    buildSlots('maariv'),
       shiurim,
     };
-  }, [syn, todayZmanim]);
+  }, [syn]);
 
   // Report affordance lives in the stack header — visible the moment something
   // looks wrong, without scrolling to the bottom of a long listing.

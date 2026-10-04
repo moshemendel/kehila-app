@@ -57,6 +57,13 @@ export function describeAnchor(anchor: ZmanimAnchor, offsetMin = 0, proportional
   return `${amount} ${offsetMin < 0 ? 'לפני' : 'אחרי'} ${target}`;
 }
 
+/** A recurring slot as the rule it follows: the clock time for a fixed slot,
+ *  the spelled-out anchor ("20 דקות לפני השקיעה") for an anchored one. */
+export function slotRuleLabel(slot: PrayerTimeSlot): string {
+  if (slot.anchor) return describeAnchor(slot.anchor, slot.offsetMin ?? 0, slot.proportional);
+  return slot.time || '—';
+}
+
 // Returns the current local time.
 // Target users are in Israel so the device clock equals Israel time.
 // toLocaleString({ timeZone }) is unreliable in React Native / Hermes.

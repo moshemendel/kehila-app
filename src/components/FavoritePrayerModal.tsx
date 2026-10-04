@@ -13,7 +13,7 @@ import {
 
 export interface SlotOption {
   index: number;
-  label: string;   // "HH:MM" or anchor formula
+  label: string;   // "HH:MM", or the anchor rule ("20 דקות לפני השקיעה")
   notes?: string;
 }
 
