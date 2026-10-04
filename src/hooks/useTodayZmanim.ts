@@ -42,3 +42,30 @@ export function useTodayZmanim(cityId: string): ZmanimResult | null {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canShare, shared, city, settings, foregroundTick]);
 }
+
+/**
+ * Tomorrow's ZmanimResult. Anchored prayer times for tomorrow have to resolve
+ * against tomorrow's sunset — today's is a minute or two off, which is exactly
+ * the difference between catching mincha and missing it.
+ */
+export function useTomorrowZmanim(cityId: string): ZmanimResult | null {
+  const { city } = useCity(cityId);
+  const { settings } = useZmanimSettings();
+  const foregroundTick = useAppForegroundTick();
+
+  return useMemo(() => {
+    if (!city) return null;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return calcZmanim(
+      tomorrow,
+      city.latitude,
+      city.longitude,
+      settings,
+      city.timezone || 'Asia/Jerusalem',
+      0, // elevation always sea-level per Rav Ovadia, matching useTodayZmanim
+      0,
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [city, settings, foregroundTick]);
+}

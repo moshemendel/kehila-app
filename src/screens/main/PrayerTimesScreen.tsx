@@ -12,7 +12,7 @@ import * as Location from 'expo-location';
 import { useSynagoguesFeed } from '../../context/SynagoguesContext';
 import { useCityId } from '../../hooks/useCityId';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTodayZmanim } from '../../hooks/useTodayZmanim';
+import { useTodayZmanim, useTomorrowZmanim } from '../../hooks/useTodayZmanim';
 import { Colors, Spacing, Radius, Shadow, CardShellFlush } from '../../utils/theme';
 import { Synagogue } from '../../types';
 import {
@@ -232,6 +232,7 @@ export default function PrayerTimesScreen() {
   const { top } = useSafeAreaInsets();
   const { synagogues, loading } = useSynagoguesFeed();
   const todayZmanim = useTodayZmanim(cityId);
+  const tomorrowZmanim = useTomorrowZmanim(cityId);
   const navigation = useNavigation<any>();
 
   const [sort,         setSort]         = useState<'earliest' | 'closest'>('earliest');
@@ -310,6 +311,7 @@ export default function PrayerTimesScreen() {
   const allSlots = useMemo<PrayerSlot[]>(() => {
     const dayNum = viewDay === 'today' ? todayDayNumber() : tomorrowDayNumber();
     const isTomorrow = viewDay === 'tomorrow';
+    const zmanim = isTomorrow ? tomorrowZmanim : todayZmanim;
     const slots: PrayerSlot[] = [];
     for (const syn of synagogues) {
       const distKm = userLoc && syn.latitude && syn.longitude
@@ -320,7 +322,7 @@ export default function PrayerTimesScreen() {
       for (const type of ['shacharit', 'mincha', 'maariv'] as PrayerType[]) {
         for (const slot of ws[type] ?? []) {
           if (!(slot.days ?? []).includes(dayNum)) continue;
-          const resolvedTime = resolveSlotTime(slot, todayZmanim); // today's zmanim ≈ tomorrow's (±2 min)
+          const resolvedTime = resolveSlotTime(slot, zmanim);
           if (!resolvedTime) continue;
           const minutes = parseTimeToMinutes(resolvedTime);
           if (minutes < 0) continue;
@@ -333,7 +335,7 @@ export default function PrayerTimesScreen() {
       }
     }
     return slots;
-  }, [synagogues, userLoc, nowMin, todayZmanim, viewDay]);
+  }, [synagogues, userLoc, nowMin, todayZmanim, tomorrowZmanim, viewDay]);
 
   // Auto-advance to tomorrow once all of today's prayers are past
   const todayAllDone = useMemo(

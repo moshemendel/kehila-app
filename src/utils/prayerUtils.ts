@@ -26,6 +26,37 @@ export function formatAnchorFormula(anchor: ZmanimAnchor, offsetMin = 0, proport
   return offsetMin > 0 ? `${base} +${offsetMin}${minSuffix}` : `${base} ${offsetMin}${minSuffix}`;
 }
 
+// Full names, with the definite article where Hebrew takes one, for reading
+// inside a sentence: "20 דקות לפני השקיעה".
+const ANCHOR_PHRASE: Record<ZmanimAnchor, string> = {
+  netz:         'הנץ החמה',
+  shkia:        'השקיעה',
+  chatzot:      'חצות',
+  plagHamincha: 'פלג המנחה',
+  minchaGedola: 'מנחה גדולה',
+  minchaKetana: 'מנחה קטנה',
+  tzeit:        'צאת הכוכבים',
+};
+
+/**
+ * Anchor rule spelled out, e.g. "20 דקות לפני השקיעה" / "בשקיעה".
+ *
+ * For a recurring schedule, where a resolved clock time would be wrong: the
+ * anchor moves every day, so "18:00" read off today's sunset is a minute or
+ * two off by tomorrow and further off across the week.
+ */
+export function describeAnchor(anchor: ZmanimAnchor, offsetMin = 0, proportional = false): string {
+  const target = ANCHOR_PHRASE[anchor] ?? anchor;
+  // ב absorbs the article: "בשקיעה", not "בהשקיעה". (הנץ keeps its ה — it is
+  // part of the word, not the article.)
+  if (offsetMin === 0) return anchor === 'shkia' ? 'בשקיעה' : `ב${target}`;
+  const n = Math.abs(offsetMin);
+  const amount = n === 1
+    ? (proportional ? 'דקה זמנית אחת' : 'דקה אחת')
+    : `${n} ${proportional ? 'דקות זמניות' : 'דקות'}`;
+  return `${amount} ${offsetMin < 0 ? 'לפני' : 'אחרי'} ${target}`;
+}
+
 // Returns the current local time.
 // Target users are in Israel so the device clock equals Israel time.
 // toLocaleString({ timeZone }) is unreliable in React Native / Hermes.

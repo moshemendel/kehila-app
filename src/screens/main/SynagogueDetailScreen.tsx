@@ -26,7 +26,7 @@ import { useSynagogueEventReminders } from '../../context/SynagogueEventReminder
 import { splitAnnouncements } from '../../utils/synagogueAnnouncements';
 import FavoritePrayerModal, { ModalOptions } from '../../components/FavoritePrayerModal';
 import EventReminderModal from '../../components/EventReminderModal';
-import { getSlotLabel } from '../../utils/prayerUtils';
+import { getSlotLabel, describeAnchor } from '../../utils/prayerUtils';
 import { collectShiurim } from '../../utils/prayerNotifications';
 import { gabbaimOf, contactPhoneOf } from '../../utils/synagogueContacts';
 import {
@@ -160,6 +160,21 @@ function SlotChips({ slots, color = Colors.primary, zmanim }: { slots: PrayerTim
       ))}
     </View>
   );
+}
+
+// A recurring slot's time as the rule it follows. An anchored slot shows the
+// rule itself ("20 דקות לפני השקיעה"), not today's resolved time — sunset
+// moves every day, so a clock time here would be wrong for most of the rows
+// it claims to cover. Today's actual time is in the "היום" section above.
+function WeekSlotTime({ slot, color }: { slot: PrayerTimeSlot; color: string }) {
+  if (slot.anchor) {
+    return (
+      <Text style={[st.weekSlotFormula, { color }]}>
+        {describeAnchor(slot.anchor, slot.offsetMin ?? 0, slot.proportional)}
+      </Text>
+    );
+  }
+  return <Text style={[st.weekSlotTime, { color }]}>{slot.time || '—'}</Text>;
 }
 
 function SlotPrayerSection({ label, slots, color, zmanim }: { label: string; slots?: PrayerTimeSlot[]; color?: string; zmanim?: ZmanimResult | null }) {
@@ -336,6 +351,7 @@ export default function SynagogueDetailScreen() {
   React.useLayoutEffect(() => {
     if (!syn) return;
     navigation.setOptions({
+      title: syn.name,
       headerRight: () => (
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <EditListingButton
@@ -672,7 +688,7 @@ export default function SynagogueDetailScreen() {
                   </View>
                   {slots.map((slot, i) => (
                     <View key={i} style={st.weekSlotRow}>
-                      <Text style={[st.weekSlotTime, { color }]}>{getSlotLabel(slot, todayZmanim)}</Text>
+                      <WeekSlotTime slot={slot} color={color} />
                       <Text style={st.weekSlotDays}>{formatDays(slot.days ?? [])}</Text>
                       {!!slot.notes && <Text style={st.weekSlotNote}>{slot.notes}</Text>}
                     </View>
@@ -729,9 +745,7 @@ export default function SynagogueDetailScreen() {
               <View style={st.sectionCard}>
                 {(syn.weeklySchedule?.selichot ?? []).map((slot, i) => (
                   <View key={i} style={st.weekSlotRow}>
-                    <Text style={[st.weekSlotTime, { color: Colors.gold }]}>
-                      {getSlotLabel(slot, todayZmanim)}
-                    </Text>
+                    <WeekSlotTime slot={slot} color={Colors.gold} />
                     <Text style={st.weekSlotDays}>
                       {slot.dates?.length
                         ? formatSelichotDates(slot.dates)
@@ -983,6 +997,7 @@ const st = StyleSheet.create({
   weekPrayerTitle:    { fontSize: 13, fontWeight: '800',  },
   weekSlotRow:        { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 3 },
   weekSlotTime:       { fontSize: 16, fontWeight: '800', minWidth: 48,  },
+  weekSlotFormula:    { fontSize: 14, fontWeight: '800', flexShrink: 1 },
   weekSlotDays:       { fontSize: 13, fontWeight: '700', color: Colors.text },
   weekSlotNote:       { fontSize: 11, color: Colors.textMuted, fontStyle: 'italic', flexShrink: 1 },
 
