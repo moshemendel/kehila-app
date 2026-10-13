@@ -18,7 +18,7 @@ import { useFavorites } from '../../context/FavoritesContext';
 import { Colors, Spacing, Radius, Shadow, CardShell } from '../../utils/theme';
 import { haversineKm, formatDist } from '../../utils/location';
 import {
-  slotRuleLabel, getTodayScheduleWithFallback, getNextPrayer, formatPrayerLabel,
+  slotRuleLabel, getTodaySchedule, getNextPrayerTodayOrTomorrow, formatPrayerLabel,
   parseTimeToMinutes, nowInMinutes,
 } from '../../utils/prayerUtils';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
@@ -55,16 +55,15 @@ const MAP_STYLE = [
  * for all 69 rows. As its own memo component, a row whose synagogue, distance
  * and starred state have not changed does no work at all.
  */
-/** Today's next prayer for one synagogue, as plain values so SynagogueRow's
- *  memo still holds. `hasToday` false = no times today at all (nothing to
- *  say); true with no `type` = today's prayers are over. */
+/** One synagogue's next prayer, as plain values so SynagogueRow's memo still
+ *  holds. No `type` with `hasToday` = today's are over and tomorrow has none;
+ *  no `type` without it = nothing to say. */
 interface NextPrayerInfo {
   type?: 'shacharit' | 'mincha' | 'maariv';
   time?: string;
+  /** The next one is tomorrow's — today's are over (after Shabbat, Sunday's). */
+  tomorrow?: boolean;
   hasToday: boolean;
-  /** Shabbat, and these are the shul's weekday times — see
-   *  getTodayScheduleWithFallback. Always labelled. */
-  weekdayFallback?: boolean;
 }
 
 /**
@@ -74,8 +73,8 @@ interface NextPrayerInfo {
  * where it is the useful part.
  */
 function NextPrayerLine({ info }: { info: NextPrayerInfo }) {
-  if (!info.hasToday) return null;
   if (!info.type || !info.time) {
+    if (!info.hasToday) return null;
     return (
       <View style={s.nextRow}>
         <Ionicons name="time-outline" size={12} color={Colors.textMuted} />
@@ -83,14 +82,13 @@ function NextPrayerLine({ info }: { info: NextPrayerInfo }) {
       </View>
     );
   }
-  const diff = parseTimeToMinutes(info.time) - nowInMinutes();
+  const diff = info.tomorrow ? -1 : parseTimeToMinutes(info.time) - nowInMinutes();
   const soon = diff >= 0 && diff <= 30;
   return (
     <View style={s.nextRow}>
       <Ionicons name="time-outline" size={12} color={soon ? Colors.success : Colors.primaryLight} />
       <Text style={[s.nextTxt, soon && s.nextTxtSoon]}>
-        {`התפילה הבאה: ${formatPrayerLabel(info.type)} ${info.time}`}
-        {info.weekdayFallback ? ' (זמני חול)' : ''}
+        {`התפילה הבאה: ${formatPrayerLabel(info.type)} ${info.tomorrow ? 'מחר ' : ''}${info.time}`}
         {diff >= 0 && diff <= 60 ? ` · בעוד ${diff} דק'` : ''}
       </Text>
     </View>
@@ -98,15 +96,15 @@ function NextPrayerLine({ info }: { info: NextPrayerInfo }) {
 }
 
 const SynagogueRow = React.memo(function SynagogueRow({
-  syn, dist, fav, nextType, nextTime, hasToday, weekdayFallback, onOpen, onStar,
+  syn, dist, fav, nextType, nextTime, nextTomorrow, hasToday, onOpen, onStar,
 }: {
   syn:    Synagogue;
   dist:   number | null;
   fav:    boolean;
   nextType?: NextPrayerInfo['type'];
   nextTime?: string;
+  nextTomorrow?: boolean;
   hasToday: boolean;
-  weekdayFallback?: boolean;
   onOpen: (syn: Synagogue) => void;
   onStar: (syn: Synagogue) => void;
 }) {
@@ -137,7 +135,7 @@ const SynagogueRow = React.memo(function SynagogueRow({
               <Text style={s.cardRabbi}>רב: {syn.rabbiName ?? syn.rabbi}</Text>
             )}
           </View>
-          <NextPrayerLine info={{ type: nextType, time: nextTime, hasToday, weekdayFallback }} />
+          <NextPrayerLine info={{ type: nextType, time: nextTime, tomorrow: nextTomorrow, hasToday }} />
         </View>
         <View style={s.cardRight}>
           {dist !== null && (
@@ -173,11 +171,10 @@ export default function SynagoguesScreen() {
   const nextBySyn = useMemo(() => {
     const out = new Map<string, NextPrayerInfo>();
     for (const syn of synagogues) {
-      const { times: sched, weekdayFallback } =
-        getTodayScheduleWithFallback(syn.weeklySchedule, syn.shabbatSchedule, zmanim);
+      const sched = getTodaySchedule(syn.weeklySchedule, syn.shabbatSchedule, zmanim);
       const hasToday = !!sched && (sched.shacharit.length + sched.mincha.length + sched.maariv.length) > 0;
-      const next = sched ? getNextPrayer(sched) : null;
-      out.set(syn.id, { type: next?.type, time: next?.nextTime, hasToday, weekdayFallback });
+      const next = getNextPrayerTodayOrTomorrow(syn.weeklySchedule, syn.shabbatSchedule, zmanim);
+      out.set(syn.id, { type: next?.type, time: next?.nextTime, tomorrow: next?.tomorrow, hasToday });
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -341,7 +338,7 @@ export default function SynagoguesScreen() {
           nextType={next?.type}
           nextTime={next?.time}
           hasToday={next?.hasToday ?? false}
-          weekdayFallback={next?.weekdayFallback}
+          nextTomorrow={next?.tomorrow}
           onOpen={openSyn}
           onStar={setModalSyn}
         />

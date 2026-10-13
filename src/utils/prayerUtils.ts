@@ -110,16 +110,7 @@ export function getTodaySchedule(
 ): PrayerTimes | null {
   const dayNum = todayDayNumber();
 
-  if (dayNum === 7) {
-    if (!shabbatSchedule) return null;
-    const flat = (slots: PrayerTimeSlot[] = []) =>
-      slots.map((s) => resolveSlotTime(s, zmanim)).filter(Boolean);
-    return {
-      shacharit: flat(shabbatSchedule.shacharit),
-      mincha: flat(shabbatSchedule.mincha),
-      maariv: flat(shabbatSchedule.maariv),
-    };
-  }
+  if (dayNum === 7) return shabbatTimes(shabbatSchedule, zmanim);
 
   return weekdaySchedule(weeklySchedule, dayNum, zmanim);
 }
@@ -143,31 +134,58 @@ function weekdaySchedule(
   };
 }
 
-const hasAnyTime = (t: PrayerTimes | null) =>
-  !!t && t.shacharit.length + t.mincha.length + t.maariv.length > 0;
+/** Shabbat's times from shabbatSchedule — not filtered by day; see getTodaySchedule. */
+function shabbatTimes(
+  shabbatSchedule: ShabbatSchedule | undefined,
+  zmanim?: ZmanimResult | null,
+): PrayerTimes | null {
+  if (!shabbatSchedule) return null;
+  const flat = (slots: PrayerTimeSlot[] = []) =>
+    slots.map((s) => resolveSlotTime(s, zmanim)).filter(Boolean);
+  return {
+    shacharit: flat(shabbatSchedule.shacharit),
+    mincha: flat(shabbatSchedule.mincha),
+    maariv: flat(shabbatSchedule.maariv),
+  };
+}
 
 /**
- * getTodaySchedule, except that on Shabbat a shul with no Shabbat times at
- * all falls back to its Sunday times, flagged so the caller can say so.
+ * The next prayer from now — today's if any is left, otherwise tomorrow's
+ * first, flagged `tomorrow`.
  *
- * The app is closed from sunset on Friday until Shabbat goes out, so the
- * Shabbat date is only ever seen after havdalah — and that is exactly when
- * people look for a ma'ariv. Nearly every shul has weekday times only, so
- * without this the list went blank then. Sunday, because the ma'ariv after
- * Shabbat is the start of Sunday. Weekday times are not Shabbat times, which
- * is why the flag exists: callers must label them as such.
+ * getNextPrayer stops at midnight, so after the last ma'ariv a list could only
+ * say "nothing more today". That is most visible after Shabbat: the app is
+ * closed from Friday sunset until Shabbat goes out, it reopens on the Shabbat
+ * date, and nearly every shul has no Shabbat board — so it showed nothing,
+ * when the useful answer is Sunday's shacharit.
+ *
+ * Tomorrow is read from its own board — Shabbat's for Friday, the weekday
+ * schedule otherwise — never one day's times passed off as another's.
+ * Anchored times for tomorrow resolve against today's zmanim, a minute or so
+ * off at most.
  */
-export function getTodayScheduleWithFallback(
+export function getNextPrayerTodayOrTomorrow(
   weeklySchedule: WeeklySchedule | undefined,
   shabbatSchedule?: ShabbatSchedule,
   zmanim?: ZmanimResult | null,
-): { times: PrayerTimes | null; weekdayFallback: boolean } {
-  const times = getTodaySchedule(weeklySchedule, shabbatSchedule, zmanim);
-  if (todayDayNumber() !== 7 || hasAnyTime(times)) return { times, weekdayFallback: false };
-  const sunday = weekdaySchedule(weeklySchedule, 1, zmanim);
-  return hasAnyTime(sunday)
-    ? { times: sunday, weekdayFallback: true }
-    : { times, weekdayFallback: false };
+): { type: 'shacharit' | 'mincha' | 'maariv'; nextTime: string; tomorrow: boolean } | null {
+  const today = getTodaySchedule(weeklySchedule, shabbatSchedule, zmanim);
+  const next = today ? getNextPrayer(today) : null;
+  if (next) return { type: next.type, nextTime: next.nextTime, tomorrow: false };
+
+  const dayNum = tomorrowDayNumber();
+  const tmrw = dayNum === 7
+    ? shabbatTimes(shabbatSchedule, zmanim)
+    : weekdaySchedule(weeklySchedule, dayNum, zmanim);
+  if (!tmrw) return null;
+  let first: { type: 'shacharit' | 'mincha' | 'maariv'; nextTime: string } | null = null;
+  for (const type of ['shacharit', 'mincha', 'maariv'] as const) {
+    for (const t of tmrw[type]) {
+      const m = parseTimeToMinutes(t);
+      if (m >= 0 && (!first || m < parseTimeToMinutes(first.nextTime))) first = { type, nextTime: t };
+    }
+  }
+  return first ? { ...first, tomorrow: true } : null;
 }
 
 // Parse "HH:MM" to minutes since midnight. Returns -1 for empty/unresolvable strings.
