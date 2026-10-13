@@ -23,6 +23,11 @@ const db = admin.firestore();
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const REGION = 'europe-west1';
+/**
+ * Where the (default) database lives. A Firestore trigger has to run in the
+ * database's own region, so the sync triggers use this rather than REGION.
+ */
+const FIRESTORE_REGION = 'me-west1';
 
 // ── Types mirrored from src/types/index.ts ──────────────────────────────────
 
@@ -292,7 +297,7 @@ async function writeTombstone(collection: SyncedCollection, docId: string, cityI
 
 function syncStamper(collection: SyncedCollection) {
   return onDocumentWritten(
-    { document: `${collection}/{docId}`, region: REGION, retry: true },
+    { document: `${collection}/{docId}`, region: FIRESTORE_REGION, retry: true },
     async (event) => {
       const docId = event.params.docId;
       const before = event.data?.before.exists ? event.data.before.data() : undefined;
