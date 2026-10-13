@@ -15,7 +15,11 @@ import { resolveNavTarget } from '../../utils/navigationApps';
 import { useAreas } from '../../hooks/useAreas';
 import { Business, KosherCertificate, DayKey } from '../../types';
 import { getBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../../services/businesses';
-import { businessHoursForDay, hasBusinessHours } from '../../utils/appointmentSlots';
+import {
+  businessHoursForDay, hasBusinessHours, businessOpenStatus,
+} from '../../utils/appointmentSlots';
+import { useTodayZmanim } from '../../hooks/useTodayZmanim';
+import { useAppForegroundTick } from '../../hooks/useAppForegroundTick';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 
@@ -70,6 +74,8 @@ export default function BusinessDetailScreen() {
   const [loading,  setLoading]  = useState(true);
   const [certModal, setCertModal] = useState<string | null>(null);
   const { areas } = useAreas(business?.cityId ?? '');
+  const zmanim    = useTodayZmanim(business?.cityId ?? '');
+  useAppForegroundTick(); // re-read the clock when the app comes back
 
   useEffect(() => {
     getBusiness(businessId)
@@ -132,8 +138,17 @@ export default function BusinessDetailScreen() {
   // ── Derived data ─────────────────────────────────────────────────────────────
   const todayIdx      = new Date().getDay();
   const todayKey      = DAY_KEYS[todayIdx] as DayKey;
-  const todayHours    = businessHoursForDay(business, todayKey);
+  const todayHours    = businessHoursForDay(business, todayKey, zmanim);
   const hoursKnown    = hasBusinessHours(business);
+  const status        = businessOpenStatus(business, new Date(), zmanim);
+  // The pill answers "can I go now?". No pill when the hours give no answer.
+  const pill = status.kind === 'open'
+      ? { text: 'פתוח עכשיו', box: styles.statusPillOpen, dot: styles.dotOpen, txt: styles.statusTxtOpen }
+    : status.kind === 'opensLater'
+      ? { text: `ייפתח ב-${status.at}`, box: styles.statusPillLater, dot: styles.dotLater, txt: styles.statusTxtLater }
+    : status.kind === 'closedForToday' || status.kind === 'closedToday'
+      ? { text: 'סגור', box: styles.statusPillClosed, dot: styles.dotClosed, txt: styles.statusTxtClosed }
+    : null;
   const isClosedToday = todayHours.toLowerCase() === 'closed' || todayHours === 'סגור';
 
   // Flatten imageUrl + images[] → [moodImage, ...extraImages]
@@ -251,19 +266,10 @@ export default function BusinessDetailScreen() {
                 </View>
                 <Text style={styles.name}>{business.name}</Text>
               </View>
-              {/* No pill at all without hours: neither word would be true. */}
-              {hoursKnown && (
-                <View style={[
-                  styles.statusPill,
-                  isClosedToday ? styles.statusPillClosed : styles.statusPillOpen,
-                ]}>
-                  <View style={[styles.statusDot, isClosedToday ? styles.dotClosed : styles.dotOpen]} />
-                  <Text style={[
-                    styles.statusText,
-                    isClosedToday ? styles.statusTxtClosed : styles.statusTxtOpen,
-                  ]}>
-                    {isClosedToday ? 'סגור' : 'פתוח'}
-                  </Text>
+              {pill && (
+                <View style={[styles.statusPill, pill.box]}>
+                  <View style={[styles.statusDot, pill.dot]} />
+                  <Text style={[styles.statusText, pill.txt]}>{pill.text}</Text>
                 </View>
               )}
             </View>
@@ -628,12 +634,15 @@ const styles = StyleSheet.create({
   },
   statusPillOpen:   { backgroundColor: Colors.success + '14', borderColor: Colors.success + '50' },
   statusPillClosed: { backgroundColor: Colors.danger  + '14', borderColor: Colors.danger  + '50' },
+  statusPillLater:  { backgroundColor: Colors.goldDeep + '14', borderColor: Colors.goldDeep + '50' },
   statusDot:        { width: 7, height: 7, borderRadius: 4 },
   dotOpen:          { backgroundColor: Colors.success },
   dotClosed:        { backgroundColor: Colors.danger  },
+  dotLater:         { backgroundColor: Colors.goldDeep },
   statusText:       { fontSize: 12, fontWeight: '700' },
   statusTxtOpen:    { color: Colors.success },
   statusTxtClosed:  { color: Colors.danger  },
+  statusTxtLater:   { color: Colors.goldDeep },
 
   metaRow: {
     flexDirection:     'row',

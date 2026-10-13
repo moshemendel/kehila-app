@@ -6,8 +6,13 @@ import { useNavigateTo } from '../hooks/useNavigateTo';
 import { Business } from '../types';
 import { updateBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../services/businesses';
 import LocationEditModal from './LocationEditModal';
-import { businessHoursForDay, hasBusinessHours } from '../utils/appointmentSlots';
+import {
+  businessHoursForDay, businessOpenStatus, openStatusLabel, type OpenStatus,
+} from '../utils/appointmentSlots';
+import { useTodayZmanim } from '../hooks/useTodayZmanim';
+import { useAppForegroundTick } from '../hooks/useAppForegroundTick';
 import { DayKey } from '../types';
+import type { ZmanimResult } from '../utils/zmanim';
 
 const KOSHER_LABELS: Record<string, string> = {
   mehadrin: 'מהדרין', regular: 'רגיל', chalav_israel: 'חלב ישראל',
@@ -22,17 +27,38 @@ interface Props {
   cardStyle?: any;
 }
 
-function getTodayHours(business: Business): string {
+function getTodayHours(business: Business, zmanim: ZmanimResult | null): string {
   const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
   const today = days[new Date().getDay()] as DayKey;
-  return businessHoursForDay(business, today);
+  return businessHoursForDay(business, today, zmanim);
+}
+
+/** Dot and text colour per status: open green, opening later today gold,
+ *  closed red, and grey when there is nothing to go on. */
+function statusTone(st: OpenStatus) {
+  switch (st.kind) {
+    case 'open':           return { dot: styles.dotOpen,    text: styles.hoursOpen };
+    case 'opensLater':     return { dot: styles.dotLater,   text: styles.hoursLater };
+    case 'closedForToday':
+    case 'closedToday':    return { dot: styles.dotClosed,  text: styles.hoursClosed };
+    default:               return { dot: styles.dotUnknown, text: styles.hoursUnknown };
+  }
 }
 
 export default function BusinessCard({ business, distLabel, canManage, onPress, cardStyle }: Props) {
   const { go: navigateTo, sheet: navSheet } = useNavigateTo();
-  const todayHours    = getTodayHours(business);
-  const hoursKnown    = hasBusinessHours(business);
-  const isClosedToday = hoursKnown && (todayHours.toLowerCase() === 'closed' || todayHours === 'סגור');
+  useAppForegroundTick(); // re-read the clock when the app comes back
+  const zmanim        = useTodayZmanim(business.cityId);
+  const todayHours    = getTodayHours(business, zmanim);
+  const status        = businessOpenStatus(business, new Date(), zmanim);
+  const tone          = statusTone(status);
+  // Today's ranges after the status when they add something — mostly split
+  // hours, where "until 13:00" alone hides the evening opening. 'unclear'
+  // has no status to show, so the hours text stands on its own.
+  const statusText    = status.kind === 'unclear' ? todayHours
+    : status.kind === 'open' || status.kind === 'opensLater' || status.kind === 'closedForToday'
+      ? `${openStatusLabel(status)} · ${todayHours}`
+      : openStatusLabel(status);
   const activeCert    = business.kosherCertificates.find((c) => c.isActive);
   const cats          = businessCategories(business);
   const bizTypeLabel  = business.businessType === 'factory' ? '🏭 מפעל' : '🍴 בית אוכל';
@@ -64,14 +90,14 @@ export default function BusinessCard({ business, distLabel, canManage, onPress, 
                 <Text style={styles.distTxt}>{distLabel}</Text>
               </View>
             )}
-            <View style={[styles.statusDot, !hoursKnown ? styles.dotUnknown : isClosedToday ? styles.dotClosed : styles.dotOpen]} />
+            <View style={[styles.statusDot, tone.dot]} />
           </View>
         </View>
 
         <View style={styles.row}>
           <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
-          <Text style={[styles.hours, isClosedToday && styles.hoursClosed, !hoursKnown && styles.hoursUnknown]}>
-            {!hoursKnown ? 'שעות לא זמינות' : isClosedToday ? 'סגור היום' : todayHours}
+          <Text style={[styles.hours, tone.text]} numberOfLines={1}>
+            {statusText}
           </Text>
         </View>
 
@@ -143,10 +169,13 @@ const styles = StyleSheet.create({
   dotOpen:       { backgroundColor: Colors.success },
   dotClosed:     { backgroundColor: Colors.danger },
   dotUnknown:    { backgroundColor: Colors.border },
+  dotLater:      { backgroundColor: Colors.goldDeep },
   row:           { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
   hours:         { fontSize: 13, color: Colors.textSecondary },
   hoursClosed:   { color: Colors.danger },
   hoursUnknown:  { color: Colors.textMuted },
+  hoursOpen:     { color: Colors.success },
+  hoursLater:    { color: Colors.goldDeep },
   certRow:       { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, backgroundColor: '#EAF7EE', borderRadius: Radius.sm, paddingHorizontal: 8, paddingVertical: 5 },
   certText:      { fontSize: 12, color: Colors.success, fontWeight: '500', flex: 1 },
   actions:       { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.sm, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: Spacing.sm },

@@ -230,6 +230,113 @@ export function hasBusinessHours(
 }
 
 /**
+ * Where a business stands right now, not just whether it has hours today.
+ *
+ * The pill used to say "פתוח" for any day with hours, so a shop that closed
+ * at 14:00 still read as open at 21:00. This answers from the clock, and for
+ * split hours says when it opens again — a 08:00–13:00, 16:00–20:00 shop at
+ * 14:30 is closed but worth knowing about.
+ *
+ *   open            open now, until `until` (the end of a merged run of ranges)
+ *   opensLater      closed now, opens again today at `at`
+ *   closedForToday  had hours today, all of them already over
+ *   closedToday     no hours today at all
+ *   unknown         no hours published (see hasBusinessHours)
+ *   unclear         hours exist but cannot be placed on the clock: a zmanim
+ *                   boundary before zmanim load, or free text like "בתיאום"
+ *
+ * A range ending at or before its start runs past midnight (20:00–02:00), and
+ * yesterday's such range is honoured in the small hours. Times are compared
+ * on the device clock, the same clock the day-of-week above already uses.
+ */
+export type OpenStatus =
+  | { kind: 'open'; until: string }
+  | { kind: 'opensLater'; at: string }
+  | { kind: 'closedForToday' }
+  | { kind: 'closedToday' }
+  | { kind: 'unknown' }
+  | { kind: 'unclear' };
+
+const RANGE_RE = /(\d{1,2}):(\d{2})\s*[-–—]\s*(\d{1,2}):(\d{2})/g;
+
+/** A day's opening ranges in minutes since that day's midnight, or null when
+ *  the day has hours that cannot be turned into numbers. [] = closed that day. */
+function dayRanges(
+  business: { hoursSchedule?: HoursBlock[]; openingHours?: OpeningHours },
+  day: DayKey,
+  zmanim?: ZmanimResult | null,
+): [number, number][] | null {
+  const span = (s: number, e: number): [number, number] => [s, e <= s ? e + 1440 : e];
+  if (business.hoursSchedule?.length) {
+    const out: [number, number][] = [];
+    for (const b of business.hoursSchedule.filter((x) => x.days.includes(day))) {
+      const r = resolveHoursBlock(b, zmanim);
+      if (!r) return null;
+      const [sh, sm] = r.start.split(':').map(Number);
+      const [eh, em] = r.end.split(':').map(Number);
+      if ([sh, sm, eh, em].some((n) => Number.isNaN(n))) return null;
+      out.push(span(sh * 60 + sm, eh * 60 + em));
+    }
+    return out;
+  }
+  const text = business.openingHours?.[day]?.trim();
+  if (!text || text === 'סגור' || text.toLowerCase() === 'closed') return [];
+  const out = [...text.matchAll(RANGE_RE)].map((m) =>
+    span(Number(m[1]) * 60 + Number(m[2]), Number(m[3]) * 60 + Number(m[4])));
+  return out.length ? out : null;
+}
+
+const hhmm = (min: number) => {
+  const m = ((min % 1440) + 1440) % 1440;
+  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+};
+
+export function businessOpenStatus(
+  business: { hoursSchedule?: HoursBlock[]; openingHours?: OpeningHours },
+  now: Date = new Date(),
+  zmanim?: ZmanimResult | null,
+): OpenStatus {
+  if (!hasBusinessHours(business)) return { kind: 'unknown' };
+  const today = DAY_KEYS[now.getDay()];
+  const yesterday = DAY_KEYS[(now.getDay() + 6) % 7];
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+
+  const ranges = dayRanges(business, today, zmanim);
+  if (ranges === null) return { kind: 'unclear' };
+  // Last night's range still running into this morning. Yesterday's zmanim
+  // are not at hand, so an anchored overnight range there is simply skipped.
+  for (const [, e] of dayRanges(business, yesterday, null) ?? []) {
+    if (e > 1440 && nowMin < e - 1440) return { kind: 'open', until: hhmm(e) };
+  }
+
+  const sorted = [...ranges].sort((a, b) => a[0] - b[0]);
+  for (let i = 0; i < sorted.length; i++) {
+    const [s, e] = sorted[i];
+    if (nowMin >= s && nowMin < e) {
+      // Back-to-back or overlapping ranges read as one stretch of opening.
+      let end = e;
+      for (const [s2, e2] of sorted.slice(i + 1)) if (s2 <= end) end = Math.max(end, e2);
+      return { kind: 'open', until: hhmm(end) };
+    }
+  }
+  const next = sorted.find(([s]) => s > nowMin);
+  if (next) return { kind: 'opensLater', at: hhmm(next[0]) };
+  return sorted.length ? { kind: 'closedForToday' } : { kind: 'closedToday' };
+}
+
+/** Short Hebrew wording for an OpenStatus, shared by the card and the detail. */
+export function openStatusLabel(st: OpenStatus): string {
+  switch (st.kind) {
+    case 'open':           return `פתוח עכשיו · עד ${st.until}`;
+    case 'opensLater':     return `סגור כעת · ייפתח ב-${st.at}`;
+    case 'closedForToday': return 'סגור כעת';
+    case 'closedToday':    return 'סגור היום';
+    case 'unknown':        return 'שעות לא זמינות';
+    case 'unclear':        return '';
+  }
+}
+
+/**
  * hoursSchedule flattened back into per-day strings.
  *
  * Written alongside every save purely so a client on an older bundle — which
