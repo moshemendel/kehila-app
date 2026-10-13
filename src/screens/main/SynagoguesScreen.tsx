@@ -17,7 +17,12 @@ import { useCity } from '../../hooks/useCity';
 import { useFavorites } from '../../context/FavoritesContext';
 import { Colors, Spacing, Radius, Shadow, CardShell } from '../../utils/theme';
 import { haversineKm, formatDist } from '../../utils/location';
-import { slotRuleLabel } from '../../utils/prayerUtils';
+import {
+  slotRuleLabel, getTodaySchedule, getNextPrayer, formatPrayerLabel,
+  parseTimeToMinutes, nowInMinutes,
+} from '../../utils/prayerUtils';
+import { useTodayZmanim } from '../../hooks/useTodayZmanim';
+import { useAppForegroundTick } from '../../hooks/useAppForegroundTick';
 import { Synagogue } from '../../types';
 import FilterBar from '../../components/FilterBar';
 import FavoriteFilterChip from '../../components/FavoriteFilterChip';
@@ -50,12 +55,53 @@ const MAP_STYLE = [
  * for all 69 rows. As its own memo component, a row whose synagogue, distance
  * and starred state have not changed does no work at all.
  */
+/** Today's next prayer for one synagogue, as plain values so SynagogueRow's
+ *  memo still holds. `hasToday` false = no times today at all (nothing to
+ *  say); true with no `type` = today's prayers are over. */
+interface NextPrayerInfo {
+  type?: 'shacharit' | 'mincha' | 'maariv';
+  time?: string;
+  hasToday: boolean;
+}
+
+/**
+ * "מנחה 13:30 · בעוד 20 דק'" — the same answer the home screen and the
+ * synagogue page give (getNextPrayer), on the list, so finding a minyan does
+ * not take opening every shul. The countdown only appears inside the hour,
+ * where it is the useful part.
+ */
+function NextPrayerLine({ info }: { info: NextPrayerInfo }) {
+  if (!info.hasToday) return null;
+  if (!info.type || !info.time) {
+    return (
+      <View style={s.nextRow}>
+        <Ionicons name="time-outline" size={12} color={Colors.textMuted} />
+        <Text style={[s.nextTxt, s.nextTxtDone]}>אין עוד תפילות היום</Text>
+      </View>
+    );
+  }
+  const diff = parseTimeToMinutes(info.time) - nowInMinutes();
+  const soon = diff >= 0 && diff <= 30;
+  return (
+    <View style={s.nextRow}>
+      <Ionicons name="time-outline" size={12} color={soon ? Colors.success : Colors.primaryLight} />
+      <Text style={[s.nextTxt, soon && s.nextTxtSoon]}>
+        {`התפילה הבאה: ${formatPrayerLabel(info.type)} ${info.time}`}
+        {diff >= 0 && diff <= 60 ? ` · בעוד ${diff} דק'` : ''}
+      </Text>
+    </View>
+  );
+}
+
 const SynagogueRow = React.memo(function SynagogueRow({
-  syn, dist, fav, onOpen, onStar,
+  syn, dist, fav, nextType, nextTime, hasToday, onOpen, onStar,
 }: {
   syn:    Synagogue;
   dist:   number | null;
   fav:    boolean;
+  nextType?: NextPrayerInfo['type'];
+  nextTime?: string;
+  hasToday: boolean;
   onOpen: (syn: Synagogue) => void;
   onStar: (syn: Synagogue) => void;
 }) {
@@ -86,6 +132,7 @@ const SynagogueRow = React.memo(function SynagogueRow({
               <Text style={s.cardRabbi}>רב: {syn.rabbiName ?? syn.rabbi}</Text>
             )}
           </View>
+          <NextPrayerLine info={{ type: nextType, time: nextTime, hasToday }} />
         </View>
         <View style={s.cardRight}>
           {dist !== null && (
@@ -111,6 +158,24 @@ export default function SynagoguesScreen() {
   const { synagogues, loading } = useSynagoguesFeed();
   const { city }   = useCity(cityId);
   const navigation = useNavigation<any>();
+  const zmanim     = useTodayZmanim(cityId);
+  const foregroundTick = useAppForegroundTick();
+
+  // Each shul's next prayer, worked out once per list rather than per row
+  // render. Recomputed when zmanim arrive (anchored times resolve then) and
+  // when the app comes back to the foreground, since "next" moves with the
+  // clock.
+  const nextBySyn = useMemo(() => {
+    const out = new Map<string, NextPrayerInfo>();
+    for (const syn of synagogues) {
+      const sched = getTodaySchedule(syn.weeklySchedule, syn.shabbatSchedule, zmanim);
+      const hasToday = !!sched && (sched.shacharit.length + sched.mincha.length + sched.maariv.length) > 0;
+      const next = sched ? getNextPrayer(sched) : null;
+      out.set(syn.id, { type: next?.type, time: next?.nextTime, hasToday });
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [synagogues, zmanim, foregroundTick]);
 
   const [search,        setSearch]        = useState('');
   const [searchOpen,    setSearchOpen]    = useState(false);
@@ -260,16 +325,22 @@ export default function SynagoguesScreen() {
     [navigation],
   );
   const renderRow = useCallback(
-    ({ item }: { item: Synagogue }) => (
-      <SynagogueRow
-        syn={item}
-        dist={getDist(item)}
-        fav={isFavorite(item.id)}
-        onOpen={openSyn}
-        onStar={setModalSyn}
-      />
-    ),
-    [getDist, isFavorite, openSyn],
+    ({ item }: { item: Synagogue }) => {
+      const next = nextBySyn.get(item.id);
+      return (
+        <SynagogueRow
+          syn={item}
+          dist={getDist(item)}
+          fav={isFavorite(item.id)}
+          nextType={next?.type}
+          nextTime={next?.time}
+          hasToday={next?.hasToday ?? false}
+          onOpen={openSyn}
+          onStar={setModalSyn}
+        />
+      );
+    },
+    [getDist, isFavorite, openSyn, nextBySyn],
   );
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -442,6 +513,9 @@ export default function SynagoguesScreen() {
                         </View>
                       ) : null; })()}
                     </View>
+                    {nextBySyn.get(selectedSyn.id) && (
+                      <NextPrayerLine info={nextBySyn.get(selectedSyn.id)!} />
+                    )}
                     {selectedSyn.shiurim && selectedSyn.shiurim.length > 0 && (
                       <View style={[s.shiurPill, { marginTop: 6 }]}>
                         <Ionicons name="book-outline" size={11} color={Colors.primaryLight} />
@@ -532,6 +606,10 @@ const s = StyleSheet.create({
   neighborhoodBadge:    { flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: Colors.border, borderRadius: Radius.full, paddingHorizontal: 7, paddingVertical: 2 },
   neighborhoodBadgeTxt: { fontSize: 11, color: Colors.textSecondary, fontWeight: '600' },
   cardRabbi:            { fontSize: 11, color: Colors.textMuted, fontStyle: 'italic' },
+  nextRow:     { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
+  nextTxt:     { fontSize: 12, color: Colors.primaryLight, fontWeight: '600' },
+  nextTxtSoon: { color: Colors.success },
+  nextTxtDone: { color: Colors.textMuted, fontWeight: '400' },
 
   cardRight: { alignItems: 'flex-end', gap: 4, marginRight: Spacing.sm },
   distBadge: { flexDirection: 'row', alignItems: 'center', gap: 2 },
