@@ -38,7 +38,7 @@ import { useKashrutUpdates } from '../../context/KashrutUpdatesContext';
 import { useEruvStatus }     from '../../hooks/useEruv';
 
 import {
-  getTodaySchedule, getNextPrayer,
+  getNextPrayerTodayOrTomorrow,
   formatPrayerLabel, hebrewDayOfWeek, parseTimeToMinutes,
 } from '../../utils/prayerUtils';
 import { formatHebrewDate }  from '../../utils/hebrewDate';
@@ -158,20 +158,25 @@ export default function HomeScreen() {
   }
 
   // ── Next prayer across all synagogues ──────────────────────────
+  // Today's earliest remaining prayer in the city; once every shul is done
+  // for the day, tomorrow's earliest, flagged — so the card shows "מחר
+  // שחרית 06:30" after the last ma'ariv instead of disappearing. That matters
+  // most after Shabbat: the app reopens on the Shabbat date, and a shul with
+  // no Shabbat board has nothing left that night. Each shul's Shabbat board
+  // is passed now, so one that does list a ma'ariv after Shabbat counts.
   const { earliestSyn, nextPrayer } = useMemo(() => {
     let best: {
       syn: typeof synagogues[0];
-      prayer: NonNullable<ReturnType<typeof getNextPrayer>>;
+      prayer: NonNullable<ReturnType<typeof getNextPrayerTodayOrTomorrow>>;
     } | null = null;
+    // Any of today's beats all of tomorrow's.
+    const rank = (p: { nextTime: string; tomorrow: boolean }) =>
+      parseTimeToMinutes(p.nextTime) + (p.tomorrow ? 1440 : 0);
 
     for (const syn of synagogues) {
-      const schedule = getTodaySchedule(syn.weeklySchedule, undefined, todayZmanim);
-      if (!schedule) continue;
-      const prayer = getNextPrayer(schedule);
-      if (!prayer) continue;
-      const nextMin = parseTimeToMinutes(prayer.nextTime);
-      const bestMin = best ? parseTimeToMinutes(best.prayer.nextTime) : Infinity;
-      if (nextMin >= 0 && nextMin < bestMin) {
+      const prayer = getNextPrayerTodayOrTomorrow(syn.weeklySchedule, syn.shabbatSchedule, todayZmanim);
+      if (!prayer || parseTimeToMinutes(prayer.nextTime) < 0) continue;
+      if (!best || rank(prayer) < rank(best.prayer)) {
         best = { syn, prayer };
       }
     }
@@ -181,7 +186,7 @@ export default function HomeScreen() {
     };
   // `tick` (30-second interval, see above) isn't read in the body — it's a
   // dependency purely to force recomputation as time passes. Without it,
-  // getNextPrayer's internal `now` only gets re-evaluated when synagogues or
+  // the next-prayer lookup's internal `now` only re-evaluates when synagogues or
   // todayZmanim happen to change, so a prayer time that's already passed
   // would keep showing as "next" indefinitely while the app sits open.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -528,7 +533,9 @@ export default function HomeScreen() {
             <View style={[styles.prayerBar, { backgroundColor: accentColor }]} />
 
             <View style={styles.prayerBody}>
-              <Text style={styles.prayerMeta}>התפילה הבאה</Text>
+              <Text style={styles.prayerMeta}>
+                {nextPrayer.tomorrow ? 'התפילה הבאה · מחר' : 'התפילה הבאה'}
+              </Text>
               <View style={styles.prayerRow}>
                 <Text style={[styles.prayerType, { color: accentColor }]}>
                   {formatPrayerLabel(nextPrayer.type)}
