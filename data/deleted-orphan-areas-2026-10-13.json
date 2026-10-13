@@ -1,0 +1,482 @@
+[
+  {
+    "collection": "areas",
+    "id": "area-1127",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "מעלה גלבוע",
+      "cbsCode": "1127",
+      "latitude": 32.4780173,
+      "longitude": 35.4174978,
+      "elevation": 464,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-1154",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "מיטל",
+      "cbsCode": "1154",
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "elevation": 532,
+      "latitude": 32.436585,
+      "longitude": 35.417482,
+      "updatedAt": {
+        "_seconds": 1789498971,
+        "_nanoseconds": 843000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-1282",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "מירב",
+      "cbsCode": "1282",
+      "latitude": 32.4533873,
+      "longitude": 35.4215378,
+      "elevation": 427,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-1283",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "תל תאומים",
+      "cbsCode": "1283",
+      "latitude": 32.4424193,
+      "longitude": 35.4964482,
+      "elevation": -136,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-2016",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "רוויה",
+      "cbsCode": "2016",
+      "latitude": 32.4492455,
+      "longitude": 35.4727211,
+      "elevation": -109,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-2026",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "ירדנה",
+      "cbsCode": "2026",
+      "latitude": 32.5644389,
+      "longitude": 35.5645775,
+      "elevation": -237,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-2057",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "שדי תרומות",
+      "cbsCode": "2057",
+      "latitude": 32.441356,
+      "longitude": 35.4854373,
+      "elevation": -125,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-256",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "ניר דוד (תל עמל)",
+      "cbsCode": "256",
+      "latitude": 32.5027374,
+      "longitude": 35.4567497,
+      "elevation": -108,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-259",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "שדה נחום",
+      "cbsCode": "259",
+      "latitude": 32.5271296,
+      "longitude": 35.4816414,
+      "elevation": -74,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-265",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "בית יוסף",
+      "cbsCode": "265",
+      "latitude": 32.5588132,
+      "longitude": 35.5523146,
+      "elevation": -228,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-268",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "טירת צבי",
+      "cbsCode": "268",
+      "latitude": 32.4218582,
+      "longitude": 35.5279708,
+      "elevation": -218,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-272",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "מעוז חיים",
+      "cbsCode": "272",
+      "latitude": 32.4933804,
+      "longitude": 35.5512649,
+      "elevation": -237,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-295",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "כפר רופין",
+      "cbsCode": "295",
+      "latitude": 32.4581631,
+      "longitude": 35.556773,
+      "elevation": -237,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-296",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "נווה איתן",
+      "cbsCode": "296",
+      "latitude": 32.4911108,
+      "longitude": 35.5321957,
+      "elevation": -225,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-298",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "מסילות",
+      "cbsCode": "298",
+      "latitude": 32.495833,
+      "longitude": 35.4750001,
+      "elevation": -111,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-304",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "שדה אליהו",
+      "cbsCode": "304",
+      "latitude": 32.440781,
+      "longitude": 35.5133549,
+      "elevation": -187,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-305",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "גשר",
+      "cbsCode": "305",
+      "latitude": 32.6206515,
+      "longitude": 35.5520809,
+      "elevation": -192,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-343",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "חמדיה",
+      "cbsCode": "343",
+      "latitude": 32.5201037,
+      "longitude": 35.5203765,
+      "elevation": -155,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-383",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "עין הנצי\"ב",
+      "cbsCode": "383",
+      "latitude": 32.4697596,
+      "longitude": 35.5014843,
+      "elevation": -131,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-437",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "רשפים",
+      "cbsCode": "437",
+      "latitude": 32.4818532,
+      "longitude": 35.4775438,
+      "elevation": -108,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-439",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "שלוחות",
+      "cbsCode": "439",
+      "latitude": 32.4718472,
+      "longitude": 35.4819367,
+      "elevation": -117,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-48",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "מנחמיה",
+      "cbsCode": "48",
+      "latitude": 32.6670217,
+      "longitude": 35.5555869,
+      "elevation": -204,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-590",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "נווה אור",
+      "cbsCode": "590",
+      "latitude": 32.5886496,
+      "longitude": 35.5531494,
+      "elevation": -218,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  },
+  {
+    "collection": "areas",
+    "id": "area-854",
+    "data": {
+      "cityId": "az8jwFS6xoxk3hTK",
+      "name": "רחוב",
+      "cbsCode": "854",
+      "latitude": 32.4519005,
+      "longitude": 35.4885611,
+      "elevation": -122,
+      "radiusKm": 2,
+      "isDefault": false,
+      "parentId": null,
+      "source": "data.gov.il/5c78e9fa-c2e2-4771-93ff-7f400a12f7ba",
+      "updatedAt": {
+        "_seconds": 1789498192,
+        "_nanoseconds": 147000000
+      }
+    }
+  }
+]
