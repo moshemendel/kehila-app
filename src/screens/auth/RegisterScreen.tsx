@@ -50,7 +50,8 @@ export default function RegisterScreen({ navigation }: Props) {
       const p      = places[0];
       if (!p) { Alert.alert('שגיאה', 'לא ניתן לזהות עיר'); return; }
       const detectedName = (p.city ?? p.subregion ?? p.district ?? '').toLowerCase();
-      const allCities    = await getAllCities();
+      // Nobody registering is staff yet, so a city still being set up is never a match.
+      const allCities    = (await getAllCities()).filter((c) => !c.hidden);
       const match = allCities.find((c) =>
         c.name.toLowerCase().includes(detectedName) || detectedName.includes(c.name.toLowerCase())
       );

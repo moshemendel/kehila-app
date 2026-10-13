@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getAllCities } from '../services/cities';
 import { City } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { canSeeCity } from '../utils/roles';
 
 /**
  * The cities in the system, fetched once per launch and shared.
@@ -14,6 +16,11 @@ import { City } from '../types';
  *
  * The in-flight promise is shared too, so two components mounting in the same
  * tick make one round trip between them rather than two.
+ *
+ * Returns only the cities this account should see: a hidden city (still being
+ * set up) is left out for everyone but its own staff and super admins. The
+ * cache holds the full list and the filter runs per caller, so signing in as
+ * an admin shows it without refetching.
  */
 let cached: City[] | null = null;
 let inFlight: Promise<City[]> | null = null;
@@ -27,7 +34,8 @@ function load(): Promise<City[]> {
 }
 
 export function useCities() {
-  const [cities,  setCities]  = useState<City[]>(cached ?? []);
+  const { appUser } = useAuth();
+  const [all,     setAll]     = useState<City[]>(cached ?? []);
   const [loading, setLoading] = useState(!cached);
   const [error,   setError]   = useState<string | null>(null);
 
@@ -35,12 +43,13 @@ export function useCities() {
     if (cached) return;
     let live = true;
     load()
-      .then((list) => { if (live) setCities(list); })
+      .then((list) => { if (live) setAll(list); })
       .catch((e) => { if (live) setError(e.message); })
       .finally(() => { if (live) setLoading(false); });
     return () => { live = false; };
   }, []);
 
+  const cities = useMemo(() => all.filter((c) => canSeeCity(appUser, c)), [all, appUser]);
   return { cities, loading, error };
 }
 

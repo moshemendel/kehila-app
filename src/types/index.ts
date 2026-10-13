@@ -112,6 +112,14 @@ export interface City {
    *  council, "שכונה"/"רובע" for a city divided into neighbourhoods. Absent
    *  for a plain single-area city, which never shows the word at all. */
   areaLabel?: string;
+  /**
+   * Not live yet: left out of every city list in the app (picker, GPS match,
+   * guest auto-select, registration) while its data is being loaded. Its own
+   * staff and super admins still see it, so they can check it in the app
+   * before it opens. Set from the console's city settings; new cities start
+   * hidden. Absent = live.
+   */
+  hidden?: boolean;
 }
 
 /**

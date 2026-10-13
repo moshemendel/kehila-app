@@ -1,4 +1,4 @@
-import { AppUser, UserRole } from '../types';
+import { AppUser, City, UserRole } from '../types';
 import { Colors } from './theme';
 import catalogue from './roleCatalogue.json';
 
@@ -168,6 +168,17 @@ export function managesContent(user: AppUser | null | undefined): boolean {
 /** Unscoped — administers every city. */
 export function isSuperAdmin(user: AppUser | null | undefined): boolean {
   return rolesOf(user).some((r) => r === 'super_admin' || r === 'dev');
+}
+
+/**
+ * Whether a city belongs in this account's city lists. A hidden city (one
+ * still being set up) is shown only to super admins and to staff of that very
+ * city, who need to see it in the app before it opens to residents.
+ */
+export function canSeeCity(user: AppUser | null | undefined, city: City): boolean {
+  if (!city.hidden) return true;
+  if (isSuperAdmin(user)) return true;
+  return user?.homeCityId === city.id && rolesOf(user).some((r) => r !== 'user');
 }
 
 /**
