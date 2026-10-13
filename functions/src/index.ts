@@ -25,7 +25,9 @@ const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const REGION = 'europe-west1';
 /**
  * Where the (default) database lives. A Firestore trigger has to run in the
- * database's own region, so the sync triggers use this rather than REGION.
+ * database's own region, so every onDocument* trigger uses this rather than
+ * REGION. The report triggers were declared in europe-west1 and never
+ * deployed for exactly that reason.
  */
 const FIRESTORE_REGION = 'me-west1';
 
@@ -174,7 +176,7 @@ async function sendExpoPush(
 // ── Trigger ─────────────────────────────────────────────────────────────────
 
 export const onContentReportCreated = onDocumentCreated(
-  { document: 'contentReports/{reportId}', region: REGION },
+  { document: 'contentReports/{reportId}', region: FIRESTORE_REGION },
   async (event) => {
     const report = event.data?.data() as ContentReport | undefined;
     if (!report?.cityId) return;
@@ -205,13 +207,13 @@ export const onContentReportCreated = onDocumentCreated(
 );
 
 /**
- * Same fix for eruv reports. The client already tried to notify eruv managers
- * from EruvScreen, but that call reads pushTokens and is denied for any
- * non-admin reporter — so in practice it only ever fired when an admin happened
- * to file the report. Handled here instead; the client call should be removed.
+ * Same fix for eruv reports. EruvScreen used to notify eruv managers itself,
+ * but that call reads pushTokens and is denied for any non-admin reporter — so
+ * in practice it only ever fired when an admin happened to file the report.
+ * Handled here instead; the client call is gone.
  */
 export const onEruvReportCreated = onDocumentCreated(
-  { document: 'eruvReports/{reportId}', region: REGION },
+  { document: 'eruvReports/{reportId}', region: FIRESTORE_REGION },
   async (event) => {
     const report = event.data?.data() as
       | { cityId?: string; type?: string; description?: string }
