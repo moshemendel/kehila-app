@@ -212,7 +212,8 @@ export function businessHoursForDay(
 }
 
 /**
- * Whether a business has published any opening hours at all.
+ * Whether a business (or a mikveh — anything with hoursSchedule) has
+ * published any opening hours at all.
  *
  * businessHoursForDay answers 'סגור' for a day with no hours, which is right
  * for a business that lists Sunday–Thursday and nothing on Shabbat. For one
@@ -221,7 +222,7 @@ export function businessHoursForDay(
  * people take a red "סגור" at its word. Callers check this first and say the
  * hours are unavailable instead.
  */
-export function hasBusinessHours(
+export function hasPublishedHours(
   business: { hoursSchedule?: HoursBlock[]; openingHours?: OpeningHours },
 ): boolean {
   if (business.hoursSchedule?.length) return true;
@@ -230,7 +231,8 @@ export function hasBusinessHours(
 }
 
 /**
- * Where a business stands right now, not just whether it has hours today.
+ * Where a business or mikveh stands right now, not just whether it has
+ * hours today.
  *
  * The pill used to say "פתוח" for any day with hours, so a shop that closed
  * at 14:00 still read as open at 21:00. This answers from the clock, and for
@@ -241,7 +243,7 @@ export function hasBusinessHours(
  *   opensLater      closed now, opens again today at `at`
  *   closedForToday  had hours today, all of them already over
  *   closedToday     no hours today at all
- *   unknown         no hours published (see hasBusinessHours)
+ *   unknown         no hours published (see hasPublishedHours)
  *   unclear         hours exist but cannot be placed on the clock: a zmanim
  *                   boundary before zmanim load, or free text like "בתיאום"
  *
@@ -291,12 +293,12 @@ const hhmm = (min: number) => {
   return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 };
 
-export function businessOpenStatus(
+export function openStatus(
   business: { hoursSchedule?: HoursBlock[]; openingHours?: OpeningHours },
   now: Date = new Date(),
   zmanim?: ZmanimResult | null,
 ): OpenStatus {
-  if (!hasBusinessHours(business)) return { kind: 'unknown' };
+  if (!hasPublishedHours(business)) return { kind: 'unknown' };
   const today = DAY_KEYS[now.getDay()];
   const yesterday = DAY_KEYS[(now.getDay() + 6) % 7];
   const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -324,7 +326,7 @@ export function businessOpenStatus(
   return sorted.length ? { kind: 'closedForToday' } : { kind: 'closedToday' };
 }
 
-/** Short Hebrew wording for an OpenStatus, shared by the card and the detail. */
+/** Short Hebrew wording for an OpenStatus, shared by the cards and details. */
 export function openStatusLabel(st: OpenStatus): string {
   switch (st.kind) {
     case 'open':           return `פתוח עכשיו · עד ${st.until}`;

@@ -5,8 +5,9 @@ import { Colors, Spacing, Radius, Shadow, CardShell } from '../utils/theme';
 import { useNavigateTo } from '../hooks/useNavigateTo';
 import { Mikveh, DayKey } from '../types';
 import { updateMikveh } from '../services/mikvaot';
-import { hoursTextForDay } from '../utils/appointmentSlots';
+import { hoursTextForDay, openStatus, openStatusLabel } from '../utils/appointmentSlots';
 import { useTodayZmanim } from '../hooks/useTodayZmanim';
+import { useAppForegroundTick } from '../hooks/useAppForegroundTick';
 import LocationEditModal from './LocationEditModal';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -30,8 +31,20 @@ function getTodayHours(mikveh: Mikveh, zmanim: ReturnType<typeof useTodayZmanim>
 
 export default function MikvehCard({ mikveh, distLabel, canManage, onPress, cardStyle }: Props) {
   const { go: navigateTo, sheet: navSheet } = useNavigateTo();
+  useAppForegroundTick(); // re-read the clock when the app comes back
   const todayZmanim = useTodayZmanim(mikveh.cityId);
   const todayHours = getTodayHours(mikveh, todayZmanim);
+  // Same wording and colours as BusinessCard: open until when, or when it
+  // opens — the evening opening is the question for a women's mikveh.
+  const status = openStatus(mikveh, new Date(), todayZmanim);
+  const statusStyle = status.kind === 'open' ? styles.hoursOpen
+    : status.kind === 'opensLater' ? styles.hoursLater
+    : status.kind === 'closedForToday' || status.kind === 'closedToday' ? styles.hoursClosed
+    : styles.hoursUnknown;
+  const statusText = status.kind === 'unclear' ? `היום: ${todayHours}`
+    : status.kind === 'open' || status.kind === 'opensLater' || status.kind === 'closedForToday'
+      ? `${openStatusLabel(status)} · ${todayHours}`
+      : openStatusLabel(status);
   const [editingLoc, setEditingLoc] = useState(false);
 
   return (
@@ -54,7 +67,7 @@ export default function MikvehCard({ mikveh, distLabel, canManage, onPress, card
 
         <View style={styles.row}>
           <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
-          <Text style={styles.hours}>היום: {todayHours}</Text>
+          <Text style={[styles.hours, statusStyle]} numberOfLines={1}>{statusText}</Text>
         </View>
 
         {mikveh.requiresAppointment && (
@@ -113,6 +126,10 @@ const styles = StyleSheet.create({
   distTxt:   { fontSize: 11, fontWeight: '700', color: Colors.mikveh },
   row:       { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
   hours:     { fontSize: 13, color: Colors.textSecondary },
+  hoursOpen:    { color: Colors.success },
+  hoursLater:   { color: Colors.goldDeep },
+  hoursClosed:  { color: Colors.danger },
+  hoursUnknown: { color: Colors.textMuted },
   apptRow:   { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FEF5E7', borderRadius: Radius.sm, paddingHorizontal: 8, paddingVertical: 5, marginTop: 4 },
   apptText:  { fontSize: 12, color: Colors.warning, fontWeight: '600' },
   notes:     { fontSize: 12, color: Colors.textSecondary, marginTop: Spacing.sm, fontStyle: 'italic' },

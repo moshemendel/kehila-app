@@ -16,7 +16,8 @@ import EditListingButton from '../../components/EditListingButton';
 import { useNavigateTo } from '../../hooks/useNavigateTo';
 import { Mikveh, DayKey } from '../../types';
 import { getMikveh } from '../../services/mikvaot';
-import { hoursTextForDay } from '../../utils/appointmentSlots';
+import { hoursTextForDay, hasPublishedHours, openStatus } from '../../utils/appointmentSlots';
+import { useAppForegroundTick } from '../../hooks/useAppForegroundTick';
 import { useAuth } from '../../context/AuthContext';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
 import { useModule } from '../../utils/modules';
@@ -59,6 +60,7 @@ export default function MikvehDetailScreen() {
   const [mikveh,  setMikveh]  = useState<Mikveh | null>(null);
   const [loading, setLoading] = useState(true);
   const todayZmanim = useTodayZmanim(mikveh?.cityId ?? '');
+  useAppForegroundTick(); // re-read the clock when the app comes back
 
   function handleBookPress() {
     // Held back for the pilot: bookings only work once the balaniot are running
@@ -152,7 +154,17 @@ export default function MikvehDetailScreen() {
   const todayIdx      = new Date().getDay();
   const todayKey      = DAY_KEYS[todayIdx];
   const todayHours    = hoursTextForDay(mikveh.hoursSchedule, todayKey, todayZmanim);
-  const isClosedToday = todayHours === 'סגור';
+  const hoursKnown    = hasPublishedHours(mikveh);
+  const isClosedToday = hoursKnown && todayHours === 'סגור';
+  const status        = openStatus(mikveh, new Date(), todayZmanim);
+  // Same pill as BusinessDetailScreen: open now, opens later today, or closed.
+  const pill = status.kind === 'open'
+      ? { text: 'פתוח עכשיו', box: styles.statusPillOpen, dot: styles.dotOpen, txt: styles.statusTxtOpen }
+    : status.kind === 'opensLater'
+      ? { text: `ייפתח ב-${status.at}`, box: styles.statusPillLater, dot: styles.dotLater, txt: styles.statusTxtLater }
+    : status.kind === 'closedForToday' || status.kind === 'closedToday'
+      ? { text: 'סגור', box: styles.statusPillClosed, dot: styles.dotClosed, txt: styles.statusTxtClosed }
+    : null;
 
   const allImages: string[] = [
     ...(mikveh.imageUrl ? [mikveh.imageUrl] : []),
@@ -225,19 +237,13 @@ export default function MikvehDetailScreen() {
                 )}
               </View>
 
-              {/* Open/closed pill */}
-              <View style={[
-                styles.statusPill,
-                isClosedToday ? styles.statusPillClosed : styles.statusPillOpen,
-              ]}>
-                <View style={[styles.statusDot, isClosedToday ? styles.dotClosed : styles.dotOpen]} />
-                <Text style={[
-                  styles.statusText,
-                  isClosedToday ? styles.statusTxtClosed : styles.statusTxtOpen,
-                ]}>
-                  {isClosedToday ? 'סגור' : 'פתוח'}
-                </Text>
-              </View>
+              {/* Open now / opens later / closed — none when the hours give no answer */}
+              {pill && (
+                <View style={[styles.statusPill, pill.box]}>
+                  <View style={[styles.statusDot, pill.dot]} />
+                  <Text style={[styles.statusText, pill.txt]}>{pill.text}</Text>
+                </View>
+              )}
             </View>
 
             {/* Appointment required banner */}
@@ -271,8 +277,11 @@ export default function MikvehDetailScreen() {
             <View style={styles.metaRow}>
               <Ionicons name="time-outline" size={15} color={Colors.textSecondary} />
               <Text style={styles.metaLabel}>שעות היום:</Text>
-              <Text style={[styles.metaValue, isClosedToday && { color: Colors.danger }]}>
-                {isClosedToday ? 'סגור היום' : todayHours}
+              <Text style={[
+                styles.metaValue,
+                !hoursKnown ? { color: Colors.textMuted } : isClosedToday && { color: Colors.danger },
+              ]}>
+                {!hoursKnown ? 'לא זמינות' : isClosedToday ? 'סגור היום' : todayHours}
               </Text>
             </View>
 
@@ -353,6 +362,13 @@ export default function MikvehDetailScreen() {
             <Ionicons name="calendar-outline" size={18} color={Colors.mikveh} />
             <Text style={styles.sectionTitle}>שעות פעילות</Text>
           </View>
+          {!hoursKnown ? (
+            <View style={styles.hoursCard}>
+              <Text style={[styles.hoursValue, styles.hoursClosed, { textAlign: 'center', paddingVertical: 8 }]}>
+                שעות הפעילות לא פורסמו
+              </Text>
+            </View>
+          ) : (
           <View style={styles.hoursCard}>
             {DAY_KEYS.map((key, i) => {
               const isToday = i === todayIdx;
@@ -387,6 +403,7 @@ export default function MikvehDetailScreen() {
               );
             })}
           </View>
+          )}
         </View>
 
       </ScrollView>
@@ -482,12 +499,15 @@ const styles = StyleSheet.create({
   },
   statusPillOpen:   { backgroundColor: Colors.success + '14', borderColor: Colors.success + '50' },
   statusPillClosed: { backgroundColor: Colors.danger  + '14', borderColor: Colors.danger  + '50' },
+  statusPillLater:  { backgroundColor: Colors.goldDeep + '14', borderColor: Colors.goldDeep + '50' },
   statusDot:        { width: 7, height: 7, borderRadius: 4 },
   dotOpen:          { backgroundColor: Colors.success },
   dotClosed:        { backgroundColor: Colors.danger  },
+  dotLater:         { backgroundColor: Colors.goldDeep },
   statusText:       { fontSize: 12, fontWeight: '700' },
   statusTxtOpen:    { color: Colors.success },
   statusTxtClosed:  { color: Colors.danger  },
+  statusTxtLater:   { color: Colors.goldDeep },
 
   // Appointment banner
   apptBanner: {

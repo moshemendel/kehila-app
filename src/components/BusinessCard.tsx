@@ -7,7 +7,7 @@ import { Business } from '../types';
 import { updateBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../services/businesses';
 import LocationEditModal from './LocationEditModal';
 import {
-  businessHoursForDay, businessOpenStatus, openStatusLabel, type OpenStatus,
+  businessHoursForDay, openStatus, openStatusLabel, type OpenStatus,
 } from '../utils/appointmentSlots';
 import { useTodayZmanim } from '../hooks/useTodayZmanim';
 import { useAppForegroundTick } from '../hooks/useAppForegroundTick';
@@ -50,7 +50,7 @@ export default function BusinessCard({ business, distLabel, canManage, onPress, 
   useAppForegroundTick(); // re-read the clock when the app comes back
   const zmanim        = useTodayZmanim(business.cityId);
   const todayHours    = getTodayHours(business, zmanim);
-  const status        = businessOpenStatus(business, new Date(), zmanim);
+  const status        = openStatus(business, new Date(), zmanim);
   const tone          = statusTone(status);
   // Today's ranges after the status when they add something — mostly split
   // hours, where "until 13:00" alone hides the evening opening. 'unclear'

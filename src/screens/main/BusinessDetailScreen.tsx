@@ -16,7 +16,7 @@ import { useAreas } from '../../hooks/useAreas';
 import { Business, KosherCertificate, DayKey } from '../../types';
 import { getBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../../services/businesses';
 import {
-  businessHoursForDay, hasBusinessHours, businessOpenStatus,
+  businessHoursForDay, hasPublishedHours, openStatus,
 } from '../../utils/appointmentSlots';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
 import { useAppForegroundTick } from '../../hooks/useAppForegroundTick';
@@ -139,8 +139,8 @@ export default function BusinessDetailScreen() {
   const todayIdx      = new Date().getDay();
   const todayKey      = DAY_KEYS[todayIdx] as DayKey;
   const todayHours    = businessHoursForDay(business, todayKey, zmanim);
-  const hoursKnown    = hasBusinessHours(business);
-  const status        = businessOpenStatus(business, new Date(), zmanim);
+  const hoursKnown    = hasPublishedHours(business);
+  const status        = openStatus(business, new Date(), zmanim);
   // The pill answers "can I go now?". No pill when the hours give no answer.
   const pill = status.kind === 'open'
       ? { text: 'פתוח עכשיו', box: styles.statusPillOpen, dot: styles.dotOpen, txt: styles.statusTxtOpen }
