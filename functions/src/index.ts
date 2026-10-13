@@ -14,9 +14,11 @@
 
 import { onDocumentCreated, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { logger } from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { DECEASED_SOURCES, syncDeceasedSource } from './deceasedSync';
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -484,3 +486,28 @@ export const deleteMyAccount = onCall({ region: REGION, timeoutSeconds: 300 }, a
   logger.info('account deleted', { uid, anonymous: isAnonymous, removed, kept });
   return { removed, kept };
 });
+
+// ── Deceased registers ──────────────────────────────────────────────────────
+
+/**
+ * Weekly refresh of each burial society's public deceased register into
+ * `deceased` — see deceasedSync.ts for why it is a copy and how it diffs.
+ * Sunday night: registers are updated during the working week, and nobody is
+ * searching at 03:00. One source failing does not stop the others.
+ */
+export const syncDeceased = onSchedule(
+  { schedule: '0 3 * * 0', timeZone: 'Asia/Jerusalem', region: REGION, timeoutSeconds: 540, memory: '1GiB' },
+  async () => {
+    for (const src of DECEASED_SOURCES) {
+      try {
+        const result = await syncDeceasedSource(db, src);
+        logger.info('deceased register synced', { source: src.source, ...result });
+        if (result.skippedDelete) {
+          logger.warn('deceased sync fetched far fewer rows than stored; deletions skipped', { source: src.source });
+        }
+      } catch (e) {
+        logger.error('deceased register sync failed', { source: src.source, error: String(e) });
+      }
+    }
+  },
+);

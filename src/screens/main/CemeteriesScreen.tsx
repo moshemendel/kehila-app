@@ -10,6 +10,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAnalyticsTrack } from '../../services/analytics';
 import { useCemeteries } from '../../hooks/useCemeteries';
 import { useCityId } from '../../hooks/useCityId';
+import { useCity } from '../../hooks/useCity';
+import DeceasedSearch from '../../components/DeceasedSearch';
 import { useAreas } from '../../hooks/useAreas';
 import { useNavigateTo } from '../../hooks/useNavigateTo';
 import { resolveNavTarget, hasNavTarget, NavTarget } from '../../utils/navigationApps';
@@ -64,6 +66,7 @@ export default function CemeteriesScreen() {
   // fallback pin for the ~4 of these 18 that only have a bare Waze link and
   // no coordinates of their own — see resolveNavTarget.
   const { areas } = useAreas(cityId);
+  const { city } = useCity(cityId);
   const { go: navigateTo, sheet: navSheet } = useNavigateTo();
 
   function areaNamesFor(c: Cemetery): string {
@@ -82,6 +85,19 @@ export default function CemeteriesScreen() {
     );
   }
 
+  // A search result names its cemetery by id; this turns it into a way there,
+  // or nothing when that cemetery has no location to aim at.
+  function navigateToCemetery(cemeteryId: string): (() => void) | undefined {
+    const c = cemeteries.find((x) => x.id === cemeteryId);
+    if (!c) return undefined;
+    const target = navTargetFor(c);
+    return hasNavTarget(target) ? () => navigateTo(target) : undefined;
+  }
+
+  const search = city?.deceasedSearch
+    ? <DeceasedSearch cityId={cityId} onNavigate={navigateToCemetery} />
+    : null;
+
   return (
     <View style={s.container}>
       <LinearGradient
@@ -94,7 +110,7 @@ export default function CemeteriesScreen() {
 
       {loading ? (
         <ActivityIndicator color={Colors.cemetery} style={{ marginTop: 60 }} size="large" />
-      ) : cemeteries.length === 0 ? (
+      ) : cemeteries.length === 0 && !search ? (
         <View style={s.empty}>
           <Ionicons name="flower-outline" size={40} color={Colors.textMuted} />
           <Text style={s.emptyText}>אין עדיין מידע על בתי עלמין</Text>
@@ -103,7 +119,9 @@ export default function CemeteriesScreen() {
         <ScrollView
           contentContainerStyle={[s.list, { paddingBottom: bottom + 24 }]}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
+          {search}
           {cemeteries.map((c) => (
             <CemeteryCard
               key={c.id} item={c} areaNames={areaNamesFor(c)}

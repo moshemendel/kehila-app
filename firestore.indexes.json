@@ -4,41 +4,88 @@
       "collectionGroup": "synagogues",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "cityId", "order": "ASCENDING" },
-        { "fieldPath": "syncedAt", "order": "ASCENDING" }
+        {
+          "fieldPath": "cityId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "syncedAt",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "businesses",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "cityId", "order": "ASCENDING" },
-        { "fieldPath": "syncedAt", "order": "ASCENDING" }
+        {
+          "fieldPath": "cityId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "syncedAt",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "events",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "cityId", "order": "ASCENDING" },
-        { "fieldPath": "syncedAt", "order": "ASCENDING" }
+        {
+          "fieldPath": "cityId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "syncedAt",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "kashrutUpdates",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "cityId", "order": "ASCENDING" },
-        { "fieldPath": "syncedAt", "order": "ASCENDING" }
+        {
+          "fieldPath": "cityId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "syncedAt",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "syncTombstones",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "collection", "order": "ASCENDING" },
-        { "fieldPath": "cityId", "order": "ASCENDING" },
-        { "fieldPath": "deletedAt", "order": "ASCENDING" }
+        {
+          "fieldPath": "collection",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "cityId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "deletedAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "deceased",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "cityId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "keys",
+          "arrayConfig": "CONTAINS"
+        }
       ]
     }
   ],

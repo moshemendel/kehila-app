@@ -637,6 +637,15 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ── Deceased registers ───────────────────────────────────────────────────
+    // A copy of a burial society's public register, written weekly by the
+    // syncDeceased function (Admin SDK). Public read, as on the society's own
+    // site; nothing writes through a client.
+    match /deceased/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // ── Eruv reports ──────────────────────────────────────────────────────────
     match /eruvReports/{reportId} {
       allow read: if managesContentIn(resource.data.cityId) || hasCityRole('eruv_manager', resource.data.cityId);

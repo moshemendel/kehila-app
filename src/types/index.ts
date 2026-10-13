@@ -120,6 +120,9 @@ export interface City {
    * hidden. Absent = live.
    */
   hidden?: boolean;
+  /** The city's burial society register is copied into `deceased` (see
+   *  functions/src/deceasedSync.ts): the cemeteries tab offers a search. */
+  deceasedSearch?: boolean;
 }
 
 /**
