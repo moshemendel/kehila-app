@@ -127,17 +127,24 @@ interface TokenEntry {
 
 async function tokensForUids(uids: string[]): Promise<TokenEntry[]> {
   if (uids.length === 0) return [];
-  const wanted = new Set(uids);
-  // Read every token for the city's users in one pass rather than chunking an
-  // `in` query — the collection is small and this avoids the 30-value limit.
-  const snap = await db.collection('pushTokens').get();
+  // Only the recipients' own devices, in chunks of 30 (the `in` limit). This
+  // used to read the whole collection, which is every device in every city —
+  // one read per installed app on each report.
+  //
+  // By uid, not by the token's cityId: super_admin and dev receive every
+  // city's reports, but their device is registered under whichever city they
+  // happen to be browsing, so a cityId filter would silently drop them.
+  const unique = [...new Set(uids)];
+  const chunks: string[][] = [];
+  for (let i = 0; i < unique.length; i += 30) chunks.push(unique.slice(i, i + 30));
+  const snaps = await Promise.all(
+    chunks.map((c) => db.collection('pushTokens').where('uid', 'in', c).get()),
+  );
   const out: TokenEntry[] = [];
-  snap.forEach((d) => {
-    const data = d.data() as { uid?: string; token?: string };
-    if (data.uid && data.token && wanted.has(data.uid)) {
-      out.push({ docId: d.id, token: data.token });
-    }
-  });
+  snaps.forEach((snap) => snap.forEach((d) => {
+    const data = d.data() as { token?: string };
+    if (data.token) out.push({ docId: d.id, token: data.token });
+  }));
   return out;
 }
 
