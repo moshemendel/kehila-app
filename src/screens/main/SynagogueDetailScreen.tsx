@@ -30,7 +30,7 @@ import { getSlotLabel, slotRuleLabel } from '../../utils/prayerUtils';
 import { collectShiurim } from '../../utils/prayerNotifications';
 import { gabbaimOf, contactPhoneOf } from '../../utils/synagogueContacts';
 import {
-  getTodaySchedule, getNextPrayer, formatPrayerLabel, formatDays,
+  getTodaySchedule, getNextPrayerTodayOrTomorrow, formatPrayerLabel, formatDays,
   parseTimeToMinutes, nowInMinutes, hebrewDayOfWeek,
 } from '../../utils/prayerUtils';
 
@@ -425,11 +425,15 @@ export default function SynagogueDetailScreen() {
   const extraImages = allImages.slice(1, 4);
   const hasCircles  = extraImages.length > 0;
 
-  // Today's schedule + next prayer (computed once, used in card + today section)
+  // Today's schedule + next prayer (computed once, used in card + today section).
+  // Once today's prayers are over the banner shows tomorrow's first, as the
+  // list and the home card do — "מחר" in place of a countdown.
   const sched      = getTodaySchedule(syn.weeklySchedule, syn.shabbatSchedule, todayZmanim);
-  const nextPrayer = sched ? getNextPrayer(sched) : null;
+  const nextPrayer = getNextPrayerTodayOrTomorrow(syn.weeklySchedule, syn.shabbatSchedule, todayZmanim);
   let   diffTxt    = '';
-  if (nextPrayer) {
+  if (nextPrayer?.tomorrow) {
+    diffTxt = 'מחר';
+  } else if (nextPrayer) {
     const diff = parseTimeToMinutes(nextPrayer.nextTime) - nowInMinutes();
     const h    = Math.floor(diff / 60);
     const m    = diff % 60;
