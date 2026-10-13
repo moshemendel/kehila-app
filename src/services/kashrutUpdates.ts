@@ -10,7 +10,7 @@
  */
 
 import {
-  collection, addDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
+  collection, addDoc, serverTimestamp, Timestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { KashrutUpdate } from '../types';
@@ -33,18 +33,6 @@ export async function createKashrutUpdate(
   }
   const ref = await addDoc(collection(db, COL), payload);
   return ref.id;
-}
-
-export function subscribeKashrutUpdates(
-  cityId: string,
-  cb: (updates: KashrutUpdate[]) => void,
-): () => void {
-  const q = query(collection(db, COL), where('cityId', '==', cityId));
-  return onSnapshot(
-    q,
-    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() } as KashrutUpdate))),
-    () => cb([]),
-  );
 }
 
 // Shared phrasing so the push notification and the in-app feed (KashrutUpdatesScreen)

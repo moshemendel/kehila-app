@@ -6,7 +6,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { useCityId } from '../hooks/useCityId';
 import { useAuth } from './AuthContext';
-import { subscribeKashrutUpdates } from '../services/kashrutUpdates';
+import { useCitySync } from '../hooks/useCitySync';
 import { KashrutUpdate } from '../types';
 
 // ── Expiry helpers ────────────────────────────────────────────────────────────
@@ -123,7 +123,9 @@ export function KashrutUpdatesProvider({ children }: { children: ReactNode }) {
   const { firebaseUser } = useAuth();
   const uid = firebaseUser?.uid ?? null;
 
-  const [all,       setAll]       = useState<KashrutUpdate[]>([]);
+  const feed = useCitySync<KashrutUpdate>('kashrutUpdates', cityId);
+  const all = feed.data;
+  const { synced } = feed;
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [readIds,   setReadIds]   = useState<Set<string>>(new Set());
 
@@ -141,15 +143,10 @@ export function KashrutUpdatesProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
   }, [uid]);
 
-  // Subscribe to the city's kashrut updates feed
+  // Lazy-prune stale IDs once the live feed loads — the server's answer, not
+  // the stored copy, which may predate an update the user already read.
   useEffect(() => {
-    if (!cityId) return;
-    return subscribeKashrutUpdates(cityId, setAll);
-  }, [cityId]);
-
-  // Lazy-prune stale IDs once the live feed loads
-  useEffect(() => {
-    if (all.length === 0) return;
+    if (!synced || all.length === 0) return;
     const liveIds = new Set(all.map((u) => u.id));
     setDismissed((prev) => {
       const pruned = new Set([...prev].filter((id) => liveIds.has(id)));
@@ -163,7 +160,7 @@ export function KashrutUpdatesProvider({ children }: { children: ReactNode }) {
       saveRead(uidRef.current, pruned);
       return pruned;
     });
-  }, [all]);
+  }, [all, synced]);
 
   const dismiss = useCallback((id: string) => {
     setDismissed((prev) => {

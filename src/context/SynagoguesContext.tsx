@@ -9,23 +9,21 @@
  * simultaneous full downloads of the same collection before the app felt
  * usable.
  *
- * One listener, mounted once at the app root (same shape as EventsProvider),
- * removes the duplication. It does not remove the remaining "few seconds
- * before the first screen that needs this can show anything" — that is
- * useCachedLiveQuery's job, layered on top: the last snapshot persists to
- * AsyncStorage and renders instantly on the next cold start, replaced the
- * moment this listener's live data arrives.
+ * One shared copy, mounted once at the app root (same shape as
+ * EventsProvider), removes the duplication. useCitySync keeps that copy in
+ * AsyncStorage and only asks the server for what changed since the last
+ * session (see services/citySync.ts), so a cold start shows the stored list
+ * at once and costs a few reads instead of one per synagogue.
  *
  * Always-on rather than focus-gated, also matching EventsProvider: the
- * expensive part is the one-time initial snapshot, not an idle listener
+ * expensive part is the initial snapshot, not an idle listener
  * sitting open, so there is no real cost to keeping it warm while a screen
  * showing synagogues is not the one in focus — and a real benefit when the
  * user comes back to one.
  */
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useCityId } from '../hooks/useCityId';
-import { useSynagogues } from '../hooks/useSynagogues';
-import { useCachedLiveQuery } from '../hooks/useCachedLiveQuery';
+import { useCitySync } from '../hooks/useCitySync';
 import { Synagogue } from '../types';
 
 interface Ctx {
@@ -38,15 +36,14 @@ const SynagoguesContext = createContext<Ctx>({ synagogues: [], loading: true, er
 
 export function SynagoguesProvider({ children }: { children: ReactNode }) {
   const cityId = useCityId();
-  const { synagogues, loading, error } = useSynagogues(cityId);
-  const cached = useCachedLiveQuery(`@cache_synagogues_${cityId}`, { data: synagogues, loading, error });
+  const feed = useCitySync<Synagogue>('synagogues', cityId);
 
   // Memoised, because a fresh object here re-renders every consumer of this
   // context whether or not anything in it changed — and these providers wrap
   // the whole app, so that means every mounted screen.
   const value = useMemo(
-    () => ({ synagogues: cached.data, loading: cached.loading, error: cached.error }),
-    [cached.data, cached.loading, cached.error],
+    () => ({ synagogues: feed.data, loading: feed.loading, error: feed.error }),
+    [feed.data, feed.loading, feed.error],
   );
 
   return (

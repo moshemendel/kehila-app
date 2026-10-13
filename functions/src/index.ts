@@ -12,10 +12,11 @@
  * managers about user-submitted content without weakening that rule.
  */
 
-import { onDocumentCreated } from 'firebase-functions/v2/firestore';
+import { onDocumentCreated, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -233,6 +234,110 @@ export const onEruvReportCreated = onDocumentCreated(
   },
 );
 
+// ── Incremental sync stamps ─────────────────────────────────────────────────
+
+/**
+ * Server-side half of the app's incremental sync (src/services/citySync.ts).
+ *
+ * Firestore runs with no local persistence in React Native, so every listener
+ * reconnect is billed as a brand-new query: before this, each app open read
+ * every synagogue, business, event and kashrut update in the city — ~860 reads
+ * per open for a 500-synagogue city. The app now keeps its own copy and asks
+ * only for documents with `syncedAt` past what it already has, plus tombstones
+ * for anything deleted while it was away.
+ *
+ * Stamped here rather than by each writer because there are many writers — the
+ * app's management screens, the admin console, the import scripts — and one
+ * that forgets to stamp would leave its edit invisible to every synced phone
+ * until their monthly full refresh. A trigger cannot forget. It also means a
+ * client cannot set its own `syncedAt`: a forged value is overwritten, and one
+ * pushed into the future would otherwise have stalled every phone's cursor.
+ *
+ * Retried, because a missed stamp is exactly that invisible edit.
+ */
+const SYNCED_COLLECTIONS = ['synagogues', 'businesses', 'events', 'kashrutUpdates'] as const;
+type SyncedCollection = (typeof SYNCED_COLLECTIONS)[number];
+
+/** A stamp this close to now is taken to be our own write coming back. */
+const OWN_STAMP_WINDOW_MS = 5 * 60 * 1000;
+
+function fieldEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a == null || b == null || typeof a !== 'object' || typeof b !== 'object') return false;
+  // Timestamp, GeoPoint and DocumentReference all carry their own isEqual.
+  const eq = (a as { isEqual?: (o: unknown) => boolean }).isEqual;
+  if (typeof eq === 'function') {
+    return a.constructor === b.constructor && eq.call(a, b);
+  }
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  const ka = Object.keys(a as object);
+  const kb = Object.keys(b as object);
+  if (ka.length !== kb.length) return false;
+  return ka.every((k) => fieldEqual((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]));
+}
+
+function changedKeys(before: Record<string, unknown>, after: Record<string, unknown>): string[] {
+  const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
+  return [...keys].filter((k) => !fieldEqual(before[k], after[k]));
+}
+
+async function writeTombstone(collection: SyncedCollection, docId: string, cityId: string) {
+  await db.collection('syncTombstones').doc(`${collection}__${docId}__${cityId}`).set({
+    collection,
+    docId,
+    cityId,
+    deletedAt: FieldValue.serverTimestamp(),
+  });
+}
+
+function syncStamper(collection: SyncedCollection) {
+  return onDocumentWritten(
+    { document: `${collection}/{docId}`, region: REGION, retry: true },
+    async (event) => {
+      const docId = event.params.docId;
+      const before = event.data?.before.exists ? event.data.before.data() : undefined;
+      const after = event.data?.after.exists ? event.data.after.data() : undefined;
+
+      // Deleted: phones that were offline would never learn of it from a
+      // `syncedAt >` query, since the document is simply gone.
+      if (!after) {
+        if (typeof before?.cityId === 'string') await writeTombstone(collection, docId, before.cityId);
+        return;
+      }
+
+      // Moved to another city: from the old city's point of view it is gone.
+      if (typeof before?.cityId === 'string' && before.cityId !== after.cityId) {
+        await writeTombstone(collection, docId, before.cityId);
+      }
+
+      // Our own stamp coming back as a write event. Without this the trigger
+      // would stamp its own stamp forever.
+      if (before) {
+        const changed = changedKeys(before, after);
+        const stamp = after.syncedAt as Timestamp | undefined;
+        const fresh = stamp instanceof Timestamp
+          && Math.abs(stamp.toMillis() - Date.now()) < OWN_STAMP_WINDOW_MS;
+        if (changed.length === 0) return;
+        if (changed.length === 1 && changed[0] === 'syncedAt' && fresh) return;
+      }
+
+      await event.data!.after.ref
+        .update({ syncedAt: FieldValue.serverTimestamp() })
+        .catch((e: { code?: number }) => {
+          // Deleted between the write and this stamp: the delete has its own
+          // event, which writes the tombstone. Anything else must retry.
+          if (e?.code === 5 /* NOT_FOUND */) return;
+          throw e;
+        });
+    },
+  );
+}
+
+export const syncStampSynagogues = syncStamper('synagogues');
+export const syncStampBusinesses = syncStamper('businesses');
+export const syncStampEvents = syncStamper('events');
+export const syncStampKashrutUpdates = syncStamper('kashrutUpdates');
+
 // ── Account deletion ────────────────────────────────────────────────────────
 
 /**
@@ -350,10 +455,10 @@ export const deleteMyAccount = onCall({ region: REGION, timeoutSeconds: 300 }, a
       db.collection('events').where('createdBy', '==', uid), { createdBy: DELETED });
     kept.eruvReports = await anonymiseAll(
       db.collection('eruvReports').where('userId', '==', uid),
-      { userId: DELETED, userDisplayName: admin.firestore.FieldValue.delete() });
+      { userId: DELETED, userDisplayName: FieldValue.delete() });
     kept.contentReports = await anonymiseAll(
       db.collection('contentReports').where('userId', '==', uid),
-      { userId: DELETED, userName: admin.firestore.FieldValue.delete() });
+      { userId: DELETED, userName: FieldValue.delete() });
 
     await db.collection('users').doc(uid).delete().catch(() => undefined);
   }

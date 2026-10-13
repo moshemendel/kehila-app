@@ -15,11 +15,10 @@ import React, {
   useMemo, useCallback, ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  doc, getDoc, setDoc, collection, query, where, onSnapshot,
-} from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { useCityId } from '../hooks/useCityId';
+import { useCitySync } from '../hooks/useCitySync';
 import { useAuth } from './AuthContext';
 import { useNotifications } from './NotificationsContext';
 import { DEFAULT_EVENT_LEAD_TIMES, syncEventReminders } from '../utils/eventReminders';
@@ -162,37 +161,26 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   const uidRef = useRef(uid);
   uidRef.current = uid;
 
-  const [all,        setAll]        = useState<CommunityEvent[]>([]);
-  const [loading,    setLoading]    = useState(true);
-  const [error,      setError]      = useState<string | null>(null);
   const [dismissed,  setDismissed]  = useState<Set<string>>(new Set());
   const [favorites,  setFavorites]  = useState<Set<string>>(new Set());
   const [readEvents, setReadEvents] = useState<Set<string>>(new Set());
   const [prefsLoaded, setPrefsLoaded] = useState(false);
   const [reminders,  setRemindersState] = useState<Record<string, number[]>>({});
 
+  // The city's events feed. Expired ones stay in the synced copy (they are
+  // still documents in the city) and are dropped here, as before.
+  const feed = useCitySync<CommunityEvent>('events', cityId);
+  const { loading, error, synced } = feed;
+  const all = useMemo(
+    () => feed.data
+      .filter((e) => !isExpired(e))
+      .sort((a, b) => a.startDate.localeCompare(b.startDate)),
+    [feed.data],
+  );
+
   // Keep a ref to `all` so callbacks can access it without re-creation
   const allRef = useRef(all);
   allRef.current = all;
-
-  // Subscribe to city's events feed
-  useEffect(() => {
-    if (!cityId) return;
-    setLoading(true);
-    const q = query(collection(db, 'events'), where('cityId', '==', cityId));
-    return onSnapshot(
-      q,
-      (snap) => {
-        const list = snap.docs
-          .map((d) => ({ id: d.id, ...d.data() } as CommunityEvent))
-          .filter((e) => !isExpired(e))
-          .sort((a, b) => a.startDate.localeCompare(b.startDate));
-        setAll(list);
-        setLoading(false);
-      },
-      (err) => { setError(err.message); setLoading(false); },
-    );
-  }, [cityId]);
 
   // Reload per-user prefs whenever uid changes (login / logout)
   useEffect(() => {
@@ -209,9 +197,11 @@ export function EventsProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
   }, [uid]);
 
-  // Lazy-prune stale IDs once feed loads
+  // Lazy-prune stale IDs once feed loads. Only against what the server has
+  // confirmed: the stored copy can lack an event created since last session,
+  // and pruning against it would drop a star the user set on another device.
   useEffect(() => {
-    if (all.length === 0) return;
+    if (!synced || all.length === 0) return;
     const liveIds = new Set(all.map((e) => e.id));
     setDismissed((prev) => {
       const pruned = new Set([...prev].filter((id) => liveIds.has(id)));
@@ -231,7 +221,7 @@ export function EventsProvider({ children }: { children: ReactNode }) {
       saveRead(uidRef.current, pruned);
       return pruned;
     });
-  }, [all]);
+  }, [all, synced]);
 
   // Keep the scheduled reminders matching the feed, the stars and the chosen
   // lead times. This is what makes a postponed event move its reminder and a
@@ -243,12 +233,13 @@ export function EventsProvider({ children }: { children: ReactNode }) {
     // arrive would read as "nothing is starred" and cancel every reminder the
     // user has, only to rebuild it a moment later — and lose the lot if the
     // app were killed in between.
-    if (loading || !prefsLoaded) return;
+    // The stored copy counts as not arrived for the same reason as above.
+    if (!synced || !prefsLoaded) return;
     const defaults = leadKey ? leadKey.split(',').map(Number) : [];
     syncEventReminders(
       all, favorites, reminders, defaults, localKey('notifIds', uidRef.current),
     ).catch(() => {});
-  }, [all, favorites, reminders, leadKey, loading, prefsLoaded]);
+  }, [all, favorites, reminders, leadKey, synced, prefsLoaded]);
 
   const dismiss = useCallback((id: string) => {
     setDismissed((prev) => {

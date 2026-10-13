@@ -46,6 +46,8 @@ serviceAccount.json
 
 # stray debug output
 pglite-debug.log
+firestore-debug.log
+firebase-debug.log
 
 # typescript
 *.tsbuildinfo

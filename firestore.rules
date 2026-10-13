@@ -203,8 +203,12 @@ service cloud.firestore {
     // then fails on it at evaluation time, and a failed expression is a denial —
     // so the whole thing read as "you may not", identically to a rule that had
     // simply said no.
+    // syncedAt belongs to the syncStamp trigger, which overwrites whatever a
+    // client puts there. It is listed only so that a whole-document setDoc
+    // from a copy loaded before the stamp landed (the console's edit form)
+    // is not refused for "removing" it.
     function bizWritableKeys(bizId, bizCityId) {
-      return ['updatedAt']
+      return ['updatedAt', 'syncedAt']
         .concat(managesContentIn(bizCityId)
                   ? bizIdentityKeys().concat(bizKashrutKeys()).concat(bizOperationsKeys()) : [])
         .concat(hasCityRole('kosher_manager', bizCityId)
@@ -622,6 +626,15 @@ service cloud.firestore {
                     || hasCityRole('eruv_manager', request.resource.data.cityId);
       allow update, delete: if managesContentIn(resource.data.cityId)
                     || hasCityRole('eruv_manager', resource.data.cityId);
+    }
+
+    // ── Incremental-sync tombstones ──────────────────────────────────────────
+    // Written only by the syncStamp trigger (Admin SDK) when a synced document
+    // is deleted or leaves a city. Holds ids, never content: the document it
+    // marks was public-read already.
+    match /syncTombstones/{id} {
+      allow read: if true;
+      allow write: if false;
     }
 
     // ── Eruv reports ──────────────────────────────────────────────────────────

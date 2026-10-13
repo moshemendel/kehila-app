@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { useMemo } from 'react';
 import { CommunityEvent } from '../types';
+import { useCitySync } from './useCitySync';
 
 function isExpired(e: CommunityEvent): boolean {
   const ts: any = e.expiresAt;
@@ -11,32 +10,16 @@ function isExpired(e: CommunityEvent): boolean {
   return ms < Date.now();
 }
 
+/** The city's events with only `expiresAt` applied — unlike EventsProvider's
+ *  feed, which also drops past start dates and the user's dismissed ones.
+ *  Shares EventsProvider's synced copy rather than opening its own listener. */
 export function useEvents(cityId: string) {
-  const [events, setEvents] = useState<CommunityEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!cityId) return;
-    setLoading(true);
-    const q = query(
-      collection(db, 'events'),
-      where('cityId', '==', cityId),
-    );
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const list = snap.docs
-          .map((d) => ({ id: d.id, ...d.data() } as CommunityEvent))
-          .filter((e) => !isExpired(e))               // hide expired events client-side
-          .sort((a, b) => a.startDate.localeCompare(b.startDate));
-        setEvents(list);
-        setLoading(false);
-      },
-      (err) => { setError(err.message); setLoading(false); },
-    );
-    return unsub;
-  }, [cityId]);
-
+  const { data, loading, error } = useCitySync<CommunityEvent>('events', cityId);
+  const events = useMemo(
+    () => data
+      .filter((e) => !isExpired(e))               // hide expired events client-side
+      .sort((a, b) => a.startDate.localeCompare(b.startDate)),
+    [data],
+  );
   return { events, loading, error };
 }
