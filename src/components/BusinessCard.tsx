@@ -6,7 +6,7 @@ import { useNavigateTo } from '../hooks/useNavigateTo';
 import { Business } from '../types';
 import { updateBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../services/businesses';
 import LocationEditModal from './LocationEditModal';
-import { businessHoursForDay } from '../utils/appointmentSlots';
+import { businessHoursForDay, hasBusinessHours } from '../utils/appointmentSlots';
 import { DayKey } from '../types';
 
 const KOSHER_LABELS: Record<string, string> = {
@@ -31,7 +31,8 @@ function getTodayHours(business: Business): string {
 export default function BusinessCard({ business, distLabel, canManage, onPress, cardStyle }: Props) {
   const { go: navigateTo, sheet: navSheet } = useNavigateTo();
   const todayHours    = getTodayHours(business);
-  const isClosedToday = todayHours.toLowerCase() === 'closed' || todayHours === 'סגור';
+  const hoursKnown    = hasBusinessHours(business);
+  const isClosedToday = hoursKnown && (todayHours.toLowerCase() === 'closed' || todayHours === 'סגור');
   const activeCert    = business.kosherCertificates.find((c) => c.isActive);
   const cats          = businessCategories(business);
   const bizTypeLabel  = business.businessType === 'factory' ? '🏭 מפעל' : '🍴 בית אוכל';
@@ -63,14 +64,14 @@ export default function BusinessCard({ business, distLabel, canManage, onPress, 
                 <Text style={styles.distTxt}>{distLabel}</Text>
               </View>
             )}
-            <View style={[styles.statusDot, isClosedToday ? styles.dotClosed : styles.dotOpen]} />
+            <View style={[styles.statusDot, !hoursKnown ? styles.dotUnknown : isClosedToday ? styles.dotClosed : styles.dotOpen]} />
           </View>
         </View>
 
         <View style={styles.row}>
           <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
-          <Text style={[styles.hours, isClosedToday && styles.hoursClosed]}>
-            {isClosedToday ? 'סגור היום' : todayHours}
+          <Text style={[styles.hours, isClosedToday && styles.hoursClosed, !hoursKnown && styles.hoursUnknown]}>
+            {!hoursKnown ? 'שעות לא זמינות' : isClosedToday ? 'סגור היום' : todayHours}
           </Text>
         </View>
 
@@ -141,9 +142,11 @@ const styles = StyleSheet.create({
   statusDot:     { width: 10, height: 10, borderRadius: 5 },
   dotOpen:       { backgroundColor: Colors.success },
   dotClosed:     { backgroundColor: Colors.danger },
+  dotUnknown:    { backgroundColor: Colors.border },
   row:           { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
   hours:         { fontSize: 13, color: Colors.textSecondary },
   hoursClosed:   { color: Colors.danger },
+  hoursUnknown:  { color: Colors.textMuted },
   certRow:       { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, backgroundColor: '#EAF7EE', borderRadius: Radius.sm, paddingHorizontal: 8, paddingVertical: 5 },
   certText:      { fontSize: 12, color: Colors.success, fontWeight: '500', flex: 1 },
   actions:       { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.sm, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: Spacing.sm },

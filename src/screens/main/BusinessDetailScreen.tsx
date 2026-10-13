@@ -15,7 +15,7 @@ import { resolveNavTarget } from '../../utils/navigationApps';
 import { useAreas } from '../../hooks/useAreas';
 import { Business, KosherCertificate, DayKey } from '../../types';
 import { getBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../../services/businesses';
-import { businessHoursForDay } from '../../utils/appointmentSlots';
+import { businessHoursForDay, hasBusinessHours } from '../../utils/appointmentSlots';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 
@@ -133,6 +133,7 @@ export default function BusinessDetailScreen() {
   const todayIdx      = new Date().getDay();
   const todayKey      = DAY_KEYS[todayIdx] as DayKey;
   const todayHours    = businessHoursForDay(business, todayKey);
+  const hoursKnown    = hasBusinessHours(business);
   const isClosedToday = todayHours.toLowerCase() === 'closed' || todayHours === 'סגור';
 
   // Flatten imageUrl + images[] → [moodImage, ...extraImages]
@@ -250,18 +251,21 @@ export default function BusinessDetailScreen() {
                 </View>
                 <Text style={styles.name}>{business.name}</Text>
               </View>
-              <View style={[
-                styles.statusPill,
-                isClosedToday ? styles.statusPillClosed : styles.statusPillOpen,
-              ]}>
-                <View style={[styles.statusDot, isClosedToday ? styles.dotClosed : styles.dotOpen]} />
-                <Text style={[
-                  styles.statusText,
-                  isClosedToday ? styles.statusTxtClosed : styles.statusTxtOpen,
+              {/* No pill at all without hours: neither word would be true. */}
+              {hoursKnown && (
+                <View style={[
+                  styles.statusPill,
+                  isClosedToday ? styles.statusPillClosed : styles.statusPillOpen,
                 ]}>
-                  {isClosedToday ? 'סגור' : 'פתוח'}
-                </Text>
-              </View>
+                  <View style={[styles.statusDot, isClosedToday ? styles.dotClosed : styles.dotOpen]} />
+                  <Text style={[
+                    styles.statusText,
+                    isClosedToday ? styles.statusTxtClosed : styles.statusTxtOpen,
+                  ]}>
+                    {isClosedToday ? 'סגור' : 'פתוח'}
+                  </Text>
+                </View>
+              )}
             </View>
 
             {/* Address → maps */}
@@ -279,8 +283,11 @@ export default function BusinessDetailScreen() {
             <View style={styles.metaRow}>
               <Ionicons name="time-outline" size={15} color={Colors.textSecondary} />
               <Text style={styles.metaLabel}>שעות היום:</Text>
-              <Text style={[styles.metaValue, isClosedToday && { color: Colors.danger }]}>
-                {isClosedToday ? 'סגור היום' : todayHours}
+              <Text style={[
+                styles.metaValue,
+                !hoursKnown ? { color: Colors.textMuted } : isClosedToday && { color: Colors.danger },
+              ]}>
+                {!hoursKnown ? 'לא זמינות' : isClosedToday ? 'סגור היום' : todayHours}
               </Text>
             </View>
 
@@ -383,6 +390,13 @@ export default function BusinessDetailScreen() {
             <Ionicons name="calendar-outline" size={18} color={Colors.primary} />
             <Text style={styles.sectionTitle}>שעות פעילות</Text>
           </View>
+          {!hoursKnown ? (
+            <View style={styles.hoursCard}>
+              <Text style={[styles.hoursValue, styles.hoursClosed, { textAlign: 'center', paddingVertical: 8 }]}>
+                שעות הפעילות לא פורסמו
+              </Text>
+            </View>
+          ) : (
           <View style={styles.hoursCard}>
             {DAY_KEYS.map((key, i) => {
               const isToday = i === todayIdx;
@@ -417,6 +431,7 @@ export default function BusinessDetailScreen() {
               );
             })}
           </View>
+          )}
         </View>
 
       </ScrollView>

@@ -212,6 +212,24 @@ export function businessHoursForDay(
 }
 
 /**
+ * Whether a business has published any opening hours at all.
+ *
+ * businessHoursForDay answers 'סגור' for a day with no hours, which is right
+ * for a business that lists Sunday–Thursday and nothing on Shabbat. For one
+ * that lists nothing — every business imported from a source that does not
+ * publish hours — it turned "we don't know" into "closed" on every day, and
+ * people take a red "סגור" at its word. Callers check this first and say the
+ * hours are unavailable instead.
+ */
+export function hasBusinessHours(
+  business: { hoursSchedule?: HoursBlock[]; openingHours?: OpeningHours },
+): boolean {
+  if (business.hoursSchedule?.length) return true;
+  return Object.values(business.openingHours ?? {})
+    .some((v) => typeof v === 'string' && v.trim() !== '');
+}
+
+/**
  * hoursSchedule flattened back into per-day strings.
  *
  * Written alongside every save purely so a client on an older bundle — which
