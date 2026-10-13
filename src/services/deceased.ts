@@ -3,9 +3,12 @@
  * `deceased` by the syncDeceased function (functions/src/deceasedSync.ts).
  *
  * Firestore has no text search, so each record carries `keys`: every 2+
- * letter prefix of every name word. A search asks for the longest word typed
- * (the most selective), then keeps only records where every typed word starts
- * some name word — "כהן מש" finds משה כהן and כהן בן משה alike.
+ * letter prefix of every name word, and "word|prefix" pairs of two of its
+ * words (see deceasedSync.ts). Two or more words typed query the pair — first
+ * word whole, second as typed so far, then the reverse order — because a
+ * common surname alone has more rows than one search reads. A single word
+ * queries its prefix. Either way the result keeps only records where every
+ * typed word starts some name word, so word order does not matter.
  */
 import { collection, getDocs, limit, query, where } from 'firebase/firestore';
 import { db } from './firebase';
@@ -49,14 +52,16 @@ export async function searchDeceased(
 ): Promise<{ results: DeceasedRecord[]; truncated: boolean }> {
   const words = normaliseHebrew(text).split(' ').filter((w) => w.length >= 2);
   if (!cityId || words.length === 0) return { results: [], truncated: false };
-  const pick = words.reduce((a, b) => (b.length > a.length ? b : a));
-
-  const snap = await getDocs(query(
+  const run = (key: string) => getDocs(query(
     collection(db, 'deceased'),
     where('cityId', '==', cityId),
-    where('keys', 'array-contains', pick),
+    where('keys', 'array-contains', key),
     limit(MAX_RESULTS),
   ));
+  let snap = words.length >= 2 ? await run(`${words[0]}|${words[1]}`) : null;
+  if (snap?.empty) snap = await run(`${words[1]}|${words[0]}`);
+  if (!snap || snap.empty) snap = await run(words.reduce((a, b) => (b.length > a.length ? b : a)));
+
   const results = snap.docs
     .map((d) => ({ id: d.id, ...d.data() } as DeceasedRecord))
     .filter((r) => {

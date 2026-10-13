@@ -14,9 +14,15 @@
  * are deleted, unless the fetch came back much smaller than what is stored:
  * a half-broken fetch must not wipe the register.
  *
- * Search keys are every prefix (2+ letters) of every name word, normalised
- * the same way the app normalises a query (src/services/deceased.ts) — keep
- * normaliseHebrew identical in both places.
+ * Search keys, normalised the same way the app normalises a query
+ * (src/services/deceased.ts) — keep normaliseHebrew identical in both places:
+ *   "כה", "כהנ"        every 2+ letter prefix of every name word
+ *   "כהנ|מש", "משה|כה" a whole word, '|', a prefix of another of the record's
+ *                      words. A common surname has thousands of rows, more
+ *                      than one search reads; the pair narrows "כהן משה" in
+ *                      the query itself instead of after a truncated read.
+ * KEYS_VERSION is part of each row's hash, so changing how keys are built
+ * rewrites every row on the next sync.
  */
 import * as admin from 'firebase-admin';
 import { createHash } from 'crypto';
@@ -42,6 +48,8 @@ export const DECEASED_SOURCES: DeceasedSource[] = [
   },
 ];
 
+const KEYS_VERSION = 2;
+
 /** Below this share of the stored count, a fetch is treated as broken. */
 const MIN_FETCH_RATIO = 0.9;
 
@@ -57,9 +65,12 @@ export function normaliseHebrew(s: string): string {
 }
 
 function searchKeys(...names: string[]): string[] {
+  const words = [...new Set(names.flatMap((n) => normaliseHebrew(n).split(' ')).filter((w) => w.length >= 2))];
+  const prefixes = (w: string) => Array.from({ length: w.length - 1 }, (_, i) => w.slice(0, i + 2));
   const keys = new Set<string>();
-  for (const word of names.flatMap((n) => normaliseHebrew(n).split(' '))) {
-    for (let i = 2; i <= word.length; i++) keys.add(word.slice(0, i));
+  for (const w of words) {
+    prefixes(w).forEach((p) => keys.add(p));
+    for (const other of words) if (other !== w) prefixes(other).forEach((p) => keys.add(`${w}|${p}`));
   }
   return [...keys];
 }
@@ -113,7 +124,7 @@ export async function syncDeceasedSource(
       grave: s(v.ninja_column_7), deathDateRaw: s(v.ninja_column_8), deathDateHe: s(v.ninja_column_9),
       burialDateRaw: s(v.ninja_column_10),
     };
-    const hash = createHash('sha1').update(JSON.stringify(raw)).digest('hex').slice(0, 16);
+    const hash = createHash('sha1').update(JSON.stringify({ ...raw, v: KEYS_VERSION })).digest('hex').slice(0, 16);
     const deathDate = isoDate(raw.deathDateRaw);
     const burialDate = isoDate(raw.burialDateRaw);
     const cemeteryId = src.cemeteryIds[raw.cemeteryName];
