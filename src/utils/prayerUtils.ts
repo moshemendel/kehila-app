@@ -121,6 +121,15 @@ export function getTodaySchedule(
     };
   }
 
+  return weekdaySchedule(weeklySchedule, dayNum, zmanim);
+}
+
+/** One weekday's times from weeklySchedule (1=Sunday … 6=Friday). */
+function weekdaySchedule(
+  weeklySchedule: WeeklySchedule | undefined,
+  dayNum: number,
+  zmanim?: ZmanimResult | null,
+): PrayerTimes {
   const filter = (slots: PrayerTimeSlot[] = []) =>
     slots
       .filter((s) => (s.days ?? []).includes(dayNum))
@@ -132,6 +141,33 @@ export function getTodaySchedule(
     mincha: filter(weeklySchedule?.mincha),
     maariv: filter(weeklySchedule?.maariv),
   };
+}
+
+const hasAnyTime = (t: PrayerTimes | null) =>
+  !!t && t.shacharit.length + t.mincha.length + t.maariv.length > 0;
+
+/**
+ * getTodaySchedule, except that on Shabbat a shul with no Shabbat times at
+ * all falls back to its Sunday times, flagged so the caller can say so.
+ *
+ * The app is closed from sunset on Friday until Shabbat goes out, so the
+ * Shabbat date is only ever seen after havdalah — and that is exactly when
+ * people look for a ma'ariv. Nearly every shul has weekday times only, so
+ * without this the list went blank then. Sunday, because the ma'ariv after
+ * Shabbat is the start of Sunday. Weekday times are not Shabbat times, which
+ * is why the flag exists: callers must label them as such.
+ */
+export function getTodayScheduleWithFallback(
+  weeklySchedule: WeeklySchedule | undefined,
+  shabbatSchedule?: ShabbatSchedule,
+  zmanim?: ZmanimResult | null,
+): { times: PrayerTimes | null; weekdayFallback: boolean } {
+  const times = getTodaySchedule(weeklySchedule, shabbatSchedule, zmanim);
+  if (todayDayNumber() !== 7 || hasAnyTime(times)) return { times, weekdayFallback: false };
+  const sunday = weekdaySchedule(weeklySchedule, 1, zmanim);
+  return hasAnyTime(sunday)
+    ? { times: sunday, weekdayFallback: true }
+    : { times, weekdayFallback: false };
 }
 
 // Parse "HH:MM" to minutes since midnight. Returns -1 for empty/unresolvable strings.
