@@ -85,17 +85,25 @@ export default function CemeteriesScreen() {
     );
   }
 
-  // A search result names its cemetery by id; this turns it into a way there,
-  // or nothing when that cemetery has no location to aim at.
-  function navigateToCemetery(cemeteryId: string): (() => void) | undefined {
+  // A search result names its cemetery and plot; this turns them into a way
+  // there — to the plot itself when it has been pinned in the console, else
+  // to the cemetery — or nothing when there is nowhere to aim.
+  function navigateToGrave(cemeteryId: string, plot: string): { label: string; go: () => void } | undefined {
     const c = cemeteries.find((x) => x.id === cemeteryId);
     if (!c) return undefined;
+    const pin = plot ? c.plots?.[plot] : undefined;
+    if (pin) {
+      return {
+        label: `ניווט לחלקה ${plot}`,
+        go: () => navigateTo({ latitude: pin.latitude, longitude: pin.longitude }),
+      };
+    }
     const target = navTargetFor(c);
-    return hasNavTarget(target) ? () => navigateTo(target) : undefined;
+    return hasNavTarget(target) ? { label: 'ניווט לבית העלמין', go: () => navigateTo(target) } : undefined;
   }
 
   const search = city?.deceasedSearch
-    ? <DeceasedSearch cityId={cityId} onNavigate={navigateToCemetery} />
+    ? <DeceasedSearch cityId={cityId} onNavigate={navigateToGrave} />
     : null;
 
   return (

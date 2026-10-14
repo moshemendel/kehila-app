@@ -475,6 +475,13 @@ export interface Cemetery {
   latitude?: number;
   longitude?: number;
   notes?: string;
+  /** Where each plot (חלקה) is, keyed by its name as the burial register
+   *  writes it ("יב"). Pinned in the console; a deceased search result in a
+   *  pinned plot navigates there instead of to the cemetery's gate. */
+  plots?: Record<string, { latitude: number; longitude: number }>;
+  /** The plot names the register uses, written by the deceased sync for the
+   *  console to list. Not read by the app. */
+  registerPlots?: string[];
   updatedAt?: any;
 }
 

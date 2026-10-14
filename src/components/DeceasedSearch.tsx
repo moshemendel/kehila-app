@@ -19,8 +19,9 @@ const dmy = (iso?: string) => (iso ? iso.split('-').reverse().join('.') : '');
  */
 export default function DeceasedSearch({ cityId, onNavigate }: {
   cityId: string;
-  /** Navigate to a cemetery by id; undefined when it has no location. */
-  onNavigate: (cemeteryId: string) => (() => void) | undefined;
+  /** A way to the grave's plot, or its cemetery; undefined when neither has
+   *  a location. */
+  onNavigate: (cemeteryId: string, plot: string) => { label: string; go: () => void } | undefined;
 }) {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -85,7 +86,7 @@ export default function DeceasedSearch({ cityId, onNavigate }: {
       )}
 
       {results.slice(0, SHOWN).map((r) => {
-        const go = r.cemeteryId ? onNavigate(r.cemeteryId) : undefined;
+        const nav = r.cemeteryId ? onNavigate(r.cemeteryId, r.plot) : undefined;
         const when = [r.deathDateHe, r.deathDate ? `(${dmy(r.deathDate)})` : r.deathDateRaw].filter(Boolean).join(' ');
         return (
           <View key={r.id} style={s.result}>
@@ -98,10 +99,10 @@ export default function DeceasedSearch({ cityId, onNavigate }: {
                 .filter(Boolean).join(' · ')}
             </Text>
             {!!when && <Text style={s.date}>נפטר/ה: {when}</Text>}
-            {go && (
-              <TouchableOpacity style={s.navBtn} onPress={go} activeOpacity={0.75}>
+            {nav && (
+              <TouchableOpacity style={s.navBtn} onPress={nav.go} activeOpacity={0.75}>
                 <Ionicons name="navigate-outline" size={13} color={Colors.cemetery} />
-                <Text style={s.navTxt}>ניווט לבית העלמין</Text>
+                <Text style={s.navTxt}>{nav.label}</Text>
               </TouchableOpacity>
             )}
           </View>

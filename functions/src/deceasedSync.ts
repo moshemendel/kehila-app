@@ -99,6 +99,27 @@ function isoDate(raw: string): string | null {
 /** The day-first format, which the register's own page shows. */
 const isDayFirst = (raw: string) => /^\d{1,2}\/\d{1,2}\/(\d{2}|\d{4})$/.test(raw.trim());
 
+const GEMATRIA: Record<string, number> = {
+  'א': 1, 'ב': 2, 'ג': 3, 'ד': 4, 'ה': 5, 'ו': 6, 'ז': 7, 'ח': 8, 'ט': 9,
+  'י': 10, 'כ': 20, 'ך': 20, 'ל': 30, 'מ': 40, 'ם': 40, 'נ': 50, 'ן': 50, 'ס': 60,
+  'ע': 70, 'פ': 80, 'ף': 80, 'צ': 90, 'ץ': 90, 'ק': 100, 'ר': 200, 'ש': 300, 'ת': 400,
+};
+
+/**
+ * Plot names in the order a person walks them: Hebrew numerals by value
+ * (ט before י before יא before כ), digits by number, anything else after.
+ */
+export function sortPlots(plots: string[]): string[] {
+  const value = (p: string) => {
+    if (/^\d+$/.test(p)) return Number(p);
+    const letters = [...p.replace(/["'׳״\s]/g, '')];
+    return letters.length && letters.every((c) => GEMATRIA[c])
+      ? letters.reduce((sum, c) => sum + GEMATRIA[c], 0)
+      : Number.MAX_SAFE_INTEGER;
+  };
+  return [...plots].sort((a, b) => value(a) - value(b) || a.localeCompare(b, 'he'));
+}
+
 interface NinjaRow { value: Record<string, string | number> }
 
 async function fetchRows(pageUrl: string): Promise<NinjaRow[]> {
@@ -179,6 +200,23 @@ export async function syncDeceasedSource(
   const skippedDelete = rows.length < storedHash.size * MIN_FETCH_RATIO;
   if (!skippedDelete) gone.forEach((id) => writer.delete(db.collection('deceased').doc(id)));
   await writer.close();
+
+  // Each linked cemetery's plot names, for the console's plot-location screen
+  // to list without reading the whole register. Set whole, not merged, so a
+  // plot gone from the register leaves the list.
+  const plotsByCemetery = new Map<string, Set<string>>();
+  for (const doc of incoming.values()) {
+    const cem = doc.cemeteryId as string | undefined;
+    const plot = doc.plot as string;
+    if (!cem || !plot) continue;
+    if (!plotsByCemetery.has(cem)) plotsByCemetery.set(cem, new Set());
+    plotsByCemetery.get(cem)!.add(plot);
+  }
+  if (!skippedDelete) {
+    await Promise.all([...plotsByCemetery].map(([cem, plots]) =>
+      db.collection('cemeteries').doc(cem).update({ registerPlots: sortPlots([...plots]) })
+        .catch(() => undefined))); // a cemetery deleted since: nothing to annotate
+  }
 
   return { fetched: rows.length, records: incoming.size, written, deleted: skippedDelete ? 0 : gone.length, skippedDelete };
 }
