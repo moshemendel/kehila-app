@@ -220,8 +220,8 @@ export default function EruvScreen() {
       return;
     }
     const result = source === 'camera'
-      ? await ImagePicker.launchCameraAsync({ quality: 0.75, allowsEditing: false })
-      : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.75 });
+      ? await ImagePicker.launchCameraAsync({ quality: 1, allowsEditing: false }) // uploadImage compresses
+      : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 1 });
     if (result.canceled || !result.assets?.[0]) return;
     setPhotoUri(result.assets[0].uri);
   }

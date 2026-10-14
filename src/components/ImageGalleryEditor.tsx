@@ -76,7 +76,7 @@ export default function ImageGalleryEditor({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 0.82,
+      quality: 1, // uploadImage resizes and compresses — once
     });
     if (result.canceled || !result.assets?.[0]) return;
 
