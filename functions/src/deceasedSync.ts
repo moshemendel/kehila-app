@@ -48,7 +48,7 @@ export const DECEASED_SOURCES: DeceasedSource[] = [
   },
 ];
 
-const KEYS_VERSION = 2;
+const KEYS_VERSION = 3;
 
 /** Below this share of the stored count, a fetch is treated as broken. */
 const MIN_FETCH_RATIO = 0.9;
@@ -75,18 +75,29 @@ function searchKeys(...names: string[]): string[] {
   return [...keys];
 }
 
-/** "03/05/40" → "1940-05-03". Two-digit years: at or below this year's two
- *  digits is this century, above is the last. */
-function isoDate(dmy: string): string | null {
-  const m = dmy.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+/**
+ * A register date as "YYYY-MM-DD". Ramla's register holds two formats, one
+ * per import: "03/05/40" (day first) and "5/3/40 0:00" (month first, with a
+ * time — an Excel export). The time is what tells them apart. Two-digit
+ * years at or below this year's are this century, above it the last.
+ */
+function isoDate(raw: string): string | null {
+  const t = raw.trim();
+  const us = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})\s+\d{1,2}:\d{2}(:\d{2})?$/);
+  const il = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+  const m = us ?? il;
   if (!m) return null;
+  const [day, month] = us ? [m[2], m[1]] : [m[1], m[2]];
   let y = Number(m[3]);
   if (m[3].length === 2) {
     const yy = new Date().getFullYear() % 100;
     y += y <= yy ? 2000 : 1900;
   }
-  return `${y}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+  return `${y}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 }
+
+/** The day-first format, which the register's own page shows. */
+const isDayFirst = (raw: string) => /^\d{1,2}\/\d{1,2}\/(\d{2}|\d{4})$/.test(raw.trim());
 
 interface NinjaRow { value: Record<string, string | number> }
 
@@ -110,14 +121,25 @@ async function fetchRows(pageUrl: string): Promise<NinjaRow[]> {
 export async function syncDeceasedSource(
   db: admin.firestore.Firestore,
   src: DeceasedSource,
-): Promise<{ fetched: number; written: number; deleted: number; skippedDelete: boolean }> {
+): Promise<{ fetched: number; records: number; written: number; deleted: number; skippedDelete: boolean }> {
   const rows = await fetchRows(src.pageUrl);
   const s = (v: unknown) => String(v ?? '').trim();
 
-  const incoming = new Map<string, Record<string, unknown>>();
+  // Ramla's register lists almost every burial twice — 20,244 of 20,695
+  // graves, once per import, the same Hebrew date in two Gregorian formats.
+  // One person in one grave is one record: rows with the same names and the
+  // same cemetery/plot/row/grave are one, and the day-first row is kept.
+  const graves = new Map<string, Record<string, string | number>>();
   for (const { value: v } of rows) {
+    if (!s(v.___id___)) continue;
+    const grave = [1, 2, 3, 4, 5, 6, 7].map((i) => s(v[`ninja_column_${i}`])).join('\u0001');
+    const held = graves.get(grave);
+    if (!held || (!isDayFirst(s(held.ninja_column_8)) && isDayFirst(s(v.ninja_column_8)))) graves.set(grave, v);
+  }
+
+  const incoming = new Map<string, Record<string, unknown>>();
+  for (const v of graves.values()) {
     const rowId = s(v.___id___);
-    if (!rowId) continue;
     const raw = {
       lastName: s(v.ninja_column_1), firstName: s(v.ninja_column_2), fatherName: s(v.ninja_column_3),
       cemeteryName: s(v.ninja_column_4), plot: s(v.ninja_column_5), row: s(v.ninja_column_6),
@@ -152,9 +174,11 @@ export async function syncDeceasedSource(
   }
 
   const gone = [...storedHash.keys()].filter((id) => !incoming.has(id));
-  const skippedDelete = incoming.size < storedHash.size * MIN_FETCH_RATIO;
+  // Measured on raw rows, not merged records: the merge itself halves the
+  // count, and must not read as a broken fetch.
+  const skippedDelete = rows.length < storedHash.size * MIN_FETCH_RATIO;
   if (!skippedDelete) gone.forEach((id) => writer.delete(db.collection('deceased').doc(id)));
   await writer.close();
 
-  return { fetched: incoming.size, written, deleted: skippedDelete ? 0 : gone.length, skippedDelete };
+  return { fetched: rows.length, records: incoming.size, written, deleted: skippedDelete ? 0 : gone.length, skippedDelete };
 }

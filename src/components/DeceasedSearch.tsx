@@ -50,7 +50,7 @@ export default function DeceasedSearch({ cityId, onNavigate }: {
         <Ionicons name="search-outline" size={18} color={Colors.cemetery} />
         <Text style={s.title}>איתור נפטרים</Text>
       </View>
-      <Text style={s.hint}>שם משפחה ושם פרטי, אפשר גם את שם האב</Text>
+      <Text style={s.hint}>שם פרטי ושם משפחה. לפי שם האב: משה בן אריה, שרה בת דוד</Text>
 
       <View style={s.inputRow}>
         <TextInput
@@ -79,7 +79,7 @@ export default function DeceasedSearch({ cityId, onNavigate }: {
       {!error && results.length > 0 && (
         <Text style={s.count}>
           {found!.truncated || results.length > SHOWN
-            ? `מוצגות ${Math.min(results.length, SHOWN)} תוצאות ראשונות. הוסיפו שם פרטי או שם האב כדי לצמצם.`
+            ? `מוצגות ${Math.min(results.length, SHOWN)} תוצאות ראשונות. הוסיפו שם פרטי, או בן/בת ושם האב, כדי לצמצם.`
             : `${results.length} תוצאות`}
         </Text>
       )}
