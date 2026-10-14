@@ -19,6 +19,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { submitEruvReport, getEruvPolygons, findEruvForArea } from '../../services/eruv';
 import { useAnalyticsTrack } from '../../services/analytics';
+import BottomSheetModal from '../../components/BottomSheetModal';
 import { uploadImage } from '../../utils/uploadImage';
 import { Colors, Spacing, Radius } from '../../utils/theme';
 import { EruvCoordinate } from '../../types';
@@ -42,7 +43,7 @@ export default function EruvScreen() {
 
   // Most tenants have exactly one eruv, and this stays invisible for them —
   // see the "golden rule" in the architecture proposal. A regional council
-  // can have several (one per settlement); the chip row below only renders
+  // can have several (one per settlement); the eruv picker below only renders
   // when there is more than one to choose from.
   const { statuses, loading } = useEruvStatuses(cityId, focused);
   const [selectedEruvId, setSelectedEruvId] = useState<string | null>(null);
@@ -65,6 +66,14 @@ export default function EruvScreen() {
     const names = e.areaIds.map((id) => areas.find((a) => a.id === id)?.name).filter(Boolean);
     return names.join(' + ') || 'עירוב';
   }
+
+  // The picker list: the user's own settlement's eruv first, then by name.
+  const [eruvPickerOpen, setEruvPickerOpen] = useState(false);
+  const pickerEruvs = useMemo(() => [...statuses].sort((a, b) => {
+    if (a.id === ownEruv?.id) return -1;
+    if (b.id === ownEruv?.id) return 1;
+    return eruvLabel(a).localeCompare(eruvLabel(b), 'he');
+  }), [statuses, ownEruv, areas]);
 
   // ── Form state ────────────────────────────────────────────────────
   const [reportOpen,    setReportOpen]    = useState(false);
@@ -280,7 +289,7 @@ export default function EruvScreen() {
       <View style={[s.header, { paddingTop: top + 16, backgroundColor: statusColor }]}>
         <View style={s.headerRow}>
           <View style={{ flex: 1 }}>
-            <Text style={s.title}>עירוב{statuses.length > 1 ? ` · ${eruvLabel(activeEruv)}` : ''}</Text>
+            <Text style={s.title}>עירוב</Text>
             {!loading && (
               <View style={s.statusRow}>
                 <Ionicons name={statusIcon as any} size={18} color={Colors.white} />
@@ -294,32 +303,22 @@ export default function EruvScreen() {
         </View>
         {!loading && status?.notes ? <Text style={s.notesText}>{status.notes}</Text> : null}
 
-        {/* Settlement chips — only when this tenant has more than one eruv */}
-        {!loading && statuses.length > 1 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={s.eruvChipRow}
-            contentContainerStyle={{ gap: 8 }}
+        {/* Which eruv — only when this tenant has more than one. A single-line
+            button rather than the name in the title or a row of chips: names
+            like "אשדות יעקב (איחוד) + אשדות יעקב (מאוחד)" wrapped the title
+            over four lines and pushed the map half off the screen. */}
+        {!loading && statuses.length > 1 && activeEruv && (
+          <TouchableOpacity
+            style={s.eruvSelect}
+            onPress={() => setEruvPickerOpen(true)}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={`בחירת עירוב, נבחר ${eruvLabel(activeEruv)}`}
           >
-            {statuses.map((e) => {
-              const active = e.id === activeEruv?.id;
-              return (
-                <TouchableOpacity
-                  key={e.id}
-                  style={[s.eruvChip, active && s.eruvChipActive]}
-                  onPress={() => setSelectedEruvId(e.id)}
-                  activeOpacity={0.75}
-                >
-                  <View style={[s.eruvChipDot, {
-                    backgroundColor: e.status === 'valid' ? Colors.success
-                      : e.status === 'invalid' ? Colors.danger : Colors.gold,
-                  }]} />
-                  <Text style={[s.eruvChipText, active && s.eruvChipTextActive]}>{eruvLabel(e)}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+            <View style={[s.eruvDot, { backgroundColor: eruvDotColor(activeEruv.status) }]} />
+            <Text style={s.eruvSelectText} numberOfLines={1}>{eruvLabel(activeEruv)}</Text>
+            <Ionicons name="chevron-down" size={16} color={Colors.text} />
+          </TouchableOpacity>
         )}
       </View>
 
@@ -590,8 +589,47 @@ export default function EruvScreen() {
           )}
         </View>
       )}
+
+      <BottomSheetModal
+        visible={eruvPickerOpen}
+        onClose={() => setEruvPickerOpen(false)}
+        title="בחירת עירוב"
+        maxHeight="70%"
+      >
+        <ScrollView contentContainerStyle={s.pickerList}>
+          {pickerEruvs.map((e) => {
+            const active = e.id === activeEruv?.id;
+            return (
+              <TouchableOpacity
+                key={e.id}
+                style={[s.pickerRow, active && s.pickerRowActive]}
+                onPress={() => { setSelectedEruvId(e.id); setEruvPickerOpen(false); }}
+                activeOpacity={0.7}
+              >
+                <View style={[s.eruvDot, { backgroundColor: eruvDotColor(e.status) }]} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.pickerName, active && s.pickerNameActive]}>{eruvLabel(e)}</Text>
+                  <Text style={s.pickerMeta}>
+                    {ERUV_STATUS_TEXT[e.status] ?? ERUV_STATUS_TEXT.unknown}
+                    {e.id === ownEruv?.id ? ' · היישוב שלך' : ''}
+                  </Text>
+                </View>
+                {active && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </BottomSheetModal>
     </View>
   );
+}
+
+const ERUV_STATUS_TEXT: Record<string, string> = {
+  valid: 'כשר', invalid: 'פגום', unknown: 'מצב לא ידוע',
+};
+
+function eruvDotColor(status: string): string {
+  return status === 'valid' ? Colors.success : status === 'invalid' ? Colors.danger : Colors.gold;
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
@@ -604,23 +642,29 @@ const s = StyleSheet.create({
   // Header
   header:      { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
   headerRow:   { flexDirection: 'row', alignItems: 'flex-end' },
-  title:       { fontSize: 26, fontWeight: '800', color: Colors.white },
+  title:       { fontSize: 24, fontWeight: '800', color: Colors.white },
   statusRow:   { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   statusText:  { fontSize: 15, fontWeight: '700', color: Colors.white },
   updatedText: { fontSize: 11, color: 'rgba(255,255,255,0.7)', paddingBottom: 4 },
   notesText:   { fontSize: 13, color: 'rgba(255,255,255,0.85)', marginTop: 6, lineHeight: 18 },
 
-  // Settlement chips (multi-eruv tenants only)
-  eruvChipRow: { marginTop: 10 },
-  eruvChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, paddingVertical: 7, borderRadius: Radius.full,
-    backgroundColor: 'rgba(255,255,255,0.16)',
+  // Eruv picker (multi-eruv tenants only)
+  eruvSelect: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10,
+    paddingHorizontal: 14, paddingVertical: 9, borderRadius: Radius.md,
+    backgroundColor: Colors.white,
   },
-  eruvChipActive:     { backgroundColor: Colors.white },
-  eruvChipDot:        { width: 7, height: 7, borderRadius: 3.5 },
-  eruvChipText:       { fontSize: 12.5, fontWeight: '600', color: Colors.white },
-  eruvChipTextActive: { color: Colors.text },
+  eruvSelectText: { flex: 1, fontSize: 14, fontWeight: '700', color: Colors.text },
+  eruvDot:        { width: 9, height: 9, borderRadius: 4.5 },
+  pickerList:     { paddingHorizontal: Spacing.md, paddingBottom: Spacing.lg },
+  pickerRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    paddingVertical: 12, paddingHorizontal: 10, borderRadius: Radius.md,
+  },
+  pickerRowActive:  { backgroundColor: Colors.background },
+  pickerName:       { fontSize: 15, fontWeight: '600', color: Colors.text },
+  pickerNameActive: { fontWeight: '800' },
+  pickerMeta:       { fontSize: 12.5, color: Colors.textSecondary, marginTop: 2 },
 
   // Map overlays
   noPolygon:     { position: 'absolute', bottom: 140, left: 0, right: 0, alignItems: 'center', gap: 8 },
