@@ -394,11 +394,16 @@ export default function ManageEruvScreen() {
 
   async function handleSavePolygon() {
     if (!eruvId) return;
-    const valid = polygons.filter(p => p.length >= 3);
+    // Each ring keeps the colours set for it in the console, matched by its
+    // position before the short rings are dropped.
+    const kept = polygons
+      .map((p, i) => ({ p, style: activeEruv?.polygons?.[i]?.style }))
+      .filter(({ p }) => p.length >= 3);
+    const valid = kept.map(k => k.p);
     if (valid.length === 0) { Alert.alert('שגיאה', 'יש לסמן לפחות מצולע אחד עם 3 נקודות'); return; }
     setSavingPolygon(true);
     try {
-      await setEruvPolygon(eruvId, valid);
+      await setEruvPolygon(eruvId, valid, kept.map(k => k.style));
       setEditingPolygon(false);
       resetSegment();
       Alert.alert('נשמר', 'גבולות העירוב עודכנו בהצלחה');

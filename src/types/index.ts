@@ -604,6 +604,14 @@ export interface EruvCoordinate {
   longitude: number;
 }
 
+/** How the console draws one ring; set there, carried through app saves.
+ *  fillColor null = same as the outline. */
+export interface EruvPolygonStyle {
+  color: string;
+  fillColor: string | null;
+  fillOpacity: number;
+}
+
 export interface EruvStatus {
   id: string;
   /**
@@ -638,7 +646,7 @@ export interface EruvStatus {
    * was true. Nothing wrote to it after this replaced it, so it sat going
    * stale; it was removed by scripts/remove-eruv-legacy-polygon.mjs.
    */
-  polygons?: { points: EruvCoordinate[] }[];
+  polygons?: { points: EruvCoordinate[]; style?: EruvPolygonStyle }[];
   updatedAt: any;
   updatedBy: string;
   notes?: string;

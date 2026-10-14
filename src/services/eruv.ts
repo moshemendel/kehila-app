@@ -3,7 +3,7 @@ import {
   onSnapshot, query, where, serverTimestamp, deleteField,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { EruvStatus, EruvReport, EruvCoordinate } from '../types';
+import { EruvStatus, EruvReport, EruvCoordinate, EruvPolygonStyle } from '../types';
 
 /** Every eruv belonging to a tenant — one for most cities, several for a
  *  regional council (one per settlement, or per settlement-group sharing one
@@ -87,9 +87,15 @@ export async function setEruvStatus(
   );
 }
 
-export async function setEruvPolygon(eruvId: string, polygons: EruvCoordinate[][]) {
+/** `styles` is index-aligned with `polygons`: the console's colour settings
+ *  for each ring, passed back so a save from the app does not wipe them. */
+export async function setEruvPolygon(
+  eruvId: string,
+  polygons: EruvCoordinate[][],
+  styles: (EruvPolygonStyle | undefined)[] = [],
+) {
   await setDoc(doc(db, 'eruvStatus', eruvId), {
-    polygons: polygons.map(pts => ({ points: pts })),
+    polygons: polygons.map((pts, i) => (styles[i] ? { points: pts, style: styles[i] } : { points: pts })),
   }, { merge: true });
 }
 
