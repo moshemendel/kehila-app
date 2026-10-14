@@ -27,4 +27,5 @@ export const ABOUT_URL = '';
  * privacy policy names for account-deletion requests, so there is one inbox to
  * watch rather than two.
  */
-export const SUPPORT_URL = 'mailto:mome.apps@gmail.com?subject=%D7%A7%D7%94%D7%99%D7%9C%D7%94%20-%20%D7%A4%D7%A0%D7%99%D7%94';
+export const SUPPORT_EMAIL = 'mome.apps@gmail.com';
+export const SUPPORT_URL = `mailto:${SUPPORT_EMAIL}?subject=%D7%A7%D7%94%D7%99%D7%9C%D7%94%20-%20%D7%A4%D7%A0%D7%99%D7%94`;

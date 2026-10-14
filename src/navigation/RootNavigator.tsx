@@ -36,6 +36,7 @@ import ManageGemachScreen     from '../screens/admin/ManageGemachScreen';
 import ZmanimSettingsScreen   from '../screens/main/ZmanimSettingsScreen';
 import GemachSubmitScreen     from '../screens/main/GemachSubmitScreen';
 import DeleteAccountScreen   from '../screens/main/DeleteAccountScreen';
+import AboutScreen           from '../screens/main/AboutScreen';
 import { Colors } from '../utils/theme';
 import { SHOW_DEV_TOOLS } from '../utils/devTools';
 import { mark } from '../utils/startupTrace';
@@ -338,6 +339,13 @@ export default function RootNavigator() {
       <Root.Screen
         name="GemachSubmit"
         component={GemachSubmitScreen}
+        options={{ headerShown: false }}
+      />
+
+      {/* About — version, contact, credits */}
+      <Root.Screen
+        name="About"
+        component={AboutScreen}
         options={{ headerShown: false }}
       />
 

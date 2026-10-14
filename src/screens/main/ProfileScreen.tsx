@@ -16,7 +16,8 @@ import { useNotifications } from '../../context/NotificationsContext';
 import { useFavorites } from '../../context/FavoritesContext';
 import { logout } from '../../services/auth';
 import EmailVerificationBanner from '../../components/EmailVerificationBanner';
-import { PRIVACY_POLICY_URL, ABOUT_URL, SUPPORT_URL } from '../../utils/links';
+import { PRIVACY_POLICY_URL, SUPPORT_URL } from '../../utils/links';
+import { APP_VERSION } from './AboutScreen';
 import { requireManagerAuth, lockManagerArea } from '../../utils/managerAuth';
 import { useCityId } from '../../hooks/useCityId';
 import { useCity } from '../../hooks/useCity';
@@ -490,37 +491,32 @@ export default function ProfileScreen() {
           onClose={() => setHomeCityPickerOpen(false)}
         />
 
-        {/* About — each row appears only once its URL is configured in
-            utils/links.ts. These were previously onPress={() => {}}: buttons
-            that looked live and did nothing. If none is set the whole card is
-            omitted rather than left empty. */}
-        {(ABOUT_URL || SUPPORT_URL || PRIVACY_POLICY_URL || (!isGuest && !isDemo)) ? (
-          <View style={styles.section}>
-            <View style={styles.card}>
-              {!!ABOUT_URL && (
-                <MenuRow icon="information-circle-outline" label="אודות קהילה"
-                  onPress={() => openLink(ABOUT_URL)} />
-              )}
-              {!!SUPPORT_URL && (
-                <MenuRow icon="help-circle-outline" label="עזרה ותמיכה"
-                  onPress={() => openLink(SUPPORT_URL)} />
-              )}
-              {!!PRIVACY_POLICY_URL && (
-                <MenuRow icon="shield-outline" label="מדיניות פרטיות"
-                  onPress={() => openLink(PRIVACY_POLICY_URL)} />
-              )}
-              {/* Play requires an in-app deletion path for any app offering
-                  sign-up, and requires it to be findable — so it sits in the
-                  open next to the policy that describes it, not behind the
-                  manager gate or three levels down. Guests and demo have no
-                  account to delete. */}
-              {!isGuest && !isDemo && (
-                <MenuRow icon="trash-outline" label="מחיקת חשבון" color={Colors.danger}
-                  onPress={() => navigation.navigate('DeleteAccount')} />
-              )}
-            </View>
+        {/* About. The link rows appear only once their URL is configured in
+            utils/links.ts — these were previously onPress={() => {}}: buttons
+            that looked live and did nothing. */}
+        <View style={styles.section}>
+          <View style={styles.card}>
+            <MenuRow icon="information-circle-outline" label="אודות קהילה"
+              onPress={() => navigation.navigate('About')} />
+            {!!SUPPORT_URL && (
+              <MenuRow icon="help-circle-outline" label="עזרה ותמיכה"
+                onPress={() => openLink(SUPPORT_URL)} />
+            )}
+            {!!PRIVACY_POLICY_URL && (
+              <MenuRow icon="shield-outline" label="מדיניות פרטיות"
+                onPress={() => openLink(PRIVACY_POLICY_URL)} />
+            )}
+            {/* Play requires an in-app deletion path for any app offering
+                sign-up, and requires it to be findable — so it sits in the
+                open next to the policy that describes it, not behind the
+                manager gate or three levels down. Guests and demo have no
+                account to delete. */}
+            {!isGuest && !isDemo && (
+              <MenuRow icon="trash-outline" label="מחיקת חשבון" color={Colors.danger}
+                onPress={() => navigation.navigate('DeleteAccount')} />
+            )}
           </View>
-        ) : null}
+        </View>
 
         {/* Logout — only for signed-in / demo users */}
         {!isGuest && (
@@ -536,7 +532,9 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         )}
 
-        <Text style={styles.version}>קהילה v1.0.0 — פיילוט</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('About')} activeOpacity={0.6}>
+          <Text style={styles.version}>קהילה {APP_VERSION} · פיילוט</Text>
+        </TouchableOpacity>
       </View>
       </ScrollView>
     </View>
