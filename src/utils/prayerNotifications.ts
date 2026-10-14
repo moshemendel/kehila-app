@@ -170,10 +170,12 @@ export async function schedulePrayerNotifications(
   const nowMs  = now.getTime();
 
   // key → { title, body, timeMin }  (deduped by key)
-  const pending = new Map<string, { title: string; body: string; timeMin: number }>();
+  const pending = new Map<string, { title: string; body: string; timeMin: number; synagogueId: string }>();
 
-  function enqueue(key: string, title: string, body: string, timeMin: number) {
-    if (!pending.has(key)) pending.set(key, { title, body, timeMin });
+  // synagogueId is the one named in the body (the first to claim a deduped
+  // slot), so tapping the notification opens the synagogue it mentions.
+  function enqueue(key: string, title: string, body: string, timeMin: number, synagogueId: string) {
+    if (!pending.has(key)) pending.set(key, { title, body, timeMin, synagogueId });
   }
 
   for (const syn of synagogues) {
@@ -195,6 +197,7 @@ export async function schedulePrayerNotifications(
             `תפילת ${PRAYER_LABELS[type]}`,
             `בעוד ${settings.minutesBefore} דקות · ${syn.name}`,
             timeMin,
+            syn.id,
           );
         }
       }
@@ -209,6 +212,7 @@ export async function schedulePrayerNotifications(
           `שיעור: ${sh.title}`,
           `בעוד ${settings.minutesBefore} דקות · ${sh.rabbi ? sh.rabbi + ' · ' : ''}${syn.name}`,
           timeMin,
+          syn.id,
         );
       }
       continue;
@@ -233,6 +237,7 @@ export async function schedulePrayerNotifications(
           `תפילת ${PRAYER_LABELS[type]}`,
           `בעוד ${settings.minutesBefore} דקות · ${syn.name}`,
           timeMin,
+          syn.id,
         );
       }
     }
@@ -250,15 +255,16 @@ export async function schedulePrayerNotifications(
         `שיעור: ${sh.title}`,
         `בעוד ${settings.minutesBefore} דקות · ${sh.rabbi ? sh.rabbi + ' · ' : ''}${syn.name}`,
         timeMin,
+        syn.id,
       );
     }
   }
 
   // ── Work out what actually needs scheduling ──────────────────────────────
   const channelId = prayerChannelId(settings.alarmSound);
-  const toSchedule: Array<{ identifier: string; title: string; body: string; seconds: number }> = [];
+  const toSchedule: Array<{ identifier: string; title: string; body: string; seconds: number; synagogueId: string }> = [];
 
-  for (const [identifier, { title, body, timeMin }] of pending) {
+  for (const [identifier, { title, body, timeMin, synagogueId }] of pending) {
     const triggerMin  = timeMin - settings.minutesBefore;
     const triggerDate = new Date(now);
     triggerDate.setHours(Math.floor(triggerMin / 60), triggerMin % 60, 0, 0);
@@ -266,7 +272,7 @@ export async function schedulePrayerNotifications(
     const secondsUntil = Math.floor((triggerDate.getTime() - nowMs) / 1000);
     if (secondsUntil <= 0) continue;
 
-    toSchedule.push({ identifier, title, body, seconds: secondsUntil });
+    toSchedule.push({ identifier, title, body, seconds: secondsUntil, synagogueId });
   }
 
   // Bail before touching the bridge at all when this run would reproduce the
@@ -291,7 +297,13 @@ export async function schedulePrayerNotifications(
     toSchedule.map((n) =>
       Notifications.scheduleNotificationAsync({
         identifier: n.identifier,
-        content: { title: n.title, body: n.body, sound: 'default' },
+        content: {
+          title: n.title,
+          body: n.body,
+          sound: 'default',
+          // Read by navigateFromNotification on tap.
+          data: { screen: 'SynagogueDetail', params: { synagogueId: n.synagogueId } },
+        },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
           seconds: n.seconds,
