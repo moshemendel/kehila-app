@@ -1,6 +1,14 @@
 {
   "indexes": [
     {
+      "collectionGroup": "eruvReports",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "cityId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "synagogues",
       "queryScope": "COLLECTION",
       "fields": [

@@ -155,7 +155,10 @@ async function sendExpoPush(
   title: string,
   body: string,
   data: Record<string, unknown>,
-): Promise<void> {
+  channelId?: string,
+): Promise<{ ok: number; failReasons: string[] }> {
+  let ok = 0;
+  const failReasons: string[] = [];
   // Expo accepts up to 100 messages per request.
   for (let i = 0; i < entries.length; i += 100) {
     const chunk = entries.slice(i, i + 100);
@@ -163,7 +166,10 @@ async function sendExpoPush(
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(
-        chunk.map(({ token }) => ({ to: token, title, body, data, sound: 'default' })),
+        chunk.map(({ token }) => ({
+          to: token, title, body, data, sound: 'default',
+          ...(channelId ? { channelId } : {}),
+        })),
       ),
     });
     const json = (await res.json().catch(() => null)) as {
@@ -173,6 +179,8 @@ async function sendExpoPush(
     // Prune tokens for uninstalled apps, same cleanup the client does.
     await Promise.all(
       (json?.data ?? []).map(async (ticket, idx) => {
+        if (ticket.status === 'ok') ok++;
+        else failReasons.push(ticket.details?.error ?? 'UnknownError');
         if (ticket.status !== 'ok' && ticket.details?.error === 'DeviceNotRegistered') {
           const docId = chunk[idx]?.docId;
           if (docId) await db.collection('pushTokens').doc(docId).delete().catch(() => undefined);
@@ -180,6 +188,7 @@ async function sendExpoPush(
       }),
     );
   }
+  return { ok, failReasons };
 }
 
 // ── Trigger ─────────────────────────────────────────────────────────────────
@@ -511,3 +520,57 @@ export const syncDeceased = onSchedule(
     }
   },
 );
+
+// ── Client-initiated broadcast ──────────────────────────────────────────────
+//
+// sendPushToCity / sendPushToRoles in the app used to read pushTokens and POST
+// to exp.host straight from the device. On native that works; from the web build
+// the browser blocks the POST (exp.host sends no CORS headers), so a manager
+// publishing from kehilink.com saved the change and nobody was notified. The
+// send has to come from a server, which also means the token lookup no longer
+// depends on the caller being allowed to read pushTokens.
+
+const PUSH_SENDER_ROLES = [
+  'city_admin', 'super_admin', 'dev', 'content_admin',
+  'eruv_manager', 'event_manager', 'kosher_manager',
+];
+
+export const sendPush = onCall({ region: REGION }, async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) throw new HttpsError('unauthenticated', 'יש להתחבר.');
+
+  const { cityId, title, body, data, areaIds, roles, excludeGuests, channelId } = (request.data ?? {}) as {
+    cityId?: string; title?: string; body?: string;
+    data?: Record<string, unknown>; areaIds?: string[] | null; roles?: string[] | null;
+    excludeGuests?: boolean; channelId?: string;
+  };
+  if (!cityId || !title) throw new HttpsError('invalid-argument', 'cityId ו-title נדרשים.');
+
+  const me = (await db.collection('users').doc(uid).get()).data() ?? {};
+  const myRoles: string[] = me.roles ?? [me.role ?? 'user'];
+  if (!myRoles.some((r) => PUSH_SENDER_ROLES.includes(r))) {
+    throw new HttpsError('permission-denied', 'אין הרשאה לשלוח התראות.');
+  }
+  const unscoped = myRoles.includes('super_admin') || myRoles.includes('dev');
+  if (cityId === 'all' ? !unscoped : (!unscoped && cityId !== (me.homeCityId ?? me.cityId))) {
+    throw new HttpsError('permission-denied', 'אין הרשאה לעיר זו.');
+  }
+
+  const tokensRef = db.collection('pushTokens');
+  const snap = cityId === 'all' ? await tokensRef.get() : await tokensRef.where('cityId', '==', cityId).get();
+  const entries: TokenEntry[] = [];
+  snap.forEach((d) => {
+    const t = d.data();
+    if (!t.token) return;
+    if (excludeGuests && t.role === 'guest') return;
+    if (areaIds && !areaIds.includes(t.homeAreaId)) return;
+    if (roles) {
+      const tokenRoles: string[] = t.roles ?? [t.role];
+      if (!tokenRoles.some((r) => roles.includes(r))) return;
+    }
+    entries.push({ docId: d.id, token: t.token });
+  });
+
+  const { ok, failReasons } = await sendExpoPush(entries, title, body ?? '', data ?? {}, channelId);
+  return { targeted: entries.length, sent: ok, failReasons };
+});

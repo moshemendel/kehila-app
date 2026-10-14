@@ -3,9 +3,9 @@ import * as Crypto from 'expo-crypto';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { collection, doc, setDoc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
-import { auth, db } from './firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import app, { auth, db } from './firebase';
 
-const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const DEVICE_ID_KEY = 'kehila_device_id_v1';
 
 // pushTokens is keyed by device, not by user — otherwise the same phone logging into two
@@ -97,14 +97,24 @@ export async function clearPushToken(): Promise<void> {
   }
 }
 
-interface TokenEntry { docId: string; token: string; }
+interface SendPushArgs {
+  cityId: string; title: string; body: string;
+  data?: Record<string, unknown>; areaIds?: string[]; roles?: string[];
+}
+
+// The send runs in the sendPush Cloud Function, not here: the browser blocks a
+// direct POST to exp.host (no CORS headers), so the web build could save a
+// change but never notify anyone. The function also does the pushTokens lookup,
+// which the caller is not always allowed to read.
+const callSendPush = httpsCallable<SendPushArgs, { sent: number; targeted: number }>(
+  getFunctions(app, 'europe-west1'),
+  'sendPush',
+);
 
 // Sends a push notification to every device registered for the given city —
 // or, when areaIds is given, only devices whose owner's homeAreaId falls in
-// that set. A device with no homeAreaId on record (the resident never picked
-// a settlement, or this is a single-area tenant where cityId alone is always
-// enough) is skipped by an areaIds-filtered send rather than guessed at —
-// see PrayerNotificationScheduler for how homeAreaId reaches the token.
+// that set. A device with no homeAreaId on record is skipped by an
+// areaIds-filtered send rather than guessed at.
 export async function sendPushToCity(
   cityId: string,
   title: string,
@@ -113,14 +123,7 @@ export async function sendPushToCity(
   areaIds?: string[],
 ): Promise<void> {
   try {
-    const snap = await getDocs(
-      query(collection(db, 'pushTokens'), where('cityId', '==', cityId)),
-    );
-    const entries = snap.docs
-      .filter((d) => !areaIds || areaIds.includes(d.data().homeAreaId))
-      .map((d) => ({ docId: d.id, token: d.data().token as string }))
-      .filter((e) => Boolean(e.token));
-    await _sendBatch(entries, title, body, data);
+    await callSendPush({ cityId, title, body, data, areaIds });
   } catch (e) {
     console.warn('[Push] sendPushToCity failed:', e);
   }
@@ -135,52 +138,8 @@ export async function sendPushToRoles(
   data?: Record<string, unknown>,
 ): Promise<void> {
   try {
-    const snap = await getDocs(
-      query(collection(db, 'pushTokens'), where('cityId', '==', cityId)),
-    );
-    const entries = snap.docs
-      .filter((d) => {
-        const docData = d.data();
-        // registerPushToken stores both the singular primary role AND the full
-        // roles array — filtering on the singular field only misses anyone
-        // whose targeted role isn't their highest-priority one (e.g. a gabbai
-        // who's also eruv_manager, whose primary role field is "gabbai").
-        const tokenRoles = (docData.roles as string[] | undefined) ?? [docData.role as string];
-        return tokenRoles.some((r) => roles.includes(r));
-      })
-      .map((d) => ({ docId: d.id, token: d.data().token as string }))
-      .filter((e) => Boolean(e.token));
-    await _sendBatch(entries, title, body, data);
+    await callSendPush({ cityId, title, body, data, roles });
   } catch (e) {
     console.warn('[Push] sendPushToRoles failed:', e);
-  }
-}
-
-async function _sendBatch(
-  entries: TokenEntry[],
-  title: string,
-  body: string,
-  data?: Record<string, unknown>,
-): Promise<void> {
-  if (!entries.length) return;
-  // Expo Push API accepts up to 100 messages per request.
-  for (let i = 0; i < entries.length; i += 100) {
-    const chunk = entries.slice(i, i + 100);
-    const res = await fetch(EXPO_PUSH_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(
-        chunk.map(({ token }) => ({ to: token, title, body, data: data ?? {}, sound: 'default' })),
-      ),
-    });
-    const json = await res.json().catch(() => null) as { data?: { status: string; details?: { error?: string } }[] } | null;
-    // A device that's been uninstalled reports DeviceNotRegistered — prune it so it
-    // doesn't keep showing up as a recipient (mirrors the same cleanup on the admin side).
-    json?.data?.forEach((ticket, idx) => {
-      if (ticket.status !== 'ok' && ticket.details?.error === 'DeviceNotRegistered') {
-        const docId = chunk[idx]?.docId;
-        if (docId) deleteDoc(doc(db, 'pushTokens', docId)).catch(() => {});
-      }
-    });
   }
 }
