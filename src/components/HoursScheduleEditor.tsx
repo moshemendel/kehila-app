@@ -18,7 +18,9 @@ const ANCHOR_OPTIONS: { key: ZmanimAnchor; label: string }[] = [
   { key: 'shkia',        label: 'שקיעה' },
   { key: 'tzeit',        label: 'צאת הכוכבים' },
   { key: 'chatzot',      label: 'חצות היום' },
-  { key: 'plagHamincha', label: 'פלג המנחה' },
+  { key: 'plagHamincha', label: 'פלג המנחה (גר"א)' },
+  { key: 'plagHaminchaMga', label: 'פלג המנחה (מג"א)' },
+  { key: 'plagHaminchaBeforeTzet', label: 'פלג המנחה (אור החיים)' },
   { key: 'minchaGedola', label: 'מנחה גדולה' },
   { key: 'minchaKetana', label: 'מנחה קטנה' },
 ];

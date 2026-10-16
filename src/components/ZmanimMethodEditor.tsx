@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, ScrollView, Linking } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius } from '../utils/theme';
 import {
-  ZMANIM_PRESETS, calcZmanim, minToStr,
+  ZMANIM_PRESETS, ZMANIM_CATALOG, PRESET_ABOUT, relevantKeys, calcZmanim, describeSettings, minToStr,
   ZmanimSettings, ZmanimRule, RuleMethod, MisheyakirMethod, AlotMethod,
 } from '../utils/zmanim';
 
@@ -25,6 +26,10 @@ const UNIT: Record<RuleMethod, string> = {
 };
 const MISHEYAKIR_LABEL: Record<MisheyakirMethod, string> = {
   third: 'שליש מעלות→נץ', degrees: 'מעלות', fixed: "דק' לפני הנץ", afterAlotProportional: "דק' זמניות אחרי עלות",
+};
+const MGA_END_KEYS = ['13.5', '18', '72', 'custom'] as const;
+const MGA_END_LABEL: Record<(typeof MGA_END_KEYS)[number], string> = {
+  '13.5': "הגאונים — 13.5 דק' זמניות", '18': "הגאונים — 18 דק' זמניות", '72': "רבנו תם — 72 דק' זמניות", custom: 'מותאם',
 };
 const ALL_METHODS: RuleMethod[] = ['fixed', 'proportional', 'degrees', 'longer'];
 
@@ -98,15 +103,25 @@ function OptionalRuleRow({ title, offLabel, rule, onChange }: {
   );
 }
 
-export default function ZmanimMethodEditor({ value, onChange, point }: {
+export default function ZmanimMethodEditor({ value, onChange, point, shown, onShownChange }: {
   value: ZmanimSettings;
   onChange: (s: ZmanimSettings) => void;
+  /** Which zmanim residents see (a city's choice). Omitted = the preview just lists them, with no ticks. */
+  shown?: Set<string>;
+  onShownChange?: (s: Set<string>) => void;
   /** Where the preview is computed; omitted = no preview. */
   point?: { latitude: number; longitude: number; timezone: string } | null;
 }) {
   // Any manual edit leaves the preset it started from, so the selected chip
   // does not claim a method that has been changed.
-  const edit = (patch: Partial<ZmanimSettings>) => onChange({ ...value, ...patch, presetKey: 'custom' });
+  const edit = (patch: Partial<ZmanimSettings>) =>
+    onChange({ ...value, ...patch, presetKey: 'custom', basedOn: value.presetKey === 'custom' ? value.basedOn : value.presetKey });
+  // Choosing a ready-made method also unticks the times it does not have (a GRA
+  // calendar has no MGA shma), so what residents see matches what that method publishes.
+  const pick = (settings: ZmanimSettings) => {
+    onChange(settings);
+    onShownChange?.(relevantKeys(settings));
+  };
 
   const activeKey = value.presetKey ?? ZMANIM_PRESETS.find((p) => JSON.stringify(p.settings) === JSON.stringify(value))?.key;
   const preview = useMemo(
@@ -114,9 +129,21 @@ export default function ZmanimMethodEditor({ value, onChange, point }: {
     [point, value],
   );
 
-  const mish = value.misheyakir ?? { method: 'third' as MisheyakirMethod, value: 0 };
+  // Fine-tuning stays folded away until wanted (most managers only pick a
+  // method), but opens by itself on a method that has already been edited.
+  const [customOpen, setCustomOpen] = useState(activeKey === 'custom');
+  const [infoKey, setInfoKey] = useState<string | null>(null);
+  const infoPreset = ZMANIM_PRESETS.find((p) => p.key === infoKey);
+  const infoAbout = infoKey ? PRESET_ABOUT[infoKey] : undefined;
+
   const defaultMgaAlot: ZmanimRule = { method: 'proportional', value: 72 };
   const defaultMgaTzet: ZmanimRule = { method: 'proportional', value: 13.5 };
+  // The MGA's day ends at tzeit — by the Geonim (13.5 or 18 zmaniyot minutes after
+  // sunset) or by Rabbeinu Tam (72); anything else is the hand-built case.
+  const mgaTzet = value.mgaDay?.tzet ?? defaultMgaTzet;
+  const mgaChoice = mgaTzet.method === 'proportional' && [13.5, 18, 72].includes(mgaTzet.value) ? String(mgaTzet.value) as (typeof MGA_END_KEYS)[number] : 'custom';
+
+  const mish = value.misheyakir ?? { method: 'third' as MisheyakirMethod, value: 0 };
 
   return (
     <View>
@@ -128,7 +155,7 @@ export default function ZmanimMethodEditor({ value, onChange, point }: {
             <TouchableOpacity
               key={p.key}
               style={[s.presetRow, i < ZMANIM_PRESETS.length - 1 && s.divider]}
-              onPress={() => onChange(p.settings)}
+              onPress={() => pick(p.settings)}
               activeOpacity={0.7}
             >
               <View style={[s.radio, on && s.radioOn]}>{on && <View style={s.radioDot} />}</View>
@@ -136,6 +163,9 @@ export default function ZmanimMethodEditor({ value, onChange, point }: {
                 <Text style={[s.presetTitle, on && s.presetTitleOn]}>{p.label}<Text style={s.posek}> · {p.posek}</Text></Text>
                 <Text style={s.hint}>{p.description}</Text>
               </View>
+              <TouchableOpacity onPress={() => setInfoKey(p.key)} hitSlop={10} accessibilityLabel={`הסבר על שיטת ${p.label}`}>
+                <Ionicons name="information-circle-outline" size={22} color={Colors.primary} />
+              </TouchableOpacity>
             </TouchableOpacity>
           );
         })}
@@ -147,8 +177,14 @@ export default function ZmanimMethodEditor({ value, onChange, point }: {
         )}
       </View>
 
-      <Text style={s.section}>עריכת הפרטים</Text>
-      <View style={s.card}>
+      <TouchableOpacity style={[s.card, s.customHead]} onPress={() => setCustomOpen((o) => !o)} activeOpacity={0.7}>
+        <View style={{ flex: 1 }}>
+          <Text style={s.blockTitle}>התאמה אישית</Text>
+          <Text style={s.hint}>לשנות הגדרה אחת בשיטה שנבחרה — צאת השבת, הדלקת נרות ועוד</Text>
+        </View>
+        <Ionicons name={customOpen ? 'chevron-up' : 'chevron-down'} size={18} color={Colors.textMuted} />
+      </TouchableOpacity>
+      {customOpen && <View style={[s.card, { marginTop: 8 }]}>
         <RuleRow
           title="עלות השחר"
           rule={{ method: value.alotMethod, value: value.alotValue }}
@@ -194,16 +230,17 @@ export default function ZmanimMethodEditor({ value, onChange, point }: {
           onChange={(r) => edit({ rabbenuTam: r })}
         />
         <View style={s.block}>
-          <View style={s.optHead}>
-            <Text style={s.blockTitle}>יום המג"א (לחישוב סוף זמן ק"ש ותפילה)</Text>
-            <TouchableOpacity
-              onPress={() => edit({ mgaDay: value.mgaDay ? undefined : { alot: defaultMgaAlot, tzet: defaultMgaTzet } })}
-              activeOpacity={0.7}
-            >
-              <Text style={s.link}>{value.mgaDay ? 'ברירת מחדל' : 'התאמה אישית'}</Text>
-            </TouchableOpacity>
-          </View>
-          {value.mgaDay ? (
+          <Text style={s.blockTitle}>יום המג"א (לחישוב סוף זמן ק"ש, תפילה ופלג)</Text>
+          <Text style={s.hint}>סוף היום — צאת הכוכבים:</Text>
+          <Chips
+            options={MGA_END_KEYS}
+            labels={MGA_END_LABEL}
+            value={mgaChoice}
+            onPick={(k) => k === 'custom'
+              ? edit({ mgaDay: value.mgaDay ?? { alot: defaultMgaAlot, tzet: mgaTzet } })
+              : edit({ mgaDay: { alot: value.mgaDay?.alot ?? defaultMgaAlot, tzet: { method: 'proportional', value: Number(k) } } })}
+          />
+          {!!value.mgaDay && mgaChoice === 'custom' && (
             <>
               <Text style={s.hint}>תחילת היום (עלות)</Text>
               <Chips options={ALL_METHODS} labels={METHOD_LABEL} value={value.mgaDay.alot.method}
@@ -216,8 +253,6 @@ export default function ZmanimMethodEditor({ value, onChange, point }: {
               <NumberField value={value.mgaDay.tzet.value} suffix={UNIT[value.mgaDay.tzet.method]}
                 onCommit={(v) => edit({ mgaDay: { ...value.mgaDay!, tzet: { ...value.mgaDay!.tzet, value: v } } })} />
             </>
-          ) : (
-            <Text style={s.hint}>עלות 72 דק' זמניות עד צאת 13.5 דק' זמניות</Text>
           )}
         </View>
         <View style={[s.block, { borderBottomWidth: 0 }]}>
@@ -227,24 +262,75 @@ export default function ZmanimMethodEditor({ value, onChange, point }: {
           <NumberField value={value.candleLightingAltMin ?? 40} suffix="דק' לפני השקיעה (לנוהגים להקדים)"
             onCommit={(v) => edit({ candleLightingAltMin: v })} />
         </View>
-      </View>
+      </View>}
+
+      <Modal visible={!!infoPreset} animationType="slide" transparent onRequestClose={() => setInfoKey(null)}>
+        <View style={s.sheetBackdrop}>
+          <View style={s.sheet}>
+            <View style={s.sheetHead}>
+              <Text style={s.sheetTitle}>{infoPreset?.label} · {infoPreset?.posek}</Text>
+              <TouchableOpacity onPress={() => setInfoKey(null)} hitSlop={10}>
+                <Ionicons name="close" size={22} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView contentContainerStyle={{ padding: Spacing.md, gap: 14 }}>
+              {!!infoAbout && <Text style={s.aboutTxt}>{infoAbout.about}</Text>}
+              <Text style={s.blockTitle}>איך מחושב כל זמן</Text>
+              <View style={s.card}>
+                {infoPreset && describeSettings(infoPreset.settings).map((r, i, a) => (
+                  <View key={r.label} style={[s.descRow, i < a.length - 1 && s.divider]}>
+                    <Text style={s.descLabel}>{r.label}</Text>
+                    <Text style={s.descText}>{r.text}</Text>
+                  </View>
+                ))}
+              </View>
+              {!!infoAbout?.source && (
+                <Text style={s.hint}>
+                  מקור:{' '}
+                  {infoAbout.source.url
+                    ? <Text style={{ color: Colors.primary, textDecorationLine: 'underline' }} onPress={() => Linking.openURL(infoAbout.source!.url!)}>{infoAbout.source.label}</Text>
+                    : infoAbout.source.label}
+                </Text>
+              )}
+              <TouchableOpacity
+                style={s.pickBtn}
+                onPress={() => { if (infoPreset) pick(infoPreset.settings); setInfoKey(null); }}
+                activeOpacity={0.8}
+              >
+                <Text style={s.pickBtnTxt}>בחירת שיטה זו</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       {preview && (
         <>
           <Text style={s.section}>תצוגה מקדימה להיום</Text>
+          {!!shown && <Text style={[s.hint, { marginBottom: 8, paddingHorizontal: 4 }]}>סמנו את הזמנים שיוצגו לתושבים</Text>}
           <View style={s.card}>
-            {([
-              ['עלות השחר', preview.alot], ['משיכיר', preview.misheyakir], ['הנץ החמה', preview.netz],
-              ['סוף ק"ש (גר"א)', preview.sofZmanShma], ['סוף ק"ש (מג"א)', preview.sofZmanShmaMga],
-              ['חצות', preview.chatzot], ['מנחה גדולה', preview.minchaGedola], ['שקיעה', preview.shkia],
-              ['צאת הכוכבים', preview.tzetHakochavim], ['צאת השבת', preview.tzetShabbat],
-              ['רבנו תם', preview.tzetRabbenuTam], ['הדלקת נרות', preview.candleLighting],
-            ] as [string, number][]).map(([label, min], i, a) => (
-              <View key={label} style={[s.prevRow, i < a.length - 1 && s.divider]}>
-                <Text style={s.prevLabel}>{label}</Text>
-                <Text style={s.prevTime}>{minToStr(min)}</Text>
-              </View>
-            ))}
+            {ZMANIM_CATALOG.map((z, i, a) => {
+              const on = !shown || shown.has(z.key);
+              const toggle = () => {
+                if (!shown) return;
+                const n = new Set(shown);
+                if (n.has(z.key)) n.delete(z.key); else n.add(z.key);
+                onShownChange?.(n);
+              };
+              return (
+                <TouchableOpacity
+                  key={z.key}
+                  style={[s.prevRow, i < a.length - 1 && s.divider, { alignItems: 'center', gap: 10 }]}
+                  onPress={toggle}
+                  disabled={!shown}
+                  activeOpacity={0.6}
+                >
+                  {!!shown && <Ionicons name={on ? 'checkbox' : 'square-outline'} size={22} color={on ? Colors.primary : Colors.textMuted} />}
+                  <Text style={[s.prevLabel, { flex: 1 }, !on && { color: Colors.textMuted }]}>{z.label}</Text>
+                  <Text style={[s.prevTime, !on && { color: Colors.textMuted, fontWeight: '400' }]}>{minToStr(preview[z.key] as number, false, z.key === 'candleLighting' ? 'down' : 'up')}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </>
       )}
@@ -280,6 +366,17 @@ const s = StyleSheet.create({
     fontSize: 15, color: Colors.text, textAlign: 'center',
   },
   unit: { fontSize: 12, color: Colors.textMuted, flexShrink: 1 },
+  customHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: Spacing.md, paddingVertical: 12, marginTop: 20 },
+  sheetBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  sheet: { maxHeight: '88%', backgroundColor: Colors.background, borderTopLeftRadius: Radius.lg, borderTopRightRadius: Radius.lg },
+  sheetHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  sheetTitle: { flex: 1, fontSize: 16, fontWeight: '800', color: Colors.text },
+  aboutTxt: { fontSize: 14, color: Colors.textSecondary, lineHeight: 21 },
+  descRow: { paddingHorizontal: Spacing.md, paddingVertical: 10, gap: 2 },
+  descLabel: { fontSize: 12, color: Colors.textMuted },
+  descText: { fontSize: 14, color: Colors.text },
+  pickBtn: { backgroundColor: Colors.primary, borderRadius: Radius.md, paddingVertical: 13, alignItems: 'center' },
+  pickBtnTxt: { color: Colors.white, fontSize: 15, fontWeight: '800' },
   prevRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.md, paddingVertical: 9 },
   prevLabel: { fontSize: 14, color: Colors.textSecondary },
   prevTime: { fontSize: 14, fontWeight: '700', color: Colors.text },

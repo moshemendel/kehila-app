@@ -8,7 +8,10 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, Radius } from '../../utils/theme';
 import { formatHebrewDate } from '../../utils/hebrewDate';
-import { calcZmanim, minToStr, ZmanimResult, ZmanimSettings, ZMANIM_PRESETS } from '../../utils/zmanim';
+import {
+  calcZmanim, minToStr, ZmanimResult, ZmanimSettings, ZMANIM_PRESETS,
+  visibleZmanim, type CatalogZman,
+} from '../../utils/zmanim';
 import { getDailyMountainAngle } from '../../utils/mountainAngle';
 import { useZmanimSettings } from '../../context/ZmanimSettingsContext';
 import { useCity } from '../../hooks/useCity';
@@ -21,26 +24,25 @@ const DEFAULT_LAT = 31.7767;
 const DEFAULT_LON = 35.2988;
 const DEFAULT_LOC = 'מעלה אדומים';
 
-const NEXT_KEYS: (keyof ZmanimResult)[] = [
-  'alot', 'misheyakir', 'netz', 'netzVatikin',
-  'sofZmanShmaMga', 'sofZmanShma',
-  'sofZmanTfilaMga', 'sofZmanTfila',
-  'chatzot', 'minchaGedola', 'minchaKetana', 'plagHamincha',
-  'shkia', 'tzetHakochavim', 'tzetHakochavim18', 'tzetRabbenuTam',
-];
+const GROUP_HEADER: Partial<Record<CatalogZman['group'], string>> = {
+  shma: 'סוף זמן קריאת שמע ותפילה', night: 'צאת הכוכבים', shabbat: 'שבת',
+};
 
 function nowInMinutes(): number {
   const d = new Date();
   return d.getHours() * 60 + d.getMinutes();
 }
 
-function getNextKey(result: ZmanimResult): keyof ZmanimResult | null {
+/** The earliest shown time still ahead of now (the rows are not all in clock order across methods). */
+function getNextKey(result: ZmanimResult, keys: (keyof ZmanimResult)[]): keyof ZmanimResult | null {
   const now = nowInMinutes();
-  for (const key of NEXT_KEYS) {
+  let best: keyof ZmanimResult | null = null;
+  let bestT = Infinity;
+  for (const key of keys) {
     const t = result[key] as number;
-    if (t > 0 && t > now) return key;
+    if (t > 0 && t > now && t < bestT) { best = key; bestT = t; }
   }
-  return null;
+  return best;
 }
 
 /** "13.5 דק' זמניות", "4.9° מתחת לאופק" — a rule spelled the way its row should read. */
@@ -59,9 +61,11 @@ function activePreset(s: ZmanimSettings) {
 }
 
 // ── Single full-width time row ────────────────────────────────────────────────
-function TimeRow({ label, subLabel, time, isNext, isPast, withSec, onLayout }: {
+function TimeRow({ label, subLabel, time, isNext, isPast, withSec, roundDown, onLayout }: {
   label: string; subLabel?: string; time: number;
   isNext: boolean; isPast: boolean; withSec?: boolean;
+  /** Candle lighting must not read later than it is — see minToStr. */
+  roundDown?: boolean;
   onLayout?: (e: LayoutChangeEvent) => void;
 }) {
   return (
@@ -73,7 +77,7 @@ function TimeRow({ label, subLabel, time, isNext, isPast, withSec, onLayout }: {
         ) : null}
       </View>
       <Text style={[s.timeRowTime, isNext && s.timeRowTimeNext, isPast && s.timeRowTimePast]}>
-        {minToStr(time, withSec)}
+        {minToStr(time, withSec, roundDown ? 'down' : 'up')}
       </Text>
     </View>
   );
@@ -157,7 +161,15 @@ export default function ZmanimScreen() {
   // dependency (nextKey) hasn't changed, so re-entering the screen without
   // the "next" zman changing left the list unscrolled. useFocusEffect's own
   // callback already re-runs on every focus, so it can just own this outright.
-  const nextKey = zmanim ? getNextKey(zmanim) : null;
+  // What residents see is the city manager's choice (City.zmanimShown); the
+  // "next" highlight only considers rows actually on screen, and never the
+  // Shabbat ones, as before.
+  const visible   = visibleZmanim(settings, city);
+  const hasVatikin = !!(zmanim && zmanim.netzVatikin > 0);
+  const nextKeys   = visible
+    .filter((z) => z.group !== 'shabbat')
+    .map((z) => (z.key === 'netz' && hasVatikin ? 'netzVatikin' : z.key) as keyof ZmanimResult);
+  const nextKey = zmanim ? getNextKey(zmanim, nextKeys) : null;
   useFocusEffect(useCallback(() => {
     if (!nextKey) return;
     // Wait for onLayout callbacks to fire before reading rowLayouts
@@ -174,7 +186,22 @@ export default function ZmanimScreen() {
 
   const curPreset  = activePreset(settings);
   const today      = now;
-  const hasVatikin = !!(zmanim && zmanim.netzVatikin > 0);
+
+  /** A row's label, spelled from the method in use where the method decides it. */
+  function rowFor(key: keyof ZmanimResult, fallback: string): { label: string; subLabel?: string } {
+    switch (key) {
+      case 'tzetHakochavim':   return { label: ruleLabel(settings.tzetMethod, settings.tzetMinutes) };
+      case 'tzetHakochavim18': return { label: "18 דק' זמניות" };
+      case 'tzetRabbenuTam':   return { label: `רבנו תם - ${ruleLabel(settings.rabbenuTam?.method ?? 'proportional', settings.rabbenuTam?.value ?? 72)}` };
+      case 'sofZmanShmaMga':   return { label: 'ק"ש מג"א (לחומרא)' };
+      case 'candleLighting':   return { label: 'הדלקת נרות', subLabel: `${settings.candleLightingMin ?? 20} דק' לפני שקיעה` };
+      case 'tzetShabbat':      return {
+        label: 'צאת השבת',
+        subLabel: settings.shabbatExit ? ruleLabel(settings.shabbatExit.method, settings.shabbatExit.value) : undefined,
+      };
+      default:                 return { label: fallback };
+    }
+  }
 
   function isNext(key: keyof ZmanimResult) { return nextKey === key; }
   function isPast(key: keyof ZmanimResult) {
@@ -230,60 +257,33 @@ export default function ZmanimScreen() {
           <ActivityIndicator color={Colors.goldMuted} style={{ marginTop: 40 }} />
         ) : (
           <>
-            <TimeRow label="עלות השחר"        time={zmanim.alot}       isNext={isNext('alot')}       isPast={isPast('alot')}
-              onLayout={(e) => { rowLayouts.current['alot'] = e.nativeEvent.layout.y; }} />
-            <TimeRow label="זמן ציצית ותפילין" time={zmanim.misheyakir} isNext={isNext('misheyakir')} isPast={isPast('misheyakir')}
-              onLayout={(e) => { rowLayouts.current['misheyakir'] = e.nativeEvent.layout.y; }} />
-            <TimeRow
-              label={hasVatikin ? 'הנץ החמה הנראה' : 'הנץ החמה'}
-              time={hasVatikin ? zmanim.netzVatikin : zmanim.netz}
-              isNext={hasVatikin ? isNext('netzVatikin') : isNext('netz')}
-              isPast={hasVatikin ? isPast('netzVatikin') : isPast('netz')}
-              withSec
-              onLayout={(e) => {
-                const y = e.nativeEvent.layout.y;
-                rowLayouts.current['netz'] = y;
-                rowLayouts.current['netzVatikin'] = y;
-              }}
-            />
-
-            <SectionRow label="סוף זמן קריאת שמע" />
-            <TimeRow label={'ק"ש מג"א (לחומרא)'} time={zmanim.sofZmanShmaMga} isNext={isNext('sofZmanShmaMga')} isPast={isPast('sofZmanShmaMga')}
-              onLayout={(e) => { rowLayouts.current['sofZmanShmaMga'] = e.nativeEvent.layout.y; }} />
-            <TimeRow label={'ק"ש גר"א'}           time={zmanim.sofZmanShma}    isNext={isNext('sofZmanShma')}    isPast={isPast('sofZmanShma')}
-              onLayout={(e) => { rowLayouts.current['sofZmanShma'] = e.nativeEvent.layout.y; }} />
-            <TimeRow label="סוף זמן תפילה"        time={zmanim.sofZmanTfila}   isNext={isNext('sofZmanTfila')}   isPast={isPast('sofZmanTfila')}
-              onLayout={(e) => {
-                const y = e.nativeEvent.layout.y;
-                rowLayouts.current['sofZmanTfila']    = y;
-                rowLayouts.current['sofZmanTfilaMga'] = y; // no separate MGA row, map to same
-              }} />
-
-            <TimeRow label="חצות"       time={zmanim.chatzot}      isNext={isNext('chatzot')}      isPast={isPast('chatzot')}
-              onLayout={(e) => { rowLayouts.current['chatzot'] = e.nativeEvent.layout.y; }} />
-            <TimeRow label="מנחה גדולה" time={zmanim.minchaGedola} isNext={isNext('minchaGedola')} isPast={isPast('minchaGedola')}
-              onLayout={(e) => { rowLayouts.current['minchaGedola'] = e.nativeEvent.layout.y; }} />
-            <TimeRow label="מנחה קטנה"  time={zmanim.minchaKetana} isNext={isNext('minchaKetana')} isPast={isPast('minchaKetana')}
-              onLayout={(e) => { rowLayouts.current['minchaKetana'] = e.nativeEvent.layout.y; }} />
-            <TimeRow label="פלג המנחה"  time={zmanim.plagHamincha} isNext={isNext('plagHamincha')} isPast={isPast('plagHamincha')}
-              onLayout={(e) => { rowLayouts.current['plagHamincha'] = e.nativeEvent.layout.y; }} />
-            <TimeRow label="שקיעה"      time={zmanim.shkia}        isNext={isNext('shkia')}        isPast={isPast('shkia')} withSec
-              onLayout={(e) => { rowLayouts.current['shkia'] = e.nativeEvent.layout.y; }} />
-
-            <SectionRow label="צאת הכוכבים" />
-            <TimeRow label={ruleLabel(settings.tzetMethod, settings.tzetMinutes)} time={zmanim.tzetHakochavim}   isNext={isNext('tzetHakochavim')}   isPast={isPast('tzetHakochavim')}
-              onLayout={(e) => { rowLayouts.current['tzetHakochavim'] = e.nativeEvent.layout.y; }} />
-            <TimeRow label="18 דק' זמניות"           time={zmanim.tzetHakochavim18} isNext={isNext('tzetHakochavim18')} isPast={isPast('tzetHakochavim18')}
-              onLayout={(e) => { rowLayouts.current['tzetHakochavim18'] = e.nativeEvent.layout.y; }} />
-            <TimeRow label={`רבנו תם - ${ruleLabel(settings.rabbenuTam?.method ?? 'proportional', settings.rabbenuTam?.value ?? 72)}`} time={zmanim.tzetRabbenuTam}  isNext={isNext('tzetRabbenuTam')}   isPast={isPast('tzetRabbenuTam')}
-              onLayout={(e) => { rowLayouts.current['tzetRabbenuTam'] = e.nativeEvent.layout.y; }} />
-
-            <SectionRow label="שבת" />
-            <TimeRow label="הדלקת נרות" subLabel={`${settings.candleLightingMin ?? 20} דק' לפני שקיעה`}
-              time={zmanim.candleLighting} isNext={false} isPast={false} />
-            <TimeRow label="צאת השבת"
-              subLabel={settings.shabbatExit ? ruleLabel(settings.shabbatExit.method, settings.shabbatExit.value) : undefined}
-              time={zmanim.tzetShabbat} isNext={false} isPast={false} />
+            {visible.map((z, i, list) => {
+              const key = z.key;
+              // A header opens each group that has one, the first time it appears.
+              const header = i === 0 || list[i - 1].group !== z.group ? GROUP_HEADER[z.group] : undefined;
+              const isNetz = key === 'netz';
+              const row = rowFor(key, z.label);
+              const rowKey = isNetz && hasVatikin ? 'netzVatikin' : key;
+              return (
+                <React.Fragment key={key}>
+                  {header && <SectionRow label={header} />}
+                  <TimeRow
+                    label={isNetz ? (hasVatikin ? 'הנץ החמה הנראה' : 'הנץ החמה') : row.label}
+                    subLabel={row.subLabel}
+                    time={isNetz && hasVatikin ? zmanim.netzVatikin : (zmanim[key] as number)}
+                    isNext={isNext(rowKey)}
+                    isPast={isPast(rowKey)}
+                    withSec={key === 'netz' || key === 'shkia'}
+                    roundDown={key === 'candleLighting'}
+                    onLayout={(e) => {
+                      const y = e.nativeEvent.layout.y;
+                      rowLayouts.current[key] = y;
+                      if (isNetz) rowLayouts.current['netzVatikin'] = y;
+                    }}
+                  />
+                </React.Fragment>
+              );
+            })}
 
             {!!city?.zmanimNote && (
               <Text style={{ fontSize: 12, color: Colors.textMuted, textAlign: 'center', marginTop: 16, paddingHorizontal: Spacing.md }}>

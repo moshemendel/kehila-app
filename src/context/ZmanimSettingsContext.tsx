@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ZmanimSettings, PRESET_RAV_OVADIA } from '../utils/zmanim';
+import { ZmanimSettings, PRESET_RAV_OVADIA, withPresetDefaults } from '../utils/zmanim';
 import { cityZmanimSettings } from '../utils/zmanimProfile';
 import { useCityId } from '../hooks/useCityId';
 import { useCity } from '../hooks/useCity';
@@ -53,7 +53,7 @@ export function ZmanimSettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     AsyncStorage.multiGet([SETTINGS_KEY, GPS_KEY]).then(([[, rawSettings], [, rawGps]]) => {
-      if (rawSettings) { try { setSettingsState(JSON.parse(rawSettings)); } catch {} }
+      if (rawSettings) { try { setSettingsState(withPresetDefaults(JSON.parse(rawSettings))); } catch {} }
       if (rawGps)      { try { setGpsState(JSON.parse(rawGps)); }           catch {} }
     });
   }, []);

@@ -58,10 +58,13 @@ export async function updateCityZmanim(
   cityId: string,
   zmanimSettings: ZmanimSettings,
   zmanimNote: string,
+  /** Keys of ZMANIM_CATALOG to show residents; null = the usual set (field removed). */
+  zmanimShown: string[] | null,
 ): Promise<void> {
   const note = zmanimNote.trim();
   await updateDoc(doc(db, COL, cityId), {
     zmanimSettings,
     zmanimNote: note ? note : deleteField(),
+    zmanimShown: zmanimShown ?? deleteField(),
   });
 }

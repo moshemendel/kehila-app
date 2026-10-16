@@ -11,7 +11,7 @@ import { useCity } from '../../hooks/useCity';
 import { useAreas } from '../../hooks/useAreas';
 import { updateCityZmanim } from '../../services/cities';
 import { cityZmanimSettings, zmanimPoint } from '../../utils/zmanimProfile';
-import { ZmanimSettings } from '../../utils/zmanim';
+import { ZmanimSettings, ZMANIM_CATALOG, relevantKeys, shownZmanim } from '../../utils/zmanim';
 import { Colors, Spacing, Radius } from '../../utils/theme';
 
 /**
@@ -32,13 +32,16 @@ export default function ManageZmanimScreen() {
 
   const [value, setValue] = useState<ZmanimSettings | null>(null);
   const [note, setNote]   = useState('');
+  const [shown, setShown] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
 
   // Seed once the city arrives; later edits are the manager's, not the cache's.
   useEffect(() => {
     if (city && value === null) {
-      setValue(cityZmanimSettings(city));
+      const method = cityZmanimSettings(city);
+      setValue(method);
       setNote(city.zmanimNote ?? '');
+      setShown(shownZmanim(city.zmanimShown, method));
     }
   }, [city, value]);
 
@@ -46,7 +49,11 @@ export default function ManageZmanimScreen() {
     if (!value) return;
     setSaving(true);
     try {
-      await updateCityZmanim(cityId, value, note);
+      // Exactly the times the method has is stored as "no list", so a city that
+      // never customised keeps following its method if that method changes.
+      const usual = relevantKeys(value);
+      const isUsual = shown.size === usual.size && [...shown].every((k) => usual.has(k));
+      await updateCityZmanim(cityId, value, note, isUsual ? null : ZMANIM_CATALOG.filter((z) => shown.has(z.key)).map((z) => z.key));
       await refetch();
       Alert.alert('נשמר', 'שיטת הזמנים של העיר עודכנה. תושבים יראו אותה בפתיחה הבאה של האפליקציה.');
     } catch (e: any) {
@@ -69,7 +76,7 @@ export default function ManageZmanimScreen() {
         שעות קבועות של המועצה הדתית אינן מושפעות.
       </Text>
 
-      <ZmanimMethodEditor value={value} onChange={setValue} point={zmanimPoint(city, areas)} />
+      <ZmanimMethodEditor value={value} onChange={setValue} point={zmanimPoint(city, areas)} shown={shown} onShownChange={setShown} />
 
       <Text style={s.label}>הערה מתחת לזמנים (אופציונלי)</Text>
       <TextInput

@@ -229,8 +229,8 @@ export default function HomeScreen() {
       const fridayZ  = calc(fridayDate);
       // Minutes before sunset come from the method (city's, or the resident's
       // own): 20 and 40 unless it sets others.
-      const candle40 = minToStr(fridayZ.candleLightingAlt);
-      const candle20 = minToStr(fridayZ.candleLighting);
+      const candle40 = minToStr(fridayZ.candleLightingAlt, false, 'down');
+      const candle20 = minToStr(fridayZ.candleLighting, false, 'down');
 
       const satDate = new Date(fridayDate);
       satDate.setDate(fridayDate.getDate() + 1);
@@ -266,7 +266,7 @@ export default function HomeScreen() {
         // Don't show a specific time when Erev is Shabbat — different halacha
         if (erevDate.getDay() !== 6) {
           const erevZ = calc(erevDate);
-          candleTime = minToStr(erevZ.shkia - 18); // 18 min before shkia
+          candleTime = minToStr(erevZ.shkia - 18, false, 'down'); // 18 min before shkia
         }
       }
 

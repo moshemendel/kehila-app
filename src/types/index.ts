@@ -134,6 +134,8 @@ export interface City {
   zmanimSettings?: ZmanimSettings;
   /** A line shown under the city's zmanim, e.g. "לפי מנהג העיר: צאת השבת 40 דקות". */
   zmanimNote?: string;
+  /** Which zmanim residents see (keys of ZMANIM_CATALOG); absent = the usual set. */
+  zmanimShown?: string[];
 }
 
 /**
@@ -175,6 +177,8 @@ export type ZmanimAnchor =
   | 'shkia'
   | 'chatzot'
   | 'plagHamincha'
+  | 'plagHaminchaMga'
+  | 'plagHaminchaBeforeTzet'
   | 'minchaGedola'
   | 'minchaKetana'
   | 'tzeit';

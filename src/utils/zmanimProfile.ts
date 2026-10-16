@@ -1,5 +1,5 @@
 import { City, Area, Synagogue } from '../types';
-import { calcZmanim, PRESET_RAV_OVADIA, ZmanimResult, ZmanimSettings } from './zmanim';
+import { calcZmanim, PRESET_RAV_OVADIA, withPresetDefaults, ZmanimResult, ZmanimSettings } from './zmanim';
 
 /**
  * Which zmanim method applies to what — the layering this feature exists for:
@@ -17,14 +17,14 @@ import { calcZmanim, PRESET_RAV_OVADIA, ZmanimResult, ZmanimSettings } from './z
  */
 
 export function cityZmanimSettings(city?: Pick<City, 'zmanimSettings'> | null): ZmanimSettings {
-  return city?.zmanimSettings ?? PRESET_RAV_OVADIA;
+  return withPresetDefaults(city?.zmanimSettings ?? PRESET_RAV_OVADIA);
 }
 
 export function synagogueZmanimSettings(
   synagogue: Pick<Synagogue, 'zmanimSettings'> | null | undefined,
   city: Pick<City, 'zmanimSettings'> | null | undefined,
 ): ZmanimSettings {
-  return synagogue?.zmanimSettings ?? cityZmanimSettings(city);
+  return synagogue?.zmanimSettings ? withPresetDefaults(synagogue.zmanimSettings) : cityZmanimSettings(city);
 }
 
 /** The point zmanim run on: a record's own area, else the tenant's default area, else the city. */
