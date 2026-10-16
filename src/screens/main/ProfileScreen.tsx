@@ -277,6 +277,10 @@ export default function ProfileScreen() {
                 <MenuRow icon="globe-outline" label="ניהול ערים" color={Colors.primary}
                   onPress={() => openManage('ManageCities')} />
               )}
+              {isAdminRole && (
+                <MenuRow icon="time-outline" label="ניהול זמני העיר" color={Colors.gold}
+                  onPress={() => openManage('ManageZmanim')} />
+              )}
               {canSeeReports(appUser) && (
                 <MenuRow icon="flag-outline" label="דיווחים על מידע שגוי" color={Colors.danger}
                   badge={alerts.reports > 0 ? String(alerts.reports) : undefined}

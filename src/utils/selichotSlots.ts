@@ -94,16 +94,13 @@ function slotOccursOn(slot: PrayerTimeSlot, date: Date): boolean {
  */
 export function collectSelichot(
   synagogues: Synagogue[],
-  zmanim: Parameters<typeof resolveSlotTime>[1],
+  zmanimFor: (synagogue: Synagogue, date: Date) => Parameters<typeof resolveSlotTime>[1],
   userLoc: { lat: number; lon: number } | null,
 ): SelichotNight[] {
   const window = getSelichotWindow();
   if (!window) return [];
 
   const now = new Date();
-  // Dawn is the day boundary — before it a minyan belongs to the previous
-  // evening. Read from the day's zmanim so it tracks the season, not a guess.
-  const alot = (zmanim as { alot?: number } | null | undefined)?.alot ?? null;
   const byNight = new Map<string, SelichotOccurrence[]>();
 
   for (let i = 0; i <= LOOKAHEAD_DAYS; i += 1) {
@@ -128,6 +125,8 @@ export function collectSelichot(
         ? haversineKm(userLoc.lat, userLoc.lon, syn.latitude, syn.longitude)
         : null;
 
+      // The day's own zmanim, in this shul's method (else the city's).
+      const zmanim = zmanimFor(syn, date);
       for (const slot of slots) {
         if (!slotOccursOn(slot, date)) continue;
         const time = resolveSlotTime(slot, zmanim);

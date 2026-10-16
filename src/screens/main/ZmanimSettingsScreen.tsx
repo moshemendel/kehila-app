@@ -16,12 +16,12 @@ import { useAuth } from '../../context/AuthContext';
 import { useCities } from '../../hooks/useCities';
 import { useCityId } from '../../hooks/useCityId';
 import { useAreas } from '../../hooks/useAreas';
-import { ZMANIM_PRESETS } from '../../utils/zmanim';
+import { ZMANIM_PRESETS, presetByKey } from '../../utils/zmanim';
 
 export default function ZmanimSettingsScreen() {
   const navigation = useNavigation();
   const { top, bottom } = useSafeAreaInsets();
-  const { settings, setSettings, gpsLocation, setGpsLocation } = useZmanimSettings();
+  const { settings, setSettings, citySettings, followsCity, resetToCity, gpsLocation, setGpsLocation } = useZmanimSettings();
   const { switchCity, updateHomeArea, appUser } = useAuth();
   const cityId = useCityId();
   const { cities, loading: citiesLoading } = useCities();
@@ -32,6 +32,7 @@ export default function ZmanimSettingsScreen() {
   const { areas } = useAreas(cityId);
   const [gpsLoading, setGpsLoading] = useState(false);
 
+  const cityPreset = presetByKey(citySettings.presetKey);
   const activePreset = ZMANIM_PRESETS.find(p =>
     settings.presetKey ? settings.presetKey === p.key
                        : JSON.stringify(settings) === JSON.stringify(p.settings)
@@ -202,10 +203,30 @@ export default function ZmanimSettingsScreen() {
         {/* ── Method ── */}
         <Text style={[s.sectionTitle, { marginTop: 28 }]}>שיטת חישוב</Text>
         <View style={s.card}>
+          {/* Default: the city's own method, so the zmanim here match what the
+              council publishes. Picking a method below is a personal choice that
+              changes this screen and the home widgets only — a synagogue's
+              prayer times keep following its own method. */}
+          <TouchableOpacity
+            style={[s.row, s.rowDivider]}
+            onPress={resetToCity}
+            activeOpacity={0.7}
+          >
+            <View style={[s.radioOuter, followsCity && s.radioOuterActive]}>
+              {followsCity && <View style={s.radioInner} />}
+            </View>
+            <View style={s.rowContent}>
+              <Text style={[s.rowTitle, followsCity && s.rowTitleActive]}>
+                לפי העיר
+                <Text style={s.rowPosek}> · {cityPreset?.label ?? 'שיטת העיר'}</Text>
+              </Text>
+              <Text style={s.rowSub}>הזמנים כפי שמפרסמת המועצה</Text>
+            </View>
+          </TouchableOpacity>
           {ZMANIM_PRESETS.map((preset, idx) => {
-            const active = settings.presetKey
+            const active = !followsCity && (settings.presetKey
               ? settings.presetKey === preset.key
-              : JSON.stringify(settings) === JSON.stringify(preset.settings);
+              : JSON.stringify(settings) === JSON.stringify(preset.settings));
             return (
               <TouchableOpacity
                 key={preset.key}
@@ -231,12 +252,15 @@ export default function ZmanimSettingsScreen() {
         {/* ── Steppers header ── */}
         <Text style={[s.sectionTitle, { marginTop: 28 }]}>תצוגה</Text>
 
-        {/* ── Tzeit stepper ── */}
+        {/* ── Tzeit stepper — minutes only; a degrees method has no minutes to nudge ── */}
+        {settings.tzetMethod !== 'degrees' && (
         <View style={s.stepperCard}>
           <View>
             <Text style={s.stepperTitle}>צאת הכוכבים</Text>
             <Text style={s.stepperSub}>
-              {settings.tzetMethod === 'proportional' ? "דקות זמניות" : "דקות קבועות"}
+              {settings.tzetMethod === 'proportional' ? "דקות זמניות"
+                : settings.tzetMethod === 'longer' ? 'דקות (זמניות בקיץ, קבועות בחורף)'
+                : "דקות קבועות"}
             </Text>
           </View>
           <View style={s.stepper}>
@@ -261,8 +285,9 @@ export default function ZmanimSettingsScreen() {
             </TouchableOpacity>
           </View>
         </View>
+        )}
         {/* ── Taanis look-ahead stepper ── */}
-        <View style={[s.stepperCard, { marginTop: 1, borderTopWidth: 0, borderTopLeftRadius: 0, borderTopRightRadius: 0 }]}>
+        <View style={[s.stepperCard, settings.tzetMethod !== 'degrees' && { marginTop: 1, borderTopWidth: 0, borderTopLeftRadius: 0, borderTopRightRadius: 0 }]}>
           <View style={{ flex: 1 }}>
             <Text style={s.stepperTitle}>הצגת צומות מראש</Text>
             <Text style={s.stepperSub}>

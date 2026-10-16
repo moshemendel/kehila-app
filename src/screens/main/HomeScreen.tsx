@@ -31,7 +31,7 @@ import { useCity }           from '../../hooks/useCity';
 import { useSynagoguesFeed } from '../../context/SynagoguesContext';
 import { useEventsFeed }     from '../../context/EventsContext';
 import { useSynagogueEventReminders } from '../../context/SynagogueEventRemindersContext';
-import { useTodayZmanim }    from '../../hooks/useTodayZmanim';
+import { useSynagogueZmanim } from '../../hooks/useSynagogueZmanim';
 import { useAppForegroundTick } from '../../hooks/useAppForegroundTick';
 import { useZmanimSettings } from '../../context/ZmanimSettingsContext';
 import { useKashrutUpdates } from '../../context/KashrutUpdatesContext';
@@ -113,14 +113,14 @@ export default function HomeScreen() {
   const { events, unreadCount, isRead, favoriteEvents } = useEventsFeed();
   const { remindedEvents } = useSynagogueEventReminders();
   const myEventsCount = favoriteEvents.length + remindedEvents.length;
-  const todayZmanim                        = useTodayZmanim(cityId);
+  const zmanimFor                          = useSynagogueZmanim(cityId);
 
   // ── Selichot ────────────────────────────────────────────────────────────────
   // Only appears in season AND only when shuls have actually published times —
   // an empty card during Elul would be worse than no card.
   const selichotNights = useMemo(
-    () => collectSelichot(synagogues, todayZmanim, null),
-    [synagogues, todayZmanim],
+    () => collectSelichot(synagogues, zmanimFor, null),
+    [synagogues, zmanimFor],
   );
   const nextSelichot = selichotNights[0] ?? null;
   const { settings: zmanimSettings }       = useZmanimSettings();
@@ -174,7 +174,7 @@ export default function HomeScreen() {
       parseTimeToMinutes(p.nextTime) + (p.tomorrow ? 1440 : 0);
 
     for (const syn of synagogues) {
-      const prayer = getNextPrayerTodayOrTomorrow(syn.weeklySchedule, syn.shabbatSchedule, todayZmanim);
+      const prayer = getNextPrayerTodayOrTomorrow(syn.weeklySchedule, syn.shabbatSchedule, zmanimFor(syn));
       if (!prayer || parseTimeToMinutes(prayer.nextTime) < 0) continue;
       if (!best || rank(prayer) < rank(best.prayer)) {
         best = { syn, prayer };
@@ -187,10 +187,10 @@ export default function HomeScreen() {
   // `tick` (30-second interval, see above) isn't read in the body — it's a
   // dependency purely to force recomputation as time passes. Without it,
   // the next-prayer lookup's internal `now` only re-evaluates when synagogues or
-  // todayZmanim happen to change, so a prayer time that's already passed
+  // zmanimFor happen to change, so a prayer time that's already passed
   // would keep showing as "next" indefinitely while the app sits open.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [synagogues, todayZmanim, tick]);
+  }, [synagogues, zmanimFor, tick]);
 
   // ── Shabbat times ───────────────────────────────────────────────
   const shabbatInfo = useMemo(() => {
@@ -227,14 +227,16 @@ export default function HomeScreen() {
       }
 
       const fridayZ  = calc(fridayDate);
-      const candle40 = minToStr(fridayZ.shkia - 40); // 40 min before sunset
-      const candle20 = minToStr(fridayZ.shkia - 20); // 20 min before sunset
+      // Minutes before sunset come from the method (city's, or the resident's
+      // own): 20 and 40 unless it sets others.
+      const candle40 = minToStr(fridayZ.candleLightingAlt);
+      const candle20 = minToStr(fridayZ.candleLighting);
 
       const satDate = new Date(fridayDate);
       satDate.setDate(fridayDate.getDate() + 1);
       const satZ        = calc(satDate);
-      const tzetShabbat = minToStr(satZ.tzetHakochavim); // צאת שבת
-      const rabbeinuTam = minToStr(satZ.shkia + 72);     // רבינו תם — 72 min after sunset
+      const tzetShabbat = minToStr(satZ.tzetShabbat);     // צאת שבת
+      const rabbeinuTam = minToStr(satZ.tzetRabbenuTam);  // רבינו תם — per the method's rule
 
       return { dow, daysTill, candle40, candle20, tzetShabbat, rabbeinuTam };
     } catch {
@@ -346,10 +348,10 @@ export default function HomeScreen() {
     return {
       heading,
       rightLabel: 'הדלקת נרות:',    rightTime: candle20,
-      leftLabel:  "לנוהגים 40 דק'", leftTime:  candle40,
+      leftLabel:  `לנוהגים ${zmanimSettings.candleLightingAltMin ?? 40} דק'`, leftTime:  candle40,
       tzet: tzetShabbat, rt: rabbeinuTam,
     };
-  }, [shabbatInfo]);
+  }, [shabbatInfo, zmanimSettings.candleLightingAltMin]);
 
   // ── Live countdowns (depend on tick so they update every 30s) ────
   const shabbatCountdown = useMemo(() => {

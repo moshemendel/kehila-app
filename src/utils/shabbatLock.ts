@@ -69,11 +69,11 @@ export function getShabbatLock(
 
   const tz = city.timezone || 'Asia/Jerusalem';
   const z  = calcZmanim(now, city.latitude, city.longitude, settings, tz, city.elevation ?? 0);
-  if (z.shkia < 0 || z.tzetHakochavim < 0) return { locked: false };
+  if (z.shkia < 0 || z.tzetShabbat < 0) return { locked: false };
 
   const nowMin    = nowMinutesInTz(now, tz);
   const lockStart = z.shkia;          // lock from sunset
-  const tzeit     = z.tzetHakochavim; // reopen at tzeit
+  const tzeit     = z.tzetShabbat; // reopen at tzeit
 
   const todayAssur    = isAssur(now);
   const tomorrow      = addDays(now, 1);
@@ -104,7 +104,7 @@ export function getShabbatLock(
   let last = activeDate;
   while (isAssur(addDays(last, 1))) last = addDays(last, 1);
   const zLast    = calcZmanim(last, city.latitude, city.longitude, settings, tz, city.elevation ?? 0);
-  const reopenAt = minToStr(zLast.tzetHakochavim);
+  const reopenAt = minToStr(zLast.tzetShabbat);
 
   // Title / parasha
   const isShabbatDay = activeDate.getDay() === 6; // JS: Saturday = 6

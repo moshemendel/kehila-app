@@ -32,6 +32,7 @@ import UserManagementScreen   from '../screens/admin/UserManagementScreen';
 import ManageEruvScreen       from '../screens/admin/ManageEruvScreen';
 import ManageReportsScreen     from '../screens/admin/ManageReportsScreen';
 import ManageCitiesScreen     from '../screens/admin/ManageCitiesScreen';
+import ManageZmanimScreen     from '../screens/admin/ManageZmanimScreen';
 import ManageGemachScreen     from '../screens/admin/ManageGemachScreen';
 import ZmanimSettingsScreen   from '../screens/main/ZmanimSettingsScreen';
 import GemachSubmitScreen     from '../screens/main/GemachSubmitScreen';
@@ -110,8 +111,10 @@ export default function RootNavigator() {
   // Shabbat / Yom Tov lock — closes the whole app from candle-lighting until tzeit.
   const cityId       = useCityId();
   const { city }     = useCity(cityId);
-  const { settings } = useZmanimSettings();
-  const lock         = useShabbatLock(city, settings);
+  // The lock closes and reopens the app for the whole city, so it follows the
+  // city's method (its Shabbat exit included), not one resident's preference.
+  const { citySettings } = useZmanimSettings();
+  const lock         = useShabbatLock(city, citySettings);
   const [devBypass, setDevBypass] = useState(false);
   // There was previously no way to test "does the lock screen engage/look
   // right" without waiting for an actual real candle-lighting moment (or
@@ -316,6 +319,11 @@ export default function RootNavigator() {
         name="ManageCities"
         component={ManageCitiesScreen}
         options={{ ...header(Colors.primary), title: 'ניהול ערים', contentStyle: stackContentStyle }}
+      />
+      <Root.Screen
+        name="ManageZmanim"
+        component={ManageZmanimScreen}
+        options={{ ...header(Colors.primary), title: 'ניהול זמני העיר', contentStyle: stackContentStyle }}
       />
       <Root.Screen
         name="ManageReports"

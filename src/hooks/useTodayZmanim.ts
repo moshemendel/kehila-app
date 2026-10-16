@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useCity } from './useCity';
-import { useZmanimSettings } from '../context/ZmanimSettingsContext';
+import { cityZmanimSettings } from '../utils/zmanimProfile';
 import { useAppForegroundTick } from './useAppForegroundTick';
 import { useSharedZmanim } from '../context/ZmanimContext';
 import { calcZmanim, ZmanimResult } from '../utils/zmanim';
@@ -22,7 +22,6 @@ import { calcZmanim, ZmanimResult } from '../utils/zmanim';
 export function useTodayZmanim(cityId: string): ZmanimResult | null {
   const shared = useSharedZmanim();
   const { city } = useCity(cityId);
-  const { settings } = useZmanimSettings();
   const foregroundTick = useAppForegroundTick();
 
   const canShare = !!shared && shared.cityId === cityId;
@@ -34,13 +33,13 @@ export function useTodayZmanim(cityId: string): ZmanimResult | null {
       new Date(),
       city.latitude,
       city.longitude,
-      settings,
+      cityZmanimSettings(city), // the listing's city's own method
       city.timezone || 'Asia/Jerusalem',
       0, // elevation always sea-level per Rav Ovadia
       0, // mountainAngle: ZmanimScreen computes daily; home widget uses astronomical netz
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canShare, shared, city, settings, foregroundTick]);
+  }, [canShare, shared, city, foregroundTick]);
 }
 
 /**
@@ -50,7 +49,6 @@ export function useTodayZmanim(cityId: string): ZmanimResult | null {
  */
 export function useTomorrowZmanim(cityId: string): ZmanimResult | null {
   const { city } = useCity(cityId);
-  const { settings } = useZmanimSettings();
   const foregroundTick = useAppForegroundTick();
 
   return useMemo(() => {
@@ -61,11 +59,11 @@ export function useTomorrowZmanim(cityId: string): ZmanimResult | null {
       tomorrow,
       city.latitude,
       city.longitude,
-      settings,
+      cityZmanimSettings(city), // the listing's city's own method
       city.timezone || 'Asia/Jerusalem',
       0, // elevation always sea-level per Rav Ovadia, matching useTodayZmanim
       0,
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [city, settings, foregroundTick]);
+  }, [city, foregroundTick]);
 }

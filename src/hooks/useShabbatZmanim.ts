@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import { useCity } from './useCity';
+import { useAreas } from './useAreas';
 import { useZmanimSettings } from '../context/ZmanimSettingsContext';
+import { Synagogue } from '../types';
+import { synagogueZmanimSettings, zmanimPoint } from '../utils/zmanimProfile';
 import { useAppForegroundTick } from './useAppForegroundTick';
 import { calcZmanim, ZmanimResult } from '../utils/zmanim';
 
@@ -27,9 +30,13 @@ export interface ShabbatZmanim {
   shabbat: ZmanimResult | null;
 }
 
-export function useShabbatZmanim(cityId: string): ShabbatZmanim {
+export function useShabbatZmanim(cityId: string, synagogue?: Synagogue | null): ShabbatZmanim {
   const { city } = useCity(cityId);
-  const { settings } = useZmanimSettings();
+  const { areas } = useAreas(cityId);
+  const { settings: personal } = useZmanimSettings();
+  // For a synagogue's own board: its gabbai's method, else the city's. Without
+  // a synagogue it is the resident's own view, as before.
+  const settings = synagogue ? synagogueZmanimSettings(synagogue, city) : personal;
   // Same reason useTodayZmanim takes this: without it `new Date()` is evaluated
   // once at mount and the answer is stale after a background/resume next day.
   const foregroundTick = useAppForegroundTick();
@@ -47,18 +54,20 @@ export function useShabbatZmanim(cityId: string): ShabbatZmanim {
     const shabbatDate = new Date(fridayDate);
     shabbatDate.setDate(fridayDate.getDate() + 1);
 
+    const point = (synagogue ? zmanimPoint(city, areas, synagogue.areaId) : null)
+      ?? { latitude: city.latitude, longitude: city.longitude, timezone: city.timezone || 'Asia/Jerusalem' };
     const calc = (d: Date) =>
       calcZmanim(
         d,
-        city.latitude,
-        city.longitude,
+        point.latitude,
+        point.longitude,
         settings,
-        city.timezone || 'Asia/Jerusalem',
+        point.timezone,
         0, // elevation always sea-level per Rav Ovadia, matching useTodayZmanim
         0,
       );
 
     return { friday: calc(fridayDate), shabbat: calc(shabbatDate) };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [city, settings, foregroundTick]);
+  }, [city, areas, synagogue?.areaId, settings, foregroundTick]);
 }

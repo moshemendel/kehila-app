@@ -17,7 +17,7 @@ import { PrayerTimeSlot, Shiur, Synagogue, SynagogueAnnouncement } from '../../t
 import { getSynagogue } from '../../services/synagogues';
 import { useCityId } from '../../hooks/useCityId';
 import { shouldShowSelichot, daysUntilSelichot } from '../../utils/selichot';
-import { useTodayZmanim } from '../../hooks/useTodayZmanim';
+import { useSynagogueZmanim } from '../../hooks/useSynagogueZmanim';
 import { useShabbatZmanim } from '../../hooks/useShabbatZmanim';
 import { ZmanimResult } from '../../utils/zmanim';
 import { useFavorites } from '../../context/FavoritesContext';
@@ -293,8 +293,9 @@ export default function SynagogueDetailScreen() {
   );
   const cityId              = useCityId();
   const { areas }           = useAreas(cityId);
-  const todayZmanim         = useTodayZmanim(cityId);
-  const { friday: fridayZmanim, shabbat: shabbatZmanim } = useShabbatZmanim(cityId);
+  const zmanimFor           = useSynagogueZmanim(cityId);
+  const todayZmanim         = React.useMemo(() => (syn ? zmanimFor(syn) : null), [syn, zmanimFor]);
+  const { friday: fridayZmanim, shabbat: shabbatZmanim } = useShabbatZmanim(cityId, syn);
   const { isFavorite, getFavoriteSetting, setFavorite, removeFavorite } = useFavorites();
   const [modalVisible, setModalVisible] = React.useState(false);
   const { go: navigateTo, sheet: navSheet } = useNavigateTo();

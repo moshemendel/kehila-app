@@ -161,7 +161,7 @@ function shiurIndices(
  */
 export async function schedulePrayerNotifications(
   synagogues: Synagogue[],
-  zmanim:     ZmanimResult,
+  zmanimFor:  (synagogue: Synagogue) => ZmanimResult | null,
   settings:   NotifSettings,
   favorites:  FavoritesMap,
 ): Promise<void> {
@@ -181,6 +181,7 @@ export async function schedulePrayerNotifications(
   for (const syn of synagogues) {
     const setting = favorites[syn.id];
     if (!setting) continue;
+    const zmanim = zmanimFor(syn);
 
     // ── 'all' mode: every prayer slot + every shiur ──────────────────────────
     if (setting === 'all') {

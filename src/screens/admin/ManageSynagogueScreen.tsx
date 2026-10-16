@@ -28,6 +28,11 @@ import ImageGalleryEditor from '../../components/ImageGalleryEditor';
 import TimePicker from '../../components/TimePicker';
 import MultiDateCalendar from '../../components/MultiDateCalendar';
 import { synagogueSelichotStart } from '../../utils/selichot';
+import ZmanimMethodEditor from '../../components/ZmanimMethodEditor';
+import { useCity } from '../../hooks/useCity';
+import { useAreas } from '../../hooks/useAreas';
+import { cityZmanimSettings, zmanimPoint } from '../../utils/zmanimProfile';
+import { presetByKey } from '../../utils/zmanim';
 import { splitAnnouncements } from '../../utils/synagogueAnnouncements';
 import { managesContent } from '../../utils/roles';
 
@@ -1010,6 +1015,8 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
   const isAdmin = managesContent(appUser)
     || (appUser?.roles ?? (appUser?.role ? [appUser.role] : [])).includes('synagogue_manager');
   const { options: nusachOptions, addOption: addNusach, labelFor: nusachLabel } = useNusachOptions(syn.cityId);
+  const { city: synCity } = useCity(syn.cityId);
+  const { areas: synAreas } = useAreas(syn.cityId);
   const [showAddNusach, setShowAddNusach] = useState(false);
   const [newNusachText, setNewNusachText] = useState('');
   const { options: neighborhoodOptions, addOption: addNeighborhood } = useNeighborhoodOptions(syn.cityId);
@@ -1298,6 +1305,45 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
               <Ionicons name="pencil-outline" size={16} color={Colors.textMuted} />
             </TouchableOpacity>
           </View>
+        </View>
+
+        {/* ── Zmanim method ──
+            What this shul's anchored times ("30 min before sunset", "after
+            tzeit") are measured by. Default is the city's method; choosing one
+            here moves only this shul's anchored minyanim — fixed clock times
+            and the resident's own zmanim screen are untouched. */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>שיטת חישוב הזמנים</Text>
+          <Text style={s.sectionHint}>משפיעה על זמני תפילה שמוגדרים לפי שקיעה, צאת הכוכבים וכד'</Text>
+          <View style={s.card}>
+            {[
+              { custom: false, title: 'לפי העיר', sub: presetByKey(cityZmanimSettings(synCity).presetKey)?.label ?? 'שיטת העיר' },
+              { custom: true,  title: 'שיטה משלנו', sub: 'בחירה והתאמה של שיטה לבית הכנסת' },
+            ].map((opt, i) => {
+              const on = !!form.zmanimSettings === opt.custom;
+              return (
+                <TouchableOpacity
+                  key={opt.title}
+                  style={[{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: Spacing.md }, i === 0 && { borderBottomWidth: 1, borderBottomColor: Colors.border }]}
+                  onPress={() => set('zmanimSettings', opt.custom ? (form.zmanimSettings ?? cityZmanimSettings(synCity)) : undefined)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name={on ? 'radio-button-on' : 'radio-button-off'} size={20} color={on ? Colors.primary : Colors.textMuted} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 15, fontWeight: on ? '700' : '500', color: Colors.text }}>{opt.title}</Text>
+                    <Text style={{ fontSize: 12, color: Colors.textMuted, marginTop: 2 }}>{opt.sub}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {form.zmanimSettings && (
+            <ZmanimMethodEditor
+              value={form.zmanimSettings}
+              onChange={(v) => set('zmanimSettings', v)}
+              point={zmanimPoint(synCity, synAreas, form.areaId)}
+            />
+          )}
         </View>
 
         {/* ── Weekly schedule ── */}

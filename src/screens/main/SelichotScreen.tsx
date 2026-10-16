@@ -8,7 +8,7 @@ import * as Location from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSynagoguesFeed } from '../../context/SynagoguesContext';
 import { useCityId } from '../../hooks/useCityId';
-import { useTodayZmanim } from '../../hooks/useTodayZmanim';
+import { useSynagogueZmanim } from '../../hooks/useSynagogueZmanim';
 import { useAnalyticsTrack } from '../../services/analytics';
 import FilterBar, { type FilterConfig } from '../../components/FilterBar';
 import { collectSelichot, type SelichotOccurrence } from '../../utils/selichotSlots';
@@ -26,7 +26,7 @@ export default function SelichotScreen() {
   const cityId = useCityId();
   const { top, bottom } = useSafeAreaInsets();
   const { synagogues, loading } = useSynagoguesFeed();
-  const zmanim = useTodayZmanim(cityId);
+  const zmanimFor = useSynagogueZmanim(cityId);
 
   const [sort, setSort] = useState<'earliest' | 'closest'>('earliest');
   const [userLoc, setUserLoc] = useState<{ lat: number; lon: number } | null>(null);
@@ -89,8 +89,8 @@ export default function SelichotScreen() {
 
   // All upcoming selichot, grouped by the evening they belong to.
   const nights = useMemo(
-    () => collectSelichot(synagogues, zmanim, userLoc),
-    [synagogues, zmanim, userLoc],
+    () => collectSelichot(synagogues, zmanimFor, userLoc),
+    [synagogues, zmanimFor, userLoc],
   );
 
   const nusachOptions = useMemo(() => {

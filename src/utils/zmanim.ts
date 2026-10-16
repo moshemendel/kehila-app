@@ -3,7 +3,24 @@ import type { DateTime } from 'luxon';
 
 export type AlotMethod    = 'proportional' | 'fixed' | 'degrees';
 export type PrimaryMethod = 'gra' | 'mga';
-export type TzetMethod    = 'fixed' | 'proportional';
+export type TzetMethod    = RuleMethod;
+
+/**
+ * How a time is measured from sunrise or sunset:
+ *  - 'fixed'        `value` clock minutes.
+ *  - 'proportional' `value` sha'ot-zmaniyot minutes (1/60 of a GRA hour), so longer in summer.
+ *  - 'degrees'      the sun is `value` degrees below the horizon.
+ *  - 'longer'       the longer of `value` fixed and `value` proportional minutes —
+ *                   "זמניות בקיץ, קבועות בחורף".
+ */
+export type RuleMethod = 'fixed' | 'proportional' | 'degrees' | 'longer';
+
+export interface ZmanimRule {
+  method: RuleMethod;
+  value:  number;
+}
+
+export type MisheyakirMethod = 'third' | 'degrees' | 'fixed' | 'afterAlotProportional';
 
 export interface ZmanimSettings {
   primaryMethod: PrimaryMethod;
@@ -14,6 +31,27 @@ export interface ZmanimSettings {
   presetKey?:    string;
   /** Days before a fast to show the fast-day card on the home screen. Default 1. */
   taanisLookAheadDays?: number;
+
+  // ── Optional refinements. Absent on every settings object saved before they
+  //    existed, and each one's absence means exactly the behaviour those
+  //    objects always had — so nothing here changes an existing user's times.
+
+  /** Tallit and tefillin. Absent = a third of the way from alot to netz. 'fixed'
+   *  is minutes before netz, 'afterAlotProportional' zmaniyot minutes after alot. */
+  misheyakir?: { method: MisheyakirMethod; value: number };
+  /** Mincha gedola, measured after chatzot. Absent = 30 zmaniyot minutes. */
+  minchaGedola?: ZmanimRule;
+  /** The day the Magen Avraham counts hours over. Absent = alot 72 zmaniyot to
+   *  tzet 13.5 zmaniyot. */
+  mgaDay?: { alot: ZmanimRule; tzet: ZmanimRule };
+  /** Minutes before sunset the Shabbat candles are lit. Absent = 20. */
+  candleLightingMin?: number;
+  /** The second, stricter minhag shown beside it (Jerusalem's 40). Absent = 40. */
+  candleLightingAltMin?: number;
+  /** Motzei Shabbat. Absent = the same rule as tzet hakochavim. */
+  shabbatExit?: ZmanimRule;
+  /** Rabbeinu Tam. Absent = 72 zmaniyot minutes after sunset. */
+  rabbenuTam?: ZmanimRule;
 }
 
 export interface ZmanimPreset {
@@ -69,6 +107,59 @@ export const PRESET_CHAZON_ISH: ZmanimSettings = {
   presetKey:     'chazon_ish',
 };
 
+// The three presets below are built from each authority's own published
+// definition: חזון שמים from calendar.2net.co.il/About.aspx, צקוני from his
+// "הצעה ללוח אחיד" (שנה בשנה תשס"ג), מלמד from yeshiva.org.il/calendar/timeprinciples.
+// Where a source gives a range or says "לחומרה", the value below is the one
+// it names for the zman itself.
+export const PRESET_CHAZON_SHAMAYIM: ZmanimSettings = {
+  primaryMethod: 'gra',
+  alotMethod:    'degrees',
+  alotValue:     16.013,
+  tzetMinutes:   4.9,
+  tzetMethod:    'degrees',
+  presetKey:     'chazon_shamayim',
+  misheyakir:    { method: 'degrees', value: 11.5 },
+  minchaGedola:  { method: 'fixed', value: 30 },
+  mgaDay:        { alot: { method: 'degrees', value: 19.75 }, tzet: { method: 'degrees', value: 19.75 } },
+  candleLightingMin: 30,
+  candleLightingAltMin: 40,
+  shabbatExit:   { method: 'degrees', value: 8.5 },
+  rabbenuTam:    { method: 'fixed', value: 72 },
+};
+
+export const PRESET_TZIKUNI: ZmanimSettings = {
+  primaryMethod: 'gra',
+  alotMethod:    'degrees',
+  alotValue:     16.1,
+  tzetMinutes:   13.5,
+  tzetMethod:    'fixed',
+  presetKey:     'tzikuni',
+  misheyakir:    { method: 'degrees', value: 11.5 },
+  minchaGedola:  { method: 'fixed', value: 30 },
+  mgaDay:        { alot: { method: 'degrees', value: 16.1 }, tzet: { method: 'degrees', value: 16.1 } },
+  candleLightingMin: 30,
+  candleLightingAltMin: 40,
+  shabbatExit:   { method: 'degrees', value: 8.5 },
+  rabbenuTam:    { method: 'fixed', value: 72 },
+};
+
+export const PRESET_MELAMED: ZmanimSettings = {
+  primaryMethod: 'gra',
+  alotMethod:    'fixed',
+  alotValue:     72,
+  tzetMinutes:   18,
+  tzetMethod:    'longer',
+  presetKey:     'melamed',
+  misheyakir:    { method: 'fixed', value: 45 },
+  minchaGedola:  { method: 'longer', value: 30 },
+  mgaDay:        { alot: { method: 'fixed', value: 72 }, tzet: { method: 'fixed', value: 72 } },
+  candleLightingMin: 30,
+  candleLightingAltMin: 40,
+  shabbatExit:   { method: 'degrees', value: 8.5 },
+  rabbenuTam:    { method: 'fixed', value: 72 },
+};
+
 export const ZMANIM_PRESETS: ZmanimPreset[] = [
   {
     key:         'maran',
@@ -105,7 +196,32 @@ export const ZMANIM_PRESETS: ZmanimPreset[] = [
     description: 'עלות 16.1° מתחת לאופק | צאת 40 ד׳ קבועות',
     settings:    PRESET_CHAZON_ISH,
   },
+  {
+    key:         'chazon_shamayim',
+    label:       'חזון שמים',
+    posek:       'לוח חזון שמים (הרב איתן צקוני)',
+    description: 'עלות 16.013° | צאת 4.9° | מוצ"ש 8.5° | מנחה גדולה 30 ד׳ קבועות',
+    settings:    PRESET_CHAZON_SHAMAYIM,
+  },
+  {
+    key:         'tzikuni',
+    label:       'הרב איתן צקוני',
+    posek:       'הצעה ללוח אחיד',
+    description: 'עלות ~16° | צאת 13.5 ד׳ קבועות | מוצ"ש 8.5° | משיכיר 11.5°',
+    settings:    PRESET_TZIKUNI,
+  },
+  {
+    key:         'melamed',
+    label:       'הרב זלמן מלמד',
+    posek:       'הרב זלמן ברוך מלמד',
+    description: 'עלות 72 ד׳ קבועות | צאת 18 ד׳ (זמניות בקיץ) | מוצ"ש 8.5° | מנחה גדולה 30 ד׳',
+    settings:    PRESET_MELAMED,
+  },
 ];
+
+export function presetByKey(key?: string | null): ZmanimPreset | undefined {
+  return key ? ZMANIM_PRESETS.find((p) => p.key === key) : undefined;
+}
 
 export interface ZmanimResult {
   alot:             number;
@@ -126,6 +242,9 @@ export interface ZmanimResult {
   tzetRabbenuTam:   number; // always proportional 72 min GRA (Rabbenu Tam)
   shaahZmanitGra:   number; // minutes
   shaahZmanitMga:   number; // minutes, per Python formula
+  candleLighting:    number; // settings.candleLightingMin before sunset
+  candleLightingAlt: number; // settings.candleLightingAltMin before sunset
+  tzetShabbat:       number; // motzei Shabbat: settings.shabbatExit, else tzetHakochavim
 }
 
 export function minToStr(minutes: number, withSec = false): string {
@@ -148,13 +267,37 @@ function offset(dt: DateTime | null, ms: number): DateTime | null {
   return AstronomicalCalendar.getTimeOffset(dt, ms);
 }
 
+/**
+ * A time `rule` away from sunrise (rise = true, going earlier) or sunset
+ * (rise = false, going later). 'degrees' ignores `anchor`: it asks the sun
+ * directly, so it follows the real length of twilight at this latitude.
+ */
+function applyRule(
+  cal: ComplexZmanimCalendar,
+  anchor: DateTime,
+  rule: ZmanimRule,
+  rise: boolean,
+  shaahMs: number,
+): DateTime | null {
+  if (rule.method === 'degrees') {
+    const zenith = AstronomicalCalendar.GEOMETRIC_ZENITH + rule.value;
+    return rise ? cal.getSunriseOffsetByDegrees(zenith) : cal.getSunsetOffsetByDegrees(zenith);
+  }
+  const fixedMs = rule.value * 60_000;
+  const propMs  = (rule.value / 60) * shaahMs;
+  const ms = rule.method === 'fixed' ? fixedMs
+           : rule.method === 'proportional' ? propMs
+           : Math.max(fixedMs, propMs);
+  return offset(anchor, rise ? -ms : ms);
+}
+
 export function calcZmanim(
   date:           Date,
   lat:            number,
   lon:            number,
   settings:       ZmanimSettings,
   tzId =          'Asia/Jerusalem',
-  elevationMeters = 0,
+  _elevationMeters = 0, // unused: kept so every caller's argument list still lines up
   mountainAngle =  0, // angular elevation of horizon in sunrise direction (degrees), for ותיקין
 ): ZmanimResult {
   // Always pass 0 for elevation — the library uses GeoLocation elevation even with
@@ -178,18 +321,23 @@ export function calcZmanim(
       chatzot: -1, minchaGedola: -1, minchaKetana: -1, plagHamincha: -1,
       shkia: -1, tzetHakochavim: -1, tzetHakochavim18: -1, tzetRabbenuTam: -1,
       shaahZmanitGra: 60, shaahZmanitMga: 60,
+      candleLighting: -1, candleLightingAlt: -1, tzetShabbat: -1,
     };
   }
 
   // ── Sha'ah zmanit GRA: (sunset − sunrise) / 12 ───────────────────────────
   const shaahGraMs = cal.getShaahZmanisGra() ?? ((shkia.toMillis() - netz.toMillis()) / 12);
 
-  // ── Proportional alot (72) and tzeit (13.5) — base for MGA sha'ah ────────
-  // Matches Python: alos = sunrise − 1.2 × sz_gra; tzeit = sunset + (13.5/60) × sz_gra
-  const alotProp72  = offset(netz,  -(72 / 60)  * shaahGraMs);
-  const tzeit13Prop = offset(shkia, (13.5 / 60) * shaahGraMs);
+  // ── The Magen Avraham's day, alot to tzeit ───────────────────────────────
+  // Default (no settings.mgaDay) matches Python: alos = sunrise − 1.2 × sz_gra;
+  // tzeit = sunset + (13.5/60) × sz_gra. A preset that defines its own day
+  // (חזון שמים's 19.75°, מלמד's 72 fixed both sides) overrides it.
+  const mgaAlotRule = settings.mgaDay?.alot ?? { method: 'proportional' as RuleMethod, value: 72 };
+  const mgaTzetRule = settings.mgaDay?.tzet ?? { method: 'proportional' as RuleMethod, value: 13.5 };
+  const alotProp72  = applyRule(cal, netz,  mgaAlotRule, true,  shaahGraMs);
+  const tzeit13Prop = applyRule(cal, shkia, mgaTzetRule, false, shaahGraMs);
 
-  // MGA sha'ah per Python formula: (tzeit_proportional_13.5 − alot_proportional_72) / 12
+  // MGA sha'ah per Python formula: (tzeit − alot) / 12
   const shaahMgaMs = alotProp72 && tzeit13Prop
     ? (tzeit13Prop.toMillis() - alotProp72.toMillis()) / 12
     : (shkia.toMillis() - netz.toMillis() + (72 + 45) * 60_000) / 12;
@@ -199,14 +347,22 @@ export function calcZmanim(
   if (settings.alotMethod === 'degrees') {
     alot = cal.getSunriseOffsetByDegrees(AstronomicalCalendar.GEOMETRIC_ZENITH + settings.alotValue);
   } else if (settings.alotMethod === 'proportional') {
-    alot = alotProp72;
+    alot = offset(netz, -(settings.alotValue / 60) * shaahGraMs);
   } else {
     alot = offset(netz, -settings.alotValue * 60_000);
   }
 
-  const misheyakir = alot
-    ? offset(alot, (netz.toMillis() - alot.toMillis()) / 3)
-    : null;
+  const mish = settings.misheyakir;
+  let misheyakir: DateTime | null;
+  if (!mish || mish.method === 'third') {
+    misheyakir = alot ? offset(alot, (netz.toMillis() - alot.toMillis()) / 3) : null;
+  } else if (mish.method === 'degrees') {
+    misheyakir = cal.getSunriseOffsetByDegrees(AstronomicalCalendar.GEOMETRIC_ZENITH + mish.value);
+  } else if (mish.method === 'fixed') {
+    misheyakir = offset(netz, -mish.value * 60_000);
+  } else {
+    misheyakir = alot ? offset(alot, (mish.value / 60) * shaahGraMs) : null;
+  }
 
   // ── ותיקין: visible sunrise — Python: get_time_min(90.833 − mountainAngle) ─
   // kosher-zmanim equivalent: getSunriseOffsetByDegrees(GEOMETRIC_ZENITH + 0.833 − mountainAngle)
@@ -215,14 +371,18 @@ export function calcZmanim(
     : null;
 
   // ── Tzeit per preset ─────────────────────────────────────────────────────
-  const tzet = settings.tzetMethod === 'proportional'
-    ? offset(shkia, (settings.tzetMinutes / 60) * shaahGraMs)
-    : offset(shkia, settings.tzetMinutes * 60_000);
+  const tzetRule: ZmanimRule = { method: settings.tzetMethod, value: settings.tzetMinutes };
+  const tzet = applyRule(cal, shkia, tzetRule, false, shaahGraMs);
 
   // Tzeit 18 — always proportional
   const tzet18 = offset(shkia, (18 / 60) * shaahGraMs);
   // Tzeit Rabbenu Tam — always proportional 72 min
-  const tzetRt = offset(shkia, (72 / 60) * shaahGraMs);
+  const tzetRt = applyRule(cal, shkia, settings.rabbenuTam ?? { method: 'proportional', value: 72 }, false, shaahGraMs);
+  const tzetShab = settings.shabbatExit ? applyRule(cal, shkia, settings.shabbatExit, false, shaahGraMs) : tzet;
+  const mgDef = settings.minchaGedola ?? { method: 'proportional' as RuleMethod, value: 30 };
+  const minchaGedola = applyRule(cal, chatzot, mgDef, false, shaahGraMs);
+  const candleMs = (settings.candleLightingMin ?? 20) * 60_000;
+  const candleAltMs = (settings.candleLightingAltMin ?? 40) * 60_000;
 
   return {
     alot:             m(alot),
@@ -235,7 +395,7 @@ export function calcZmanim(
     sofZmanTfila:     m(offset(netz,       4     * shaahGraMs)),
     sofZmanTfilaMga:  alotProp72 ? m(offset(alotProp72, 4 * shaahMgaMs)) : -1,
     chatzot:          m(chatzot),
-    minchaGedola:     m(offset(chatzot,  0.5   * shaahGraMs)),
+    minchaGedola:     m(minchaGedola),
     minchaKetana:     m(offset(netz,     9.5   * shaahGraMs)),
     plagHamincha:     m(offset(netz,     10.75 * shaahGraMs)),
     shkia:            m(shkia),
@@ -244,5 +404,8 @@ export function calcZmanim(
     tzetRabbenuTam:   m(tzetRt),
     shaahZmanitGra:   shaahGraMs / 60_000,
     shaahZmanitMga:   shaahMgaMs / 60_000,
+    candleLighting:    m(offset(shkia, -candleMs)),
+    candleLightingAlt: m(offset(shkia, -candleAltMs)),
+    tzetShabbat:       m(tzetShab),
   };
 }

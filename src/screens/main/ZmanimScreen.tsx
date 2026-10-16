@@ -43,6 +43,16 @@ function getNextKey(result: ZmanimResult): keyof ZmanimResult | null {
   return null;
 }
 
+/** "13.5 דק' זמניות", "4.9° מתחת לאופק" — a rule spelled the way its row should read. */
+function ruleLabel(method: string, value: number): string {
+  switch (method) {
+    case 'degrees':      return `${value}° מתחת לאופק`;
+    case 'proportional': return `${value} דק' זמניות`;
+    case 'longer':       return `${value} דק' (זמניות בקיץ, קבועות בחורף)`;
+    default:             return `${value} דק' קבועות`;
+  }
+}
+
 function activePreset(s: ZmanimSettings) {
   if (s.presetKey) return ZMANIM_PRESETS.find(p => p.key === s.presetKey) ?? null;
   return ZMANIM_PRESETS.find(p => JSON.stringify(p.settings) === JSON.stringify(s)) ?? null;
@@ -261,12 +271,25 @@ export default function ZmanimScreen() {
               onLayout={(e) => { rowLayouts.current['shkia'] = e.nativeEvent.layout.y; }} />
 
             <SectionRow label="צאת הכוכבים" />
-            <TimeRow label={`${settings.tzetMinutes} דק' זמניות`} time={zmanim.tzetHakochavim}   isNext={isNext('tzetHakochavim')}   isPast={isPast('tzetHakochavim')}
+            <TimeRow label={ruleLabel(settings.tzetMethod, settings.tzetMinutes)} time={zmanim.tzetHakochavim}   isNext={isNext('tzetHakochavim')}   isPast={isPast('tzetHakochavim')}
               onLayout={(e) => { rowLayouts.current['tzetHakochavim'] = e.nativeEvent.layout.y; }} />
             <TimeRow label="18 דק' זמניות"           time={zmanim.tzetHakochavim18} isNext={isNext('tzetHakochavim18')} isPast={isPast('tzetHakochavim18')}
               onLayout={(e) => { rowLayouts.current['tzetHakochavim18'] = e.nativeEvent.layout.y; }} />
-            <TimeRow label="רבנו תם - 72 דק' זמניות" time={zmanim.tzetRabbenuTam}  isNext={isNext('tzetRabbenuTam')}   isPast={isPast('tzetRabbenuTam')}
+            <TimeRow label={`רבנו תם - ${ruleLabel(settings.rabbenuTam?.method ?? 'proportional', settings.rabbenuTam?.value ?? 72)}`} time={zmanim.tzetRabbenuTam}  isNext={isNext('tzetRabbenuTam')}   isPast={isPast('tzetRabbenuTam')}
               onLayout={(e) => { rowLayouts.current['tzetRabbenuTam'] = e.nativeEvent.layout.y; }} />
+
+            <SectionRow label="שבת" />
+            <TimeRow label="הדלקת נרות" subLabel={`${settings.candleLightingMin ?? 20} דק' לפני שקיעה`}
+              time={zmanim.candleLighting} isNext={false} isPast={false} />
+            <TimeRow label="צאת השבת"
+              subLabel={settings.shabbatExit ? ruleLabel(settings.shabbatExit.method, settings.shabbatExit.value) : undefined}
+              time={zmanim.tzetShabbat} isNext={false} isPast={false} />
+
+            {!!city?.zmanimNote && (
+              <Text style={{ fontSize: 12, color: Colors.textMuted, textAlign: 'center', marginTop: 16, paddingHorizontal: Spacing.md }}>
+                {city.zmanimNote}
+              </Text>
+            )}
           </>
         )}
       </ScrollView>

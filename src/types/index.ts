@@ -83,6 +83,7 @@ export interface NusachOption {
 
 import type { CityModules } from '../utils/modules';
 export type { CityModules };
+import type { ZmanimSettings } from '../utils/zmanim';
 
 export interface City {
   id: string;
@@ -123,6 +124,16 @@ export interface City {
   /** The city's burial society register is copied into `deceased` (see
    *  functions/src/deceasedSync.ts): the cemeteries tab offers a search. */
   deceasedSearch?: boolean;
+  /**
+   * The method the city's council publishes its zmanim by — what residents see
+   * until they pick their own, and what every synagogue's anchored prayer times
+   * follow unless its gabbai chose another. Absent = אור החיים (the app's
+   * original default). Written by the city's manager from the console or the
+   * app's city-zmanim screen; see utils/zmanimProfile.ts for how it layers.
+   */
+  zmanimSettings?: ZmanimSettings;
+  /** A line shown under the city's zmanim, e.g. "לפי מנהג העיר: צאת השבת 40 דקות". */
+  zmanimNote?: string;
 }
 
 /**
@@ -284,6 +295,14 @@ export interface Synagogue {
    * start a month after "ספרדי / עדות המזרח". See utils/selichot.ts.
    */
   selichotCustom?: 'sephardi' | 'ashkenazi';
+  /**
+   * The method this synagogue's gabbai chose for the zmanim its anchored prayer
+   * times hang on ("30 דקות לפני שקיעה", "צאת הכוכבים"). Absent = follow the
+   * city's (City.zmanimSettings). A resident's own display preference never
+   * reaches here: a minyan fixed at "צאת הכוכבים" in the shul's own method does
+   * not move because one member prefers another.
+   */
+  zmanimSettings?: ZmanimSettings;
   weeklySchedule: WeeklySchedule;
   shabbatSchedule?: ShabbatSchedule;
   specialEvents?: SpecialEvent[];

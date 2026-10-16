@@ -4,11 +4,11 @@ import Constants from 'expo-constants';
 import { useSynagoguesFeed } from '../context/SynagoguesContext';
 import { useCityId } from '../hooks/useCityId';
 import { useCity } from '../hooks/useCity';
-import { useZmanimSettings } from '../context/ZmanimSettingsContext';
+import { useAreas } from '../hooks/useAreas';
 import { useNotifications } from '../context/NotificationsContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useAuth } from '../context/AuthContext';
-import { calcZmanim } from '../utils/zmanim';
+import { cachedZmanim, synagogueZmanimSettings, zmanimPoint } from '../utils/zmanimProfile';
 import {
   schedulePrayerNotifications,
   requestNotificationPermissions,
@@ -27,7 +27,7 @@ export default function PrayerNotificationScheduler() {
   const cityId             = useCityId();
   const { synagogues }     = useSynagoguesFeed();
   const { city }           = useCity(cityId);
-  const { settings: zmanimSettings } = useZmanimSettings();
+  const { areas }          = useAreas(cityId);
   const { enabled, settings: notifSettings } = useNotifications();
   const { favorites } = useFavorites();
   const { appUser, firebaseUser, isGuest } = useAuth();
@@ -119,16 +119,15 @@ export default function PrayerNotificationScheduler() {
         if (!hasPermission.current) return;
       }
 
-      const zmanim = calcZmanim(
-        new Date(),
-        city.latitude,
-        city.longitude,
-        zmanimSettings,
-        city.timezone || 'Asia/Jerusalem',
-        city.elevation ?? 0,
-      );
+      // Each shul's own method (else the city's) — an alarm must go off at the
+      // time its listing shows, whatever the resident's personal preference is.
+      const now = new Date();
+      const zmanimFor = (syn: (typeof synagogues)[number]) => {
+        const point = zmanimPoint(city, areas, syn.areaId);
+        return point ? cachedZmanim(now, point, synagogueZmanimSettings(syn, city)) : null;
+      };
 
-      await schedulePrayerNotifications(synagogues, zmanim, notifSettings, favorites);
+      await schedulePrayerNotifications(synagogues, zmanimFor, notifSettings, favorites);
     } catch (e) {
       // Notification errors should never crash the app
       console.warn('[PrayerNotifications]', e);
@@ -136,7 +135,7 @@ export default function PrayerNotificationScheduler() {
   }
 
   // Reschedule whenever settings, favorites, or data change
-  useEffect(() => { reschedule(); }, [enabled, synagogues, city, zmanimSettings, notifSettings, favorites]);
+  useEffect(() => { reschedule(); }, [enabled, synagogues, city, areas, notifSettings, favorites]);
 
   // Reschedule when app comes to foreground (handles day rollover)
   useEffect(() => {
@@ -145,7 +144,7 @@ export default function PrayerNotificationScheduler() {
     };
     const sub = AppState.addEventListener('change', handler);
     return () => sub.remove();
-  }, [enabled, synagogues, city, zmanimSettings, notifSettings, favorites]);
+  }, [enabled, synagogues, city, areas, notifSettings, favorites]);
 
   return null;
 }

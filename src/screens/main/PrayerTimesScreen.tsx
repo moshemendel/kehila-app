@@ -12,7 +12,7 @@ import * as Location from 'expo-location';
 import { useSynagoguesFeed } from '../../context/SynagoguesContext';
 import { useCityId } from '../../hooks/useCityId';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTodayZmanim, useTomorrowZmanim } from '../../hooks/useTodayZmanim';
+import { useSynagogueZmanim } from '../../hooks/useSynagogueZmanim';
 import { Colors, Spacing, Radius, Shadow, CardShellFlush } from '../../utils/theme';
 import { Synagogue } from '../../types';
 import {
@@ -231,8 +231,7 @@ export default function PrayerTimesScreen() {
   const cityId = useCityId();
   const { top } = useSafeAreaInsets();
   const { synagogues, loading } = useSynagoguesFeed();
-  const todayZmanim = useTodayZmanim(cityId);
-  const tomorrowZmanim = useTomorrowZmanim(cityId);
+  const zmanimFor = useSynagogueZmanim(cityId);
   const navigation = useNavigation<any>();
 
   const [sort,         setSort]         = useState<'earliest' | 'closest'>('earliest');
@@ -311,9 +310,12 @@ export default function PrayerTimesScreen() {
   const allSlots = useMemo<PrayerSlot[]>(() => {
     const dayNum = viewDay === 'today' ? todayDayNumber() : tomorrowDayNumber();
     const isTomorrow = viewDay === 'tomorrow';
-    const zmanim = isTomorrow ? tomorrowZmanim : todayZmanim;
+    const day = new Date();
+    if (isTomorrow) day.setDate(day.getDate() + 1);
     const slots: PrayerSlot[] = [];
     for (const syn of synagogues) {
+      // Each shul's own method (else the city's), on the day being viewed.
+      const zmanim = zmanimFor(syn, day);
       const distKm = userLoc && syn.latitude && syn.longitude
         ? haversineKm(userLoc.lat, userLoc.lon, syn.latitude, syn.longitude)
         : null;
@@ -335,7 +337,7 @@ export default function PrayerTimesScreen() {
       }
     }
     return slots;
-  }, [synagogues, userLoc, nowMin, todayZmanim, tomorrowZmanim, viewDay]);
+  }, [synagogues, userLoc, nowMin, zmanimFor, viewDay]);
 
   // Auto-advance to tomorrow once all of today's prayers are past
   const todayAllDone = useMemo(

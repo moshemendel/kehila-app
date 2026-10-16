@@ -21,7 +21,7 @@ import {
   slotRuleLabel, getTodaySchedule, getNextPrayerTodayOrTomorrow, formatPrayerLabel,
   parseTimeToMinutes, nowInMinutes,
 } from '../../utils/prayerUtils';
-import { useTodayZmanim } from '../../hooks/useTodayZmanim';
+import { useSynagogueZmanim } from '../../hooks/useSynagogueZmanim';
 import { useAppForegroundTick } from '../../hooks/useAppForegroundTick';
 import { Synagogue } from '../../types';
 import FilterBar from '../../components/FilterBar';
@@ -161,7 +161,7 @@ export default function SynagoguesScreen() {
   const { synagogues, loading } = useSynagoguesFeed();
   const { city }   = useCity(cityId);
   const navigation = useNavigation<any>();
-  const zmanim     = useTodayZmanim(cityId);
+  const zmanimFor  = useSynagogueZmanim(cityId);
   const foregroundTick = useAppForegroundTick();
 
   // Each shul's next prayer, worked out once per list rather than per row
@@ -171,6 +171,8 @@ export default function SynagoguesScreen() {
   const nextBySyn = useMemo(() => {
     const out = new Map<string, NextPrayerInfo>();
     for (const syn of synagogues) {
+      // Each shul's own method (else the city's) — not the resident's.
+      const zmanim = zmanimFor(syn);
       const sched = getTodaySchedule(syn.weeklySchedule, syn.shabbatSchedule, zmanim);
       const hasToday = !!sched && (sched.shacharit.length + sched.mincha.length + sched.maariv.length) > 0;
       const next = getNextPrayerTodayOrTomorrow(syn.weeklySchedule, syn.shabbatSchedule, zmanim);
@@ -178,7 +180,7 @@ export default function SynagoguesScreen() {
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [synagogues, zmanim, foregroundTick]);
+  }, [synagogues, zmanimFor, foregroundTick]);
 
   const [search,        setSearch]        = useState('');
   const [searchOpen,    setSearchOpen]    = useState(false);

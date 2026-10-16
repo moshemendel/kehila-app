@@ -60,7 +60,11 @@ export function ZmanimProvider({ children }: { children: ReactNode }) {
   const { city } = useCity(cityId);
   const { areas } = useAreas(cityId);
   const { appUser } = useAuth();
-  const { settings } = useZmanimSettings();
+  // The city's method, not the resident's: what this serves is the zmanim that
+  // listings (a mikveh's hours, a shop's closing time) hang on, and those must
+  // read the same for everyone. The resident's own view reads their settings
+  // directly (ZmanimScreen, the home widgets).
+  const { citySettings: settings } = useZmanimSettings();
   // Without this, `new Date()` below is evaluated once at mount and the answer
   // is stale after a background/resume the next day.
   const foregroundTick = useAppForegroundTick();

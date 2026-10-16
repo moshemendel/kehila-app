@@ -1,6 +1,7 @@
-import { doc, getDoc, getDocs, setDoc, deleteDoc, collection, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, setDoc, deleteDoc, collection, updateDoc, deleteField } from 'firebase/firestore';
 import { db } from './firebase';
 import { City } from '../types';
+import type { ZmanimSettings } from '../utils/zmanim';
 
 const COL = 'cities';
 
@@ -46,4 +47,21 @@ export async function fetchElevationFromApi(lat: number, lon: number): Promise<n
   } catch {
     return null;
   }
+}
+
+/**
+ * Sets the zmanim method the city publishes by, and the line shown under it.
+ * Written whole (not merged): a method is one definition, and a merge would
+ * leave behind a rule the manager had just switched off.
+ */
+export async function updateCityZmanim(
+  cityId: string,
+  zmanimSettings: ZmanimSettings,
+  zmanimNote: string,
+): Promise<void> {
+  const note = zmanimNote.trim();
+  await updateDoc(doc(db, COL, cityId), {
+    zmanimSettings,
+    zmanimNote: note ? note : deleteField(),
+  });
 }
