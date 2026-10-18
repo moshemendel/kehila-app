@@ -489,6 +489,10 @@ export interface Cemetery {
    * one cemetery still carries this — its one area's id.
    */
   areaIds: string[];
+  /** One of the city's neighbourhoods (City.neighborhoods); set from the console. */
+  neighborhood?: string;
+  /** Street address, set from the console where the location is looked up. */
+  address?: string;
   name: string;
   contactName?: string;
   contactPhone?: string;
