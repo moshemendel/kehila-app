@@ -53,6 +53,10 @@ export default function PrayerNotificationScheduler() {
     uid: null, role: null, roles: null, cityId, homeAreaId: null,
   });
 
+  // The roles, as one stable string: appUser.roles is a fresh array on every
+  // profile snapshot, and an effect keyed on it would re-run constantly.
+  const rolesKey = (appUser?.roles ?? (appUser?.role ? [appUser.role] : [])).slice().sort().join(',');
+
   // Register push token for any logged-in user (registered or guest), independent of prayer scheduling.
   // Runs as soon as we have a uid + cityId — does NOT require synagogue favorites.
   useEffect(() => {
@@ -71,7 +75,11 @@ export default function PrayerNotificationScheduler() {
     // time (or switching it) must re-register so an eruv/kashrut send scoped
     // to that area actually reaches this device, the same way a cityId
     // change already does.
-    const key = `${uid}:${cityId}:${homeAreaId ?? ''}`;
+    // The roles are part of the key as well: a notification aimed at "the gabbaim"
+    // is matched against the roles stored on the token, so an account appointed
+    // gabbai after it first registered would otherwise keep its old roles there
+    // and never receive it (until it signed out and in again).
+    const key = `${uid}:${cityId}:${homeAreaId ?? ''}:${rolesKey}`;
     if (registeredForKey.current === key) return;
 
     const timer = setTimeout(async () => {
@@ -95,14 +103,15 @@ export default function PrayerNotificationScheduler() {
       // reach it. So the guard belongs after the await, not before it.
       const now = identity.current;
       if (!now.uid || !now.role) return;
-      if (`${now.uid}:${now.cityId}:${now.homeAreaId ?? ''}` !== key) return; // a newer effect owns this
+      const nowRolesKey = (now.roles ?? (now.role ? [now.role] : [])).slice().sort().join(',');
+      if (`${now.uid}:${now.cityId}:${now.homeAreaId ?? ''}:${nowRolesKey}` !== key) return; // a newer effect owns this
 
       registeredForKey.current = key;
       hasPermission.current = true;
       registerPushToken(now.uid, now.cityId, now.role, now.roles ?? [now.role], now.homeAreaId ?? undefined);
     }, 3000);
     return () => clearTimeout(timer);
-  }, [appUser?.uid, isGuest, firebaseUser?.uid, cityId, appUser?.role, appUser?.homeAreaId]);
+  }, [appUser?.uid, isGuest, firebaseUser?.uid, cityId, appUser?.role, rolesKey, appUser?.homeAreaId]);
 
   async function reschedule() {
     if (IS_EXPO_GO || !enabled || !city || synagogues.length === 0) return;
