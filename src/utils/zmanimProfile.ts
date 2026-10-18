@@ -27,6 +27,15 @@ export function synagogueZmanimSettings(
   return synagogue?.zmanimSettings ? withPresetDefaults(synagogue.zmanimSettings) : cityZmanimSettings(city);
 }
 
+/**
+ * A resident's own method with the city's candle-lighting custom. Minutes before
+ * sunset are the city's minhag (Ramla 20, Jerusalem 40), not part of any posek's
+ * method, so choosing a different method must not change them.
+ */
+export function withCityCandles(personal: ZmanimSettings, city: ZmanimSettings): ZmanimSettings {
+  return { ...personal, candleLightingMin: city.candleLightingMin, candleLightingAltMin: city.candleLightingAltMin };
+}
+
 /** The point zmanim run on: a record's own area, else the tenant's default area, else the city. */
 export function zmanimPoint(
   city: City | null,

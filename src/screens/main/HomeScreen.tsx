@@ -46,6 +46,7 @@ import { getJewishDayInfo, getUpcomingFast, getUpcomingYomTov } from '../../util
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { MainTabParamList, City } from '../../types';
 import { calcZmanim, minToStr } from '../../utils/zmanim';
+import { withCityCandles } from '../../utils/zmanimProfile';
 import { useModules, isOffered, isComingSoon, ModuleKey } from '../../utils/modules';
 import { ComingSoonBadge } from '../../components/ComingSoon';
 import EmailVerificationBanner from '../../components/EmailVerificationBanner';
@@ -123,7 +124,9 @@ export default function HomeScreen() {
     [synagogues, zmanimFor],
   );
   const nextSelichot = selichotNights[0] ?? null;
-  const { settings: zmanimSettings }       = useZmanimSettings();
+  const { settings: personalSettings, citySettings } = useZmanimSettings();
+  // The method is the resident's; the candle-lighting minutes are the city's custom.
+  const zmanimSettings = React.useMemo(() => withCityCandles(personalSettings, citySettings), [personalSettings, citySettings]);
   const modules                            = useModules();
   // Forces the date-derived widgets below (Shabbat/Yom Tov/fast/Hebrew-date cards)
   // to recompute when the app returns to the foreground — otherwise each one's
@@ -229,7 +232,8 @@ export default function HomeScreen() {
       const fridayZ  = calc(fridayDate);
       // Minutes before sunset come from the method (city's, or the resident's
       // own): 20 and 40 unless it sets others.
-      const candle40 = minToStr(fridayZ.candleLightingAlt, false, 'down');
+      // Only a city that has the earlier minhag (Jerusalem) shows a second time.
+      const candleEarly = fridayZ.candleLightingAlt > 0 ? minToStr(fridayZ.candleLightingAlt, false, 'down') : null;
       const candle20 = minToStr(fridayZ.candleLighting, false, 'down');
 
       const satDate = new Date(fridayDate);
@@ -238,7 +242,7 @@ export default function HomeScreen() {
       const tzetShabbat = minToStr(satZ.tzetShabbat);     // צאת שבת
       const rabbeinuTam = minToStr(satZ.tzetRabbenuTam);  // רבינו תם — per the method's rule
 
-      return { dow, daysTill, candle40, candle20, tzetShabbat, rabbeinuTam };
+      return { dow, daysTill, candleEarly, candle20, tzetShabbat, rabbeinuTam };
     } catch {
       return null;
     }
@@ -326,7 +330,7 @@ export default function HomeScreen() {
   // heading + two big times (right + left) + an optional bottom row
   const shabbat = useMemo(() => {
     if (!shabbatInfo) return null;
-    const { dow, daysTill, candle40, candle20, tzetShabbat, rabbeinuTam } = shabbatInfo;
+    const { dow, daysTill, candleEarly, candle20, tzetShabbat, rabbeinuTam } = shabbatInfo;
 
     // During / just after Shabbat — the candle times have passed, so feature
     // the end-of-Shabbat times as the two big numbers.
@@ -335,7 +339,7 @@ export default function HomeScreen() {
         heading: 'שבת שלום ✡',
         rightLabel: 'צאת שבת:',  rightTime: tzetShabbat,
         leftLabel:  'רבינו תם',  leftTime:  rabbeinuTam,
-        tzet: null, rt: null,
+        subRight: null, subLeft: null,
       };
     }
 
@@ -347,9 +351,15 @@ export default function HomeScreen() {
 
     return {
       heading,
-      rightLabel: 'הדלקת נרות:',    rightTime: candle20,
-      leftLabel:  `לנוהגים ${zmanimSettings.candleLightingAltMin ?? 40} דק'`, leftTime:  candle40,
-      tzet: tzetShabbat, rt: rabbeinuTam,
+      // Top row: lighting and the end of Shabbat. Second row: the earlier minhag
+      // under the lighting (only where the city has it) and Rabbeinu Tam under
+      // the end of Shabbat.
+      rightLabel: 'הדלקת נרות:',  rightTime: candle20,
+      leftLabel:  'צאת שבת:',     leftTime:  tzetShabbat,
+      subRight: candleEarly
+        ? { label: `לנוהגים להקדים (${zmanimSettings.candleLightingAltMin} דק')`, time: candleEarly }
+        : null,
+      subLeft: { label: 'רבינו תם', time: rabbeinuTam },
     };
   }, [shabbatInfo, zmanimSettings.candleLightingAltMin]);
 
@@ -677,17 +687,21 @@ export default function HomeScreen() {
               </View>
 
               {/* Bottom row: end-of-Shabbat times (two columns, aligned under the times above) */}
-              {!!shabbat.tzet && (
+              {(!!shabbat.subRight || !!shabbat.subLeft) && (
                 <View style={styles.shabbatEndRow}>
                   <View style={styles.shabbatEndCol}>
-                    <Text style={styles.shabbatEndItem}>
-                      צאת שבת: <Text style={styles.shabbatEndTime}>{shabbat.tzet}</Text>
-                    </Text>
+                    {!!shabbat.subRight && (
+                      <Text style={styles.shabbatEndItem}>
+                        {shabbat.subRight.label}: <Text style={styles.shabbatEndTime}>{shabbat.subRight.time}</Text>
+                      </Text>
+                    )}
                   </View>
                   <View style={styles.shabbatEndCol}>
-                    <Text style={styles.shabbatEndItem}>
-                      רבינו תם: <Text style={styles.shabbatEndTime}>{shabbat.rt}</Text>
-                    </Text>
+                    {!!shabbat.subLeft && (
+                      <Text style={styles.shabbatEndItem}>
+                        {shabbat.subLeft.label}: <Text style={styles.shabbatEndTime}>{shabbat.subLeft.time}</Text>
+                      </Text>
+                    )}
                   </View>
                 </View>
               )}

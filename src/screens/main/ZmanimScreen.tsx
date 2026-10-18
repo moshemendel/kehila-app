@@ -8,6 +8,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, Radius } from '../../utils/theme';
 import { formatHebrewDate } from '../../utils/hebrewDate';
+import { withCityCandles } from '../../utils/zmanimProfile';
 import {
   calcZmanim, minToStr, ZmanimResult, ZmanimSettings, ZMANIM_PRESETS,
   visibleZmanim, type CatalogZman,
@@ -98,7 +99,9 @@ function SectionRow({ label }: { label: string }) {
 export default function ZmanimScreen() {
   useAnalyticsTrack('zmanim');
   const navigation = useNavigation();
-  const { settings, setSettings, gpsLocation } = useZmanimSettings();
+  const { settings: personalSettings, citySettings, setSettings, gpsLocation } = useZmanimSettings();
+  // The method is the resident's; the candle-lighting minutes are the city's custom.
+  const settings = React.useMemo(() => withCityCandles(personalSettings, citySettings), [personalSettings, citySettings]);
   const cityId = useCityId();
   const { top }  = useSafeAreaInsets();
   const { city } = useCity(cityId);
