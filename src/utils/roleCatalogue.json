@@ -49,7 +49,7 @@
   },
   {
     "key": "synagogue_manager",
-    "label": "מנהל בתי כנסת",
+    "label": "גבאי עם הרשאה לכל בתי הכנסת",
     "color": "primaryLight",
     "icon": "business-outline",
     "assignableBy": "city_admin",
@@ -86,7 +86,7 @@
   },
   {
     "key": "mikveh_manager",
-    "label": "מנהל מקוואות",
+    "label": "בלן עם הרשאה לכל המקוואות",
     "color": "mikveh",
     "icon": "water-outline",
     "assignableBy": "city_admin",
