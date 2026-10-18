@@ -43,6 +43,13 @@ export interface NavTarget {
    * pick Waze are sent there.
    */
   wazeLink?: string;
+  /**
+   * The way there is on foot — a grave inside a cemetery. Honoured where the app
+   * lets us ask for it (Google and Apple Maps on iOS, the web link); the Android
+   * chooser hands over a bare point, and the person picks walking in the app they
+   * choose.
+   */
+  walking?: boolean;
 }
 
 const hasCoords = (t: NavTarget): t is NavTarget & { latitude: number; longitude: number } =>
@@ -106,7 +113,7 @@ export async function openNativeChooser(t: NavTarget): Promise<void> {
 /** Google Maps web URL — works on any platform, app or browser. */
 export function webFallback(t: NavTarget): string {
   return hasCoords(t)
-    ? `https://www.google.com/maps/dir/?api=1&destination=${t.latitude},${t.longitude}`
+    ? `https://www.google.com/maps/dir/?api=1&destination=${t.latitude},${t.longitude}${t.walking ? '&travelmode=walking' : ''}`
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(t.address ?? '')}`;
 }
 
@@ -152,13 +159,13 @@ function iosUrls(app: NavAppId, t: NavTarget): { primary: string; fallback: stri
       };
     case 'google':
       return {
-        primary:  `comgooglemaps://?daddr=${ll}&directionsmode=driving`,
-        fallback: `https://www.google.com/maps/dir/?api=1&destination=${ll}`,
+        primary:  `comgooglemaps://?daddr=${ll}&directionsmode=${t.walking ? 'walking' : 'driving'}`,
+        fallback: `https://www.google.com/maps/dir/?api=1&destination=${ll}${t.walking ? '&travelmode=walking' : ''}`,
       };
     case 'apple':
       return {
-        primary:  `maps://?daddr=${ll}&dirflg=d`,
-        fallback: `https://maps.apple.com/?daddr=${ll}&dirflg=d`,
+        primary:  `maps://?daddr=${ll}&dirflg=${t.walking ? 'w' : 'd'}`,
+        fallback: `https://maps.apple.com/?daddr=${ll}&dirflg=${t.walking ? 'w' : 'd'}`,
       };
   }
 }

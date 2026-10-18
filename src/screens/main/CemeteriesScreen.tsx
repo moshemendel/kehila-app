@@ -12,6 +12,7 @@ import { useCemeteries } from '../../hooks/useCemeteries';
 import { useCityId } from '../../hooks/useCityId';
 import { useCity } from '../../hooks/useCity';
 import DeceasedSearch from '../../components/DeceasedSearch';
+import { locateGrave, plotCentre } from '../../utils/graveLocator';
 import { useAreas } from '../../hooks/useAreas';
 import { useNavigateTo } from '../../hooks/useNavigateTo';
 import { resolveNavTarget, hasNavTarget, NavTarget } from '../../utils/navigationApps';
@@ -88,10 +89,24 @@ export default function CemeteriesScreen() {
   // A search result names its cemetery and plot; this turns them into a way
   // there — to the plot itself when it has been pinned in the console, else
   // to the cemetery — or nothing when there is nowhere to aim.
-  function navigateToGrave(cemeteryId: string, plot: string): { label: string; go: () => void } | undefined {
+  function navigateToGrave(
+    cemeteryId: string, plot: string, row: string, grave: string, block?: string,
+  ): { label: string; go: () => void } | undefined {
     const c = cemeteries.find((x) => x.id === cemeteryId);
     if (!c) return undefined;
-    const pin = plot ? c.plots?.[plot] : undefined;
+    const key = block ? `${block}/${plot}` : plot;
+    // Best first: the grave itself, worked out from the plot's outline and the
+    // row and grave numbers; then the plot's middle; then its pin.
+    const shape = plot ? c.plotShapes?.[key] : undefined;
+    if (shape) {
+      const at = shape.rows && shape.graves ? locateGrave(shape, row, grave, { rows: shape.rows, graves: shape.graves }) : null;
+      const target = at ?? plotCentre(shape);
+      return {
+        label: at ? 'ניווט לקבר (בקירוב)' : `ניווט לחלקה ${plot}`,
+        go: () => navigateTo({ latitude: target.latitude, longitude: target.longitude, walking: true }),
+      };
+    }
+    const pin = plot ? c.plots?.[key] : undefined;
     if (pin) {
       return {
         label: `ניווט לחלקה ${plot}`,

@@ -21,7 +21,7 @@ export default function DeceasedSearch({ cityId, onNavigate }: {
   cityId: string;
   /** A way to the grave's plot, or its cemetery; undefined when neither has
    *  a location. */
-  onNavigate: (cemeteryId: string, plot: string) => { label: string; go: () => void } | undefined;
+  onNavigate: (cemeteryId: string, plot: string, row: string, grave: string, block?: string) => { label: string; go: () => void } | undefined;
 }) {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -86,7 +86,7 @@ export default function DeceasedSearch({ cityId, onNavigate }: {
       )}
 
       {results.slice(0, SHOWN).map((r) => {
-        const nav = r.cemeteryId ? onNavigate(r.cemeteryId, r.plot) : undefined;
+        const nav = r.cemeteryId ? onNavigate(r.cemeteryId, r.plot, r.row, r.grave, r.block) : undefined;
         const when = [r.deathDateHe, r.deathDate ? `(${dmy(r.deathDate)})` : r.deathDateRaw].filter(Boolean).join(' ');
         return (
           <View key={r.id} style={s.result}>
@@ -95,7 +95,7 @@ export default function DeceasedSearch({ cityId, onNavigate }: {
               {!!r.fatherName && <Text style={s.father}>{`  ·  שם האב: ${r.fatherName}`}</Text>}
             </Text>
             <Text style={s.place}>
-              {[r.cemeteryName, r.plot && `חלקה ${r.plot}`, r.row && `שורה ${r.row}`, r.grave && `קבר ${r.grave}`]
+              {[r.cemeteryName, r.block && `גוש ${r.block}`, r.plot && `חלקה ${r.plot}`, r.row && `שורה ${r.row}`, r.grave && `קבר ${r.grave}`]
                 .filter(Boolean).join(' · ')}
             </Text>
             {!!when && <Text style={s.date}>נפטר/ה: {when}</Text>}

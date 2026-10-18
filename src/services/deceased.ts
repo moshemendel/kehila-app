@@ -25,6 +25,8 @@ export interface DeceasedRecord {
   fatherName: string;
   cemeteryName: string;
   cemeteryId?: string;
+  /** The block (גוש) the plot is in, where the register has one. */
+  block?: string;
   plot: string;
   row: string;
   grave: string;

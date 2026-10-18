@@ -84,6 +84,7 @@ export interface NusachOption {
 import type { CityModules } from '../utils/modules';
 export type { CityModules };
 import type { ZmanimSettings } from '../utils/zmanim';
+import type { PlotShape } from '../utils/graveLocator';
 
 export interface City {
   id: string;
@@ -506,6 +507,15 @@ export interface Cemetery {
    *  writes it ("יב"). Pinned in the console; a deceased search result in a
    *  pinned plot navigates there instead of to the cemetery's gate. */
   plots?: Record<string, { latitude: number; longitude: number }>;
+  /**
+   * Plots drawn as outlines with their rows, keyed like `plots` ("גוש/חלקה" where
+   * the cemetery has blocks, else the plot's name). Lets a search result navigate
+   * to the row and grave, not just the plot — see utils/graveLocator.ts. Drawn in
+   * the console; a plot with an entry here wins over its `plots` pin.
+   */
+  plotShapes?: Record<string, PlotShape>;
+  /** Block (גוש) outlines, by block name — drawn in the console to show where each begins. */
+  blocks?: Record<string, { latitude: number; longitude: number }[]>;
   /** The plot names the register uses, written by the deceased sync for the
    *  console to list. Not read by the app. */
   registerPlots?: string[];
