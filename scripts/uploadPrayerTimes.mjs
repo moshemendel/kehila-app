@@ -10,6 +10,11 @@
  * and merging would leave it on the screen forever. `selichot`, `shiurim` and
  * `notes` inside weeklySchedule are left untouched, as is shabbatSchedule.
  *
+ * Slots tagged with a clock `season` ('summer' | 'winter') are the exception to
+ * "replaced": the board only shows what runs today, so a slot belonging to the
+ * OTHER season never appears on it and is carried over from the live document.
+ * Board slots themselves are all-year (the board cannot say), as before.
+ *
  * Board line grammar — everything after the time is optional and order varies:
  *
  *   05:40 - (נץ) - אבני החושן              "(נץ)" = the Amidah lands at sunrise
@@ -105,6 +110,23 @@ const IDS = {
  * the board's mincha line for this shul is dropped on the floor.
  */
 const KEEP_ANCHORED = { 'syn-1': ['mincha'] };
+
+/** Israel summer time: Friday before the last Sunday of March → last Sunday of
+ *  October. Mirrors isSummerTime in src/utils/prayerUtils.ts. */
+function isSummerTime(d = new Date()) {
+  const lastSunday = (y, m) => {
+    const x = new Date(y, m + 1, 0);
+    x.setDate(x.getDate() - x.getDay());
+    return x;
+  };
+  const y = d.getFullYear();
+  const start = lastSunday(y, 2);
+  start.setDate(start.getDate() - 2);
+  const end = lastSunday(y, 9);
+  const day = new Date(y, d.getMonth(), d.getDate());
+  return day >= start && day < end;
+}
+const NOW_SEASON = isSummerTime() ? 'summer' : 'winter';
 
 const SECTIONS = { 'שחרית': 'shacharit', 'מנחה': 'mincha', 'ערבית': 'maariv' };
 
@@ -245,7 +267,7 @@ const fmtSlot = (s) => {
   // Anchored slots (kept from a gabbai's edit) have no clock time of their own.
   const off = s.offsetMin ?? 0;
   const when = s.anchor ? s.anchor + (off ? (off > 0 ? '+' : '') + off : '') : s.time;
-  return when + days + (s.notes ? ' (' + s.notes + ')' : '');
+  return when + days + (s.season ? '{' + s.season + '}' : '') + (s.notes ? ' (' + s.notes + ')' : '');
 };
 
 const fmtDay = (slots) => (slots.length ? slots.map(fmtSlot).join('  ') : '—');
@@ -269,13 +291,25 @@ async function run() {
   const preserved = [];
   for (const [id, sections] of Object.entries(KEEP_ANCHORED)) {
     for (const section of sections) {
-      const kept = (live.get(id)?.weeklySchedule?.[section] ?? []).filter((s) => s.anchor);
+      const kept = (live.get(id)?.weeklySchedule?.[section] ?? [])
+        .filter((s) => s.anchor && (!s.season || s.season === NOW_SEASON));
       if (!kept.length) {
         console.warn('⚠  ' + id + '.' + section + ' is no longer anchored — the board times will be used.');
         continue;
       }
       if (schedules[id]) schedules[id][section] = kept;
       preserved.push(id + '.' + section + ' (' + kept.length + ' anchored)');
+    }
+  }
+
+  // Carry over the other season's slots — the board can't mention them.
+  const offSeason = [];
+  for (const id of Object.keys(schedules)) {
+    for (const section of ['shacharit', 'mincha', 'maariv']) {
+      const other = (live.get(id)?.weeklySchedule?.[section] ?? []).filter((s) => s.season && s.season !== NOW_SEASON);
+      if (!other.length) continue;
+      schedules[id][section].push(...other);
+      offSeason.push(id + '.' + section + ' (' + other.length + ')');
     }
   }
 
@@ -294,6 +328,7 @@ async function run() {
   // covers shuls that reported, not every shul in the city.
   const untouched = synagogues.filter((s) => !schedules[s.id]);
   console.log('\n' + entries + ' board entries → ' + ids.length + ' synagogues, ' + slots + ' slots.');
+  console.log('Kept other-season (' + (NOW_SEASON === 'winter' ? 'summer' : 'winter') + ') slots: ' + (offSeason.length ? offSeason.join(', ') : 'none'));
   console.log('Preserved anchored: ' + (preserved.length ? preserved.join(', ') : 'none'));
   console.log('Not on the board, left as-is: ' + untouched.length + ' (' + untouched.map((s) => s.id).join(', ') + ')');
 

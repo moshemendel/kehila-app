@@ -75,6 +75,38 @@ function israelNow(): Date {
   return new Date();
 }
 
+/** Last Sunday of a month (month is 0-based), at local midnight. */
+function lastSundayOf(year: number, month: number): Date {
+  const d = new Date(year, month + 1, 0);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+/**
+ * Whether Israel is on summer time (שעון קיץ) on `date`.
+ *
+ * Computed from the statutory rule — from the Friday before the last Sunday of
+ * March until the last Sunday of October — rather than read off the device
+ * clock's UTC offset, which is wrong for anyone abroad and unreliable on
+ * Hermes (see israelNow). The end Sunday counts as winter: the clocks go back
+ * at 02:00, so nearly all of it is.
+ */
+export function isSummerTime(date: Date = israelNow()): boolean {
+  const y = date.getFullYear();
+  const start = lastSundayOf(y, 2);
+  start.setDate(start.getDate() - 2);
+  const end = lastSundayOf(y, 9);
+  const day = new Date(y, date.getMonth(), date.getDate());
+  return day >= start && day < end;
+}
+
+/** Whether a slot runs on `date`'s side of the clock change. No `season` = always. */
+export function slotRunsInSeason(slot: PrayerTimeSlot, date: Date = israelNow()): boolean {
+  return !slot.season || (slot.season === 'summer') === isSummerTime(date);
+}
+
+export const SEASON_LABEL = { summer: 'שעון קיץ', winter: 'שעון חורף' } as const;
+
 // 1=Sunday, 2=Monday, ..., 6=Friday, 7=Saturday
 export function todayDayNumber(): number {
   const day = israelNow().getDay(); // 0=Sun, 6=Sat
@@ -113,10 +145,11 @@ export function getTodaySchedule(
   zmanim?: ZmanimResult | null,
 ): PrayerTimes | null {
   const dayNum = todayDayNumber();
+  const today = israelNow();
 
-  if (dayNum === 7) return shabbatTimes(shabbatSchedule, zmanim);
+  if (dayNum === 7) return shabbatTimes(shabbatSchedule, zmanim, today);
 
-  return weekdaySchedule(weeklySchedule, dayNum, zmanim);
+  return weekdaySchedule(weeklySchedule, dayNum, zmanim, today);
 }
 
 /** One weekday's times from weeklySchedule (1=Sunday … 6=Friday). */
@@ -124,10 +157,11 @@ function weekdaySchedule(
   weeklySchedule: WeeklySchedule | undefined,
   dayNum: number,
   zmanim?: ZmanimResult | null,
+  date: Date = israelNow(),
 ): PrayerTimes {
   const filter = (slots: PrayerTimeSlot[] = []) =>
     slots
-      .filter((s) => (s.days ?? []).includes(dayNum))
+      .filter((s) => (s.days ?? []).includes(dayNum) && slotRunsInSeason(s, date))
       .map((s) => resolveSlotTime(s, zmanim))
       .filter(Boolean);
 
@@ -142,10 +176,11 @@ function weekdaySchedule(
 function shabbatTimes(
   shabbatSchedule: ShabbatSchedule | undefined,
   zmanim?: ZmanimResult | null,
+  date: Date = israelNow(),
 ): PrayerTimes | null {
   if (!shabbatSchedule) return null;
   const flat = (slots: PrayerTimeSlot[] = []) =>
-    slots.map((s) => resolveSlotTime(s, zmanim)).filter(Boolean);
+    slots.filter((s) => slotRunsInSeason(s, date)).map((s) => resolveSlotTime(s, zmanim)).filter(Boolean);
   return {
     shacharit: flat(shabbatSchedule.shacharit),
     mincha: flat(shabbatSchedule.mincha),
@@ -178,9 +213,12 @@ export function getNextPrayerTodayOrTomorrow(
   if (next) return { type: next.type, nextTime: next.nextTime, tomorrow: false };
 
   const dayNum = tomorrowDayNumber();
+  // Tomorrow's own date, so the night the clocks change reads the right season.
+  const tomorrow = israelNow();
+  tomorrow.setDate(tomorrow.getDate() + 1);
   const tmrw = dayNum === 7
-    ? shabbatTimes(shabbatSchedule, zmanim)
-    : weekdaySchedule(weeklySchedule, dayNum, zmanim);
+    ? shabbatTimes(shabbatSchedule, zmanim, tomorrow)
+    : weekdaySchedule(weeklySchedule, dayNum, zmanim, tomorrow);
   if (!tmrw) return null;
   let first: { type: 'shacharit' | 'mincha' | 'maariv'; nextTime: string } | null = null;
   for (const type of ['shacharit', 'mincha', 'maariv'] as const) {

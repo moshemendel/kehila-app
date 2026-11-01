@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { Synagogue, Shiur } from '../types';
 import { ZmanimResult } from './zmanim';
-import { resolveSlotTime, todayDayNumber, parseTimeToMinutes } from './prayerUtils';
+import { resolveSlotTime, slotRunsInSeason, todayDayNumber, parseTimeToMinutes } from './prayerUtils';
 import {
   FavoritesMap, FavoriteCustom, PrayerType,
 } from '../context/FavoritesContext';
@@ -188,7 +188,7 @@ export async function schedulePrayerNotifications(
       // Prayers
       for (const type of settings.prayers) {
         for (const slot of syn.weeklySchedule[type] ?? []) {
-          if (!(slot.days ?? []).includes(dayNum)) continue;
+          if (!(slot.days ?? []).includes(dayNum) || !slotRunsInSeason(slot)) continue;
           const timeStr = resolveSlotTime(slot, zmanim);
           if (!timeStr) continue;
           const timeMin = parseTimeToMinutes(timeStr);
@@ -228,7 +228,7 @@ export async function schedulePrayerNotifications(
       const indices  = prayerSlotIndices(custom, type, slots.length);
       for (const idx of indices) {
         const slot = slots[idx];
-        if (!slot || !(slot.days ?? []).includes(dayNum)) continue;
+        if (!slot || !(slot.days ?? []).includes(dayNum) || !slotRunsInSeason(slot)) continue;
         const timeStr = resolveSlotTime(slot, zmanim);
         if (!timeStr) continue;
         const timeMin = parseTimeToMinutes(timeStr);

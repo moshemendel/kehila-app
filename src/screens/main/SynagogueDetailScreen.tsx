@@ -26,7 +26,7 @@ import { useSynagogueEventReminders } from '../../context/SynagogueEventReminder
 import { splitAnnouncements } from '../../utils/synagogueAnnouncements';
 import FavoritePrayerModal, { ModalOptions } from '../../components/FavoritePrayerModal';
 import EventReminderModal from '../../components/EventReminderModal';
-import { getSlotLabel, slotRuleLabel } from '../../utils/prayerUtils';
+import { getSlotLabel, slotRuleLabel, slotRunsInSeason, SEASON_LABEL } from '../../utils/prayerUtils';
 import { collectShiurim } from '../../utils/prayerNotifications';
 import { gabbaimOf, contactPhoneOf } from '../../utils/synagogueContacts';
 import {
@@ -694,9 +694,10 @@ export default function SynagogueDetailScreen() {
                     <Text style={[st.weekPrayerTitle, { color }]}>{PRAYER_HE[type]}</Text>
                   </View>
                   {slots.map((slot, i) => (
-                    <View key={i} style={st.weekSlotRow}>
+                    <View key={i} style={[st.weekSlotRow, !slotRunsInSeason(slot) && st.weekSlotOffSeason]}>
                       <WeekSlotTime slot={slot} color={color} />
                       <Text style={st.weekSlotDays}>{formatDays(slot.days ?? [])}</Text>
+                      {!!slot.season && <Text style={st.weekSlotSeason}>{SEASON_LABEL[slot.season]}</Text>}
                       {!!slot.notes && <Text style={st.weekSlotNote}>{slot.notes}</Text>}
                     </View>
                   ))}
@@ -1006,6 +1007,9 @@ const st = StyleSheet.create({
   weekSlotTime:       { fontSize: 16, fontWeight: '800', minWidth: 48,  },
   weekSlotFormula:    { fontSize: 14, fontWeight: '800', flexShrink: 1 },
   weekSlotDays:       { fontSize: 13, fontWeight: '700', color: Colors.text },
+  // A slot of the other clock season: still listed so the full board is visible, but dimmed.
+  weekSlotOffSeason:  { opacity: 0.45 },
+  weekSlotSeason:     { fontSize: 11, fontWeight: '700', color: Colors.textSecondary, borderWidth: 1, borderColor: Colors.border, borderRadius: 8, paddingHorizontal: 6, paddingVertical: 1 },
   weekSlotNote:       { fontSize: 11, color: Colors.textMuted, fontStyle: 'italic', flexShrink: 1 },
 
   // Announcements / synagogue events

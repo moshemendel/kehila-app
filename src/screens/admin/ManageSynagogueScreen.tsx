@@ -35,6 +35,7 @@ import { cityZmanimSettings, zmanimPoint } from '../../utils/zmanimProfile';
 import { presetByKey } from '../../utils/zmanim';
 import { splitAnnouncements } from '../../utils/synagogueAnnouncements';
 import { managesContent } from '../../utils/roles';
+import { SEASON_LABEL } from '../../utils/prayerUtils';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -424,13 +425,36 @@ function SlotEditModal({ visible, slot, prayerType: initialType, showTypeSelecto
             </>
           )}
 
+          {/* Clock season — a slot that only runs in summer or winter time, so a
+              gabbai sets it once instead of editing it at every clock change.
+              Applies to fixed and anchored slots alike. */}
+          <Text style={sm.label}>באיזו עונה</Text>
+          <View style={sm.modeRow}>
+            {([
+              { key: undefined, label: 'כל השנה' },
+              { key: 'summer', label: 'שעון קיץ' },
+              { key: 'winter', label: 'שעון חורף' },
+            ] as const).map(({ key, label }) => {
+              const active = draft.season === key;
+              return (
+                <TouchableOpacity
+                  key={label}
+                  style={[sm.modeBtn, active && sm.modeBtnActive]}
+                  onPress={() => setDraft({ ...draft, season: key })}
+                >
+                  <Text style={[sm.modeBtnTxt, active && sm.modeBtnTxtActive]}>{label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
           {/* Note */}
           <Text style={sm.label}>הערה (אופציונלי)</Text>
           <TextInput scrollEnabled={false}
             style={sm.noteInput}
             value={draft.notes ?? ''}
             onChangeText={(v) => setDraft({ ...draft, notes: v || null })}
-            placeholder="לדוגמה: רק בחורף, ללא מוסף..."
+            placeholder="לדוגמה: ללא מוסף, בחדר הקטן..."
             placeholderTextColor={Colors.textMuted}
             textAlign="right"
             multiline
@@ -500,7 +524,9 @@ function SlotCard({ slot, onPress, hideDays = false }: {
         {formatSlotLabel(slot)}
       </Text>
       <View style={{ flex: 1 }}>
-        <Text style={sm.slotCardDays}>{daysLabel}</Text>
+        <Text style={sm.slotCardDays}>
+          {daysLabel}{slot.season ? `${daysLabel ? ' · ' : ''}${SEASON_LABEL[slot.season]}` : ''}
+        </Text>
         {!!slot.notes && (
           <Text style={sm.slotCardNote} numberOfLines={1}>{slot.notes}</Text>
         )}

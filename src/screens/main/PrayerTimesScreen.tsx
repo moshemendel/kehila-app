@@ -17,7 +17,7 @@ import { Colors, Spacing, Radius, Shadow, CardShellFlush } from '../../utils/the
 import { Synagogue } from '../../types';
 import {
   parseTimeToMinutes, nowInMinutes, hebrewDayOfWeek, tomorrowDayOfWeek,
-  todayDayNumber, tomorrowDayNumber, resolveSlotTime,
+  todayDayNumber, tomorrowDayNumber, resolveSlotTime, slotRunsInSeason,
 } from '../../utils/prayerUtils';
 import FilterBar from '../../components/FilterBar';
 import { reachInTime, formatMinutes } from '../../utils/travel';
@@ -323,7 +323,7 @@ export default function PrayerTimesScreen() {
       if (!ws) continue;
       for (const type of ['shacharit', 'mincha', 'maariv'] as PrayerType[]) {
         for (const slot of ws[type] ?? []) {
-          if (!(slot.days ?? []).includes(dayNum)) continue;
+          if (!(slot.days ?? []).includes(dayNum) || !slotRunsInSeason(slot, day)) continue;
           const resolvedTime = resolveSlotTime(slot, zmanim);
           if (!resolvedTime) continue;
           const minutes = parseTimeToMinutes(resolvedTime);

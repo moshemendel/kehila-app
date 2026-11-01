@@ -207,6 +207,15 @@ export interface PrayerTimeSlot {
    * minyan is dated to the Sunday. See utils/selichot.ts.
    */
   dates?: string[];
+  /**
+   * Which half of the year this slot runs in, by Israel's clock change.
+   * Absent = all year (every slot written before this field existed).
+   *
+   * Independent of fixed vs anchored: a fixed 18:30 mincha is summer-only, and
+   * "20 min before shkia" in winter vs "30 min before" in summer are two
+   * anchored slots, one per season. See isSummerTime in utils/prayerUtils.ts.
+   */
+  season?: 'summer' | 'winter';
   notes?: string | null;
 }
 
