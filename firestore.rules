@@ -365,6 +365,9 @@ service cloud.firestore {
          !('managedRestaurantIds' in request.resource.data.diff(resource.data).affectedKeys()) &&
          !('managedMikvehIds' in request.resource.data.diff(resource.data).affectedKeys()) &&
          !('supervisedBusinessIds' in request.resource.data.diff(resource.data).affectedKeys()) &&
+         // isTestAccount decides who sees the account in the console; an account
+         // must not be able to hide itself from its city's admins.
+         !('isTestAccount' in request.resource.data.diff(resource.data).affectedKeys()) &&
          // A city_admin's homeCityId is their admin jurisdiction — letting them move it
          // themselves would be self-service privilege escalation to another city, so
          // only non-city_admin accounts may self-edit homeCityId (e.g. a regular user
