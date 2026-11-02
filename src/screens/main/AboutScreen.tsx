@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Linking, Platform,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Linking, Platform, Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -22,8 +22,10 @@ import { PRIVACY_POLICY_URL, ABOUT_URL, SUPPORT_EMAIL } from '../../utils/links'
  * unchanged version — so the update's publish date and channel are shown too,
  * and the contact button puts all of it into the email for the user.
  *
- * Uses only modules already in the 1.0.1 build (expo-constants, expo-updates),
- * so this screen itself can ship over the air.
+ * Uses only modules already in the 1.0.1 build (expo-constants, expo-updates,
+ * react-native's own Share), so this screen itself can ship over the air. That
+ * is also why "copy" goes through the system share sheet (which has a Copy
+ * action) rather than expo-clipboard: a new native module would need a rebuild.
  */
 
 export const APP_VERSION = Constants.expoConfig?.version ?? '';
@@ -80,15 +82,33 @@ export default function AboutScreen() {
   const channel = Updates.channel && Updates.channel !== 'production' ? Updates.channel : null;
   const platform = `${Platform.OS === 'ios' ? 'iOS' : 'Android'} ${Platform.Version}`;
 
+  const details = [
+    `גרסה: ${APP_VERSION}`,
+    bundle && `קוד: ${bundle}`,
+    channel && `ערוץ: ${channel}`,
+    Updates.updateId && `מזהה עדכון: ${Updates.updateId}`,
+    `מכשיר: ${platform}`,
+    city?.name && `עיר: ${city.name}`,
+  ].filter(Boolean).join('\n');
+  const supportText = `קהילה - פרטים טכניים לתמיכה\n${details}`;
+
+  /** The system share sheet — it has a Copy action, plus every messenger. */
+  async function shareDetails() {
+    try {
+      await Share.share({ message: supportText });
+    } catch {
+      // Dismissed or unavailable — nothing to report.
+    }
+  }
+
+  async function whatsappDetails() {
+    const url = `whatsapp://send?text=${encodeURIComponent(supportText)}`;
+    const canOpen = await Linking.canOpenURL(url).catch(() => false);
+    if (canOpen) open(url);
+    else shareDetails();
+  }
+
   function contactSupport() {
-    const details = [
-      `גרסה: ${APP_VERSION}`,
-      bundle && `קוד: ${bundle}`,
-      channel && `ערוץ: ${channel}`,
-      Updates.updateId && `מזהה עדכון: ${Updates.updateId}`,
-      `מכשיר: ${platform}`,
-      city?.name && `עיר: ${city.name}`,
-    ].filter(Boolean).join('\n');
     const body = `\n\n\n— פרטים טכניים, כדי שנוכל לעזור —\n${details}`;
     open(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('קהילה - פנייה')}&body=${encodeURIComponent(body)}`);
   }
@@ -123,6 +143,16 @@ export default function AboutScreen() {
           {channel && <InfoRow label="ערוץ" value={channel} />}
           <InfoRow label="מכשיר" value={platform} />
           {city?.name && <InfoRow label="עיר" value={city.name} />}
+          <View style={s.detailActions}>
+            <TouchableOpacity style={s.detailBtn} onPress={shareDetails} activeOpacity={0.8}>
+              <Ionicons name="copy-outline" size={17} color={Colors.primary} />
+              <Text style={s.detailBtnText}>העתקה / שיתוף</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.detailBtn} onPress={whatsappDetails} activeOpacity={0.8}>
+              <Ionicons name="logo-whatsapp" size={17} color="#25D366" />
+              <Text style={s.detailBtnText}>וואטסאפ</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={s.card}>
@@ -203,6 +233,16 @@ const s = StyleSheet.create({
   },
   infoLabel: { fontSize: 13.5, color: Colors.textSecondary },
   infoValue: { fontSize: 13.5, color: Colors.text, fontWeight: '600', flexShrink: 1, textAlign: 'left' },
+
+  detailActions: {
+    flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm,
+    paddingTop: Spacing.sm, borderTopWidth: 1, borderTopColor: Colors.border,
+  },
+  detailBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.md, paddingVertical: 10,
+  },
+  detailBtnText: { fontSize: 14, fontWeight: '700', color: Colors.text },
 
   contactBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
