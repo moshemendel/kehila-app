@@ -373,6 +373,9 @@ service cloud.firestore {
          // only non-city_admin accounts may self-edit homeCityId (e.g. a regular user
          // relocating, which just repoints their eruv/kashrut push targeting).
          (!('homeCityId' in request.resource.data.diff(resource.data).affectedKeys()) || resource.data.role != 'city_admin'));
+      // Removing a profile document is a super_admin act and never one's own. It
+      // does not touch the Firebase Auth account (see the console's delete button).
+      allow delete: if isSuperAdminRole() && request.auth.uid != userId;
     }
 
     // ── Synagogues — public read; gabbai/admin write ─────────────────────────
