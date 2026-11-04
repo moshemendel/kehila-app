@@ -558,10 +558,17 @@ export const sendPush = onCall({ region: REGION }, async (request) => {
 
   const tokensRef = db.collection('pushTokens');
   const snap = cityId === 'all' ? await tokensRef.get() : await tokensRef.where('cityId', '==', cityId).get();
+  // A broadcast is for the city's real audience. Devices signed in to a dev-team
+  // account (super_admin, dev, or one flagged isTestAccount) are left out, so the
+  // developers' own phones don't receive — or inflate the count of — every
+  // announcement. The console's recipient count applies the same rule.
+  const testUids = new Set((await db.collection('users').where('isTestAccount', '==', true).get()).docs.map((d) => d.id));
   const entries: TokenEntry[] = [];
   snap.forEach((d) => {
     const t = d.data();
     if (!t.token) return;
+    const heldRoles: string[] = t.roles ?? [t.role];
+    if (heldRoles.some((r) => r === 'super_admin' || r === 'dev') || testUids.has(t.uid)) return;
     if (excludeGuests && t.role === 'guest') return;
     if (areaIds && !areaIds.includes(t.homeAreaId)) return;
     if (roles) {
