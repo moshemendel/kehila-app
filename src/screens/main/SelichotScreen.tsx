@@ -11,6 +11,7 @@ import { useCityId } from '../../hooks/useCityId';
 import { useSynagogueZmanim } from '../../hooks/useSynagogueZmanim';
 import { useAnalyticsTrack } from '../../services/analytics';
 import FilterBar, { type FilterConfig } from '../../components/FilterBar';
+import ScreenHeader from '../../components/ScreenHeader';
 import { collectSelichot, type SelichotOccurrence } from '../../utils/selichotSlots';
 import { selichotDayLabel } from '../../utils/selichot';
 import { reachInTime, formatMinutes } from '../../utils/travel';
@@ -156,10 +157,7 @@ export default function SelichotScreen() {
           one, but that also covered the bottom tab bar and left no way back
           except the header arrow. As a tab it keeps the bar and brings its
           own title. */}
-      <View style={[s.header, { paddingTop: top + 12 }]}>
-        <Ionicons name="moon" size={18} color={Colors.white} />
-        <Text style={s.headerTitle}>סליחות</Text>
-      </View>
+      <ScreenHeader color={Colors.goldDeep} title="סליחות" />
 
       {filters.length > 0 && (
         <FilterBar
@@ -293,12 +291,6 @@ export default function SelichotScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    paddingBottom: 12, paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.gold,
-  },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: Colors.white },
   content:   { padding: Spacing.md },
 
   sortBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6 },

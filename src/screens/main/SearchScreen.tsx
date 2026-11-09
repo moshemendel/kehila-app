@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ScreenHeader from '../../components/ScreenHeader';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useCityId } from '../../hooks/useCityId';
 import { useSynagoguesFeed } from '../../context/SynagoguesContext';
@@ -73,7 +73,6 @@ const CHIPS: { key: FilterCat; label: string; icon: string; color: string; modul
 const MAX_PER_SECTION = 8;
 
 export default function SearchScreen() {
-  const { top } = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const cityId = useCityId();
 
@@ -122,12 +121,10 @@ export default function SearchScreen() {
   const total = synResults.length + restResults.length + evtResults.length + gemResults.length;
 
   return (
-    <View style={[sc.root, { paddingTop: top }]}>
+    <View style={sc.root}>
 
       {/* ── Header ── */}
-      <View style={sc.header}>
-        <Text style={sc.headerTitle}>חיפוש</Text>
-
+      <ScreenHeader color={Colors.primary} title="חיפוש">
         <View style={sc.searchBox}>
           <Ionicons name="search-outline" size={18} color={Colors.textMuted} />
           <TextInput
@@ -163,7 +160,7 @@ export default function SearchScreen() {
             return (
               <TouchableOpacity
                 key={chip.key}
-                style={[sc.chip, active && { backgroundColor: chip.color, borderColor: chip.color }]}
+                style={[sc.chip, active && { backgroundColor: chip.color, borderColor: Colors.white }]}
                 onPress={() => setFilter(chip.key)}
                 activeOpacity={0.7}
               >
@@ -179,7 +176,7 @@ export default function SearchScreen() {
             );
           })}
         </ScrollView>
-      </View>
+      </ScreenHeader>
 
       {/* ── Results ── */}
       <ScrollView
@@ -355,22 +352,8 @@ function CircleIcon({ name, bg, color }: { name: string; bg: string; color: stri
 const sc = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
 
-  header: {
-    backgroundColor: Colors.cardBackground,
-    paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.sm,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    elevation: 4,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6,
-  },
-  headerTitle: {
-    fontSize: 22, fontWeight: '800', color: Colors.text,
-    textAlign: 'right', marginBottom: Spacing.sm,
-  },
-
   searchBox: {
+    marginTop: Spacing.sm,
     flexDirection: 'row', alignItems: 'center', gap: 8,
     backgroundColor: Colors.background,
     borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border,

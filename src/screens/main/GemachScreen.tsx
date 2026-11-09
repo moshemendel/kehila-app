@@ -6,7 +6,8 @@ import {
 } from 'react-native';
 import { AppAlert as Alert } from '../../components/AppAlert';
 
-import { LinearGradient } from 'expo-linear-gradient';
+import ScreenHeader, { HeaderButton } from '../../components/ScreenHeader';
+import FilterBar from '../../components/FilterBar';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -168,56 +169,23 @@ export default function GemachScreen() {
 
   return (
     <View style={s.root}>
-      <LinearGradient
-        colors={[Colors.primaryDark, GEMACH_COLOR]}
-        style={[s.header, { paddingTop: top + 16 }]}
-      >
-        <View style={s.headerRow}>
-          <View style={s.titleCol}>
-            <Text style={s.screenTitle}>גמ"ח</Text>
-            <Text style={s.subtitle}>גמילות חסדים</Text>
-            {city && <Text style={s.cityName}>📍 {city.name}</Text>}
-          </View>
-          <TouchableOpacity
-            style={s.addBtn}
-            onPress={handleAddPress}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="add" size={20} color={Colors.white} />
-            <Text style={s.addBtnTxt}>הוסף גמ"ח</Text>
-          </TouchableOpacity>
-        </View>
+      <ScreenHeader
+        color={Colors.gemachDeep}
+        title='גמ"ח'
+        subtitle={city ? `גמילות חסדים · 📍 ${city.name}` : 'גמילות חסדים'}
+        actions={<HeaderButton icon="add" onPress={handleAddPress} label='הוסף גמ"ח' />}
+      />
 
-        {/* Category chips */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={s.chips}
-        >
-          <TouchableOpacity
-            style={[s.chip, selectedCategories.length === 0 && s.chipActive]}
-            onPress={() => setSelectedCategories([])}
-          >
-            <Text style={[s.chipTxt, selectedCategories.length === 0 && s.chipTxtActive]}>הכל</Text>
-          </TouchableOpacity>
-          {usedCategories.map(cat => {
-            const active = selectedCategories.includes(cat);
-            return (
-              <TouchableOpacity
-                key={cat}
-                style={[s.chip, active && s.chipActive]}
-                onPress={() => setSelectedCategories(prev =>
-                  active ? prev.filter(c => c !== cat) : [...prev, cat]
-                )}
-              >
-                <Text style={[s.chipTxt, active && s.chipTxtActive]}>
-                  {CATEGORY_LABELS[cat]}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </LinearGradient>
+      <FilterBar
+        values={{ category: selectedCategories }}
+        onChange={(_, val) => setSelectedCategories(val as GemachCategory[])}
+        filters={[{
+          key: 'category',
+          label: 'קטגוריה',
+          options: usedCategories.map((cat) => ({ key: cat, label: CATEGORY_LABELS[cat] })),
+          activeColor: GEMACH_COLOR,
+        }]}
+      />
 
       {loading ? (
         <ActivityIndicator color={GEMACH_COLOR} style={{ marginTop: 40 }} />
@@ -261,31 +229,6 @@ export default function GemachScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
-
-  // Header
-  header:    { paddingHorizontal: Spacing.lg, paddingBottom: 12 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
-  titleCol:  { flex: 1 },
-  screenTitle: { fontSize: 26, fontWeight: '800', color: Colors.white },
-  subtitle:    { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
-  cityName:    { fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 4 },
-  addBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: Radius.md, paddingHorizontal: 12, paddingVertical: 8,
-  },
-  addBtnTxt: { fontSize: 13, fontWeight: '700', color: Colors.white },
-
-  // Chips
-  chips: { gap: 8, paddingBottom: 4 },
-  chip: {
-    paddingHorizontal: 14, paddingVertical: 6,
-    borderRadius: 20, borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
-  },
-  chipActive:   { backgroundColor: Colors.white },
-  chipTxt:      { fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: '500' },
-  chipTxtActive: { color: GEMACH_COLOR, fontWeight: '700' },
 
   // List
   list: { padding: Spacing.md, gap: 12 },

@@ -20,6 +20,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { submitEruvReport, getEruvPolygons, findEruvForArea } from '../../services/eruv';
 import { useAnalyticsTrack } from '../../services/analytics';
 import BottomSheetModal from '../../components/BottomSheetModal';
+import ScreenHeader from '../../components/ScreenHeader';
 import { uploadImage } from '../../utils/uploadImage';
 import { Colors, Spacing, Radius } from '../../utils/theme';
 import { EruvCoordinate } from '../../types';
@@ -286,21 +287,17 @@ export default function EruvScreen() {
     <View style={s.container}>
 
       {/* ── Header ──────────────────────────────────────────────── */}
-      <View style={[s.header, { paddingTop: top + 16, backgroundColor: statusColor }]}>
-        <View style={s.headerRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.title}>עירוב</Text>
-            {!loading && (
-              <View style={s.statusRow}>
-                <Ionicons name={statusIcon as any} size={18} color={Colors.white} />
-                <Text style={s.statusText}>{statusLabel}</Text>
-              </View>
-            )}
+      <ScreenHeader
+        color={statusColor}
+        title="עירוב"
+        actions={!loading && status?.updatedAt ? <Text style={s.updatedText}>עודכן לאחרונה</Text> : undefined}
+      >
+        {!loading && (
+          <View style={s.statusRow}>
+            <Ionicons name={statusIcon as any} size={18} color={Colors.white} />
+            <Text style={s.statusText}>{statusLabel}</Text>
           </View>
-          {!loading && status?.updatedAt && (
-            <Text style={s.updatedText}>עודכן לאחרונה</Text>
-          )}
-        </View>
+        )}
         {!loading && status?.notes ? <Text style={s.notesText}>{status.notes}</Text> : null}
 
         {/* Which eruv — only when this tenant has more than one. A single-line
@@ -320,7 +317,7 @@ export default function EruvScreen() {
             <Ionicons name="chevron-down" size={16} color={Colors.text} />
           </TouchableOpacity>
         )}
-      </View>
+      </ScreenHeader>
 
       {/* ── Map ─────────────────────────────────────────────────── */}
       {loading ? (
@@ -640,9 +637,6 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
 
   // Header
-  header:      { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
-  headerRow:   { flexDirection: 'row', alignItems: 'flex-end' },
-  title:       { fontSize: 24, fontWeight: '800', color: Colors.white },
   statusRow:   { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   statusText:  { fontSize: 15, fontWeight: '700', color: Colors.white },
   updatedText: { fontSize: 11, color: 'rgba(255,255,255,0.7)', paddingBottom: 4 },

@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as Location from 'expo-location';
 import BusinessCard from '../../components/BusinessCard';
 import FilterBar from '../../components/FilterBar';
+import ScreenHeader, { HeaderButton } from '../../components/ScreenHeader';
 import { businessCategories, certificationTags, sortCertTags } from '../../services/businesses';
 import { useBusinessesFeed } from '../../context/BusinessesContext';
 import { useCityId } from '../../hooks/useCityId';
@@ -181,42 +182,26 @@ export default function BusinessesScreen() {
     <View style={s.container}>
 
       {/* ── Header ────────────────────────────────────────────────────────── */}
-      <View style={[s.header, { paddingTop: top + 16 }]}>
-        <View style={s.headerRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.title} numberOfLines={1}>
-              עסקים כשרים
-              {!loading && (
-                <Text style={s.titleCount}>
-                  {`  (${visible.length} מתוך ${businesses.filter((r) => !r.isHidden).length})`}
-                </Text>
-              )}
-            </Text>
-          </View>
-          <View style={s.headerActions}>
+      <ScreenHeader
+        color={Colors.kosher}
+        title="בתי עסק"
+        titleSuffix={loading ? undefined : `(${visible.length} מתוך ${businesses.filter((r) => !r.isHidden).length})`}
+        actions={
+          <>
             {/* Map / List toggle */}
-            <TouchableOpacity
-              style={s.headerBtn}
+            <HeaderButton
+              icon={viewMode === 'list' ? 'map-outline' : 'list-outline'}
               onPress={() => { setViewMode((v) => v === 'list' ? 'map' : 'list'); setSelectedId(null); }}
-              activeOpacity={0.8}
-            >
-              <Ionicons
-                name={viewMode === 'list' ? 'map-outline' : 'list-outline'}
-                size={20}
-                color={Colors.white}
-              />
-            </TouchableOpacity>
+            />
             {/* Search toggle */}
-            <TouchableOpacity
-              style={[s.headerBtn, searchOpen && s.headerBtnActive]}
+            <HeaderButton
+              icon={searchOpen ? 'close' : 'search'}
+              active={searchOpen}
               onPress={() => { setSearchOpen((o) => !o); if (searchOpen) setSearch(''); }}
-              activeOpacity={0.8}
-            >
-              <Ionicons name={searchOpen ? 'close' : 'search'} size={20} color={Colors.white} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+            />
+          </>
+        }
+      />
 
       {/* ── Search bar ────────────────────────────────────────────────────── */}
       {searchOpen && (
@@ -387,22 +372,6 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
 
   // ── Header ──────────────────────────────────────────────────────────────
-  header: {
-    backgroundColor: Colors.kosher,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  headerRow:    { flexDirection: 'row', alignItems: 'flex-end' },
-  title:        { fontSize: 26, fontWeight: '800', color: Colors.white },
-  titleCount:   { fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.75)' },
-  subtitle:     { fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
-  headerActions:{ flexDirection: 'row', gap: 8, paddingBottom: 2 },
-  headerBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
-  headerBtnActive: { backgroundColor: 'rgba(255,255,255,0.30)' },
 
   // ── Search bar ───────────────────────────────────────────────────────────
   searchBar:   { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: Colors.cardBackground, paddingHorizontal: Spacing.md, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: Colors.border },

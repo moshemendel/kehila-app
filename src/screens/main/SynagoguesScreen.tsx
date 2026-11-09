@@ -25,6 +25,7 @@ import { useSynagogueZmanim } from '../../hooks/useSynagogueZmanim';
 import { useAppForegroundTick } from '../../hooks/useAppForegroundTick';
 import { Synagogue } from '../../types';
 import FilterBar from '../../components/FilterBar';
+import ScreenHeader, { HeaderButton } from '../../components/ScreenHeader';
 import FavoriteFilterChip from '../../components/FavoriteFilterChip';
 import FavoritePrayerModal, { ModalOptions } from '../../components/FavoritePrayerModal';
 import { collectShiurim } from '../../utils/prayerNotifications';
@@ -354,34 +355,26 @@ export default function SynagoguesScreen() {
     <View style={s.container}>
 
       {/* ── Header ────────────────────────────────────────────────────────── */}
-      <View style={[s.header, { paddingTop: top + 16 }]}>
-        <View style={s.headerRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.title} numberOfLines={1}>
-              בתי כנסת
-              {!loading && <Text style={s.titleCount}>{`  (${visible.length})`}</Text>}
-            </Text>
-          </View>
-          <View style={s.headerActions}>
+      <ScreenHeader
+        color={Colors.primary}
+        title="בתי כנסת"
+        titleSuffix={loading ? undefined : `(${visible.length})`}
+        actions={
+          <>
             {/* Map / List toggle */}
-            <TouchableOpacity
-              style={s.headerBtn}
+            <HeaderButton
+              icon={viewMode === 'list' ? 'map-outline' : 'list-outline'}
               onPress={() => { setViewMode((v) => v === 'list' ? 'map' : 'list'); setSelectedSynId(null); }}
-              activeOpacity={0.8}
-            >
-              <Ionicons name={viewMode === 'list' ? 'map-outline' : 'list-outline'} size={20} color={Colors.white} />
-            </TouchableOpacity>
+            />
             {/* Search toggle */}
-            <TouchableOpacity
-              style={[s.headerBtn, searchOpen && s.headerBtnActive]}
+            <HeaderButton
+              icon={searchOpen ? 'close' : 'search'}
+              active={searchOpen}
               onPress={() => { setSearchOpen((o) => !o); if (searchOpen) setSearch(''); }}
-              activeOpacity={0.8}
-            >
-              <Ionicons name={searchOpen ? 'close' : 'search'} size={20} color={Colors.white} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+            />
+          </>
+        }
+      />
 
       {/* ── Search bar ────────────────────────────────────────────────────── */}
       {searchOpen && (
@@ -572,18 +565,6 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
 
   // ── Header ──────────────────────────────────────────────────────────────
-  header: { backgroundColor: Colors.primary, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
-  headerRow:     { flexDirection: 'row', alignItems: 'flex-end' },
-  title:         { fontSize: 26, fontWeight: '800', color: Colors.white },
-  titleCount:    { fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.75)' },
-  subtitle:      { fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
-  headerActions: { flexDirection: 'row', gap: 8, paddingBottom: 2 },
-  headerBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
-  headerBtnActive: { backgroundColor: 'rgba(255,255,255,0.30)' },
 
   // ── Search ───────────────────────────────────────────────────────────────
   searchBar: {

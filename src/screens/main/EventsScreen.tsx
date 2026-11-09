@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import EventCard from '../../components/EventCard';
 import FilterBar from '../../components/FilterBar';
+import ScreenHeader from '../../components/ScreenHeader';
 import { useEventsFeed } from '../../context/EventsContext';
 import { useSynagogueEventReminders } from '../../context/SynagogueEventRemindersContext';
 import { Colors, Spacing, Radius } from '../../utils/theme';
@@ -104,10 +105,11 @@ export default function EventsScreen() {
     <View style={styles.container}>
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <View style={[styles.header, { paddingTop: top + 16 }]}>
-        <View style={styles.headerRow}>
-          <Text style={styles.title}>אירועים והודעות</Text>
-          <View style={styles.headerActions}>
+      <ScreenHeader
+        color={Colors.events}
+        title="אירועים והודעות"
+        actions={
+          <>
             {/* Mark all read — shown only when there are unread events */}
             {unreadCount > 0 && !showFavoritesOnly && (
               <TouchableOpacity style={styles.markAllBtn} onPress={markAllRead} activeOpacity={0.8}>
@@ -130,15 +132,16 @@ export default function EventsScreen() {
                 </Text>
               </TouchableOpacity>
             )}
-          </View>
-        </View>
+          </>
+        }
+      >
         {unreadAlerts.length > 0 && !showFavoritesOnly && (
           <View style={styles.alertBadge}>
             <Ionicons name="warning" size={14} color={Colors.white} />
             <Text style={styles.alertBadgeText}>{unreadAlerts.length} התראות לא נקראו</Text>
           </View>
         )}
-      </View>
+      </ScreenHeader>
 
       {/* ── Category filter ─────────────────────────────────────────────────── */}
       <FilterBar
@@ -207,21 +210,6 @@ export default function EventsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
 
-  header: {
-    backgroundColor: Colors.events,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-    gap: Spacing.sm,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  title: { fontSize: 26, fontWeight: '800', color: Colors.white },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
 
   markAllBtn: {
     flexDirection: 'row',
@@ -252,6 +240,7 @@ const styles = StyleSheet.create({
   favToggleTextActive: { color: Colors.gold },
 
   alertBadge: {
+    marginTop: Spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,

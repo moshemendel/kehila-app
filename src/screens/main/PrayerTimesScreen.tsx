@@ -20,6 +20,7 @@ import {
   todayDayNumber, tomorrowDayNumber, resolveSlotTime, slotRunsInSeason,
 } from '../../utils/prayerUtils';
 import FilterBar from '../../components/FilterBar';
+import ScreenHeader from '../../components/ScreenHeader';
 import { reachInTime, formatMinutes } from '../../utils/travel';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -433,33 +434,32 @@ export default function PrayerTimesScreen() {
   return (
     <View style={s.container}>
       {/* Header */}
-      <View style={[s.header, { paddingTop: top + 16 }]}>
-        <View>
-          <Text style={s.title}>תפילות</Text>
-          <Text style={s.subtitle}>
-            {viewDay === 'today'
-              ? `יום ${hebrewDayOfWeek()} · ${currentTimeString()}`
-              : `מחר · יום ${tomorrowDayOfWeek()}`}
-          </Text>
-        </View>
-        {/* Day toggle */}
-        <View style={s.dayToggle}>
-          <TouchableOpacity
-            style={[s.dayBtn, viewDay === 'today' && s.dayBtnActive]}
-            onPress={() => { setViewDay('today'); setManualFilter(null); }}
-          >
-            <Text style={[s.dayBtnTxt, viewDay === 'today' && s.dayBtnTxtActive]}>היום</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[s.dayBtn, viewDay === 'tomorrow' && s.dayBtnActive]}
-            onPress={() => { setViewDay('tomorrow'); setManualFilter(null); }}
-          >
-            <Text style={[s.dayBtnTxt, viewDay === 'tomorrow' && s.dayBtnTxtActive]}>מחר</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <ScreenHeader
+        color={Colors.primary}
+        title="תפילות"
+        subtitle={viewDay === 'today'
+          ? `יום ${hebrewDayOfWeek()} · ${currentTimeString()}`
+          : `מחר · יום ${tomorrowDayOfWeek()}`}
+      />
 
       <FilterBar
+        toggleSlot={
+          /* Day toggle */
+          <View style={s.dayToggle}>
+            <TouchableOpacity
+              style={[s.dayBtn, viewDay === 'today' && s.dayBtnActive]}
+              onPress={() => { setViewDay('today'); setManualFilter(null); }}
+            >
+              <Text style={[s.dayBtnTxt, viewDay === 'today' && s.dayBtnTxtActive]}>היום</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[s.dayBtn, viewDay === 'tomorrow' && s.dayBtnActive]}
+              onPress={() => { setViewDay('tomorrow'); setManualFilter(null); }}
+            >
+              <Text style={[s.dayBtnTxt, viewDay === 'tomorrow' && s.dayBtnTxtActive]}>מחר</Text>
+            </TouchableOpacity>
+          </View>
+        }
         values={{
           prayer:       filter === 'all' ? [] : [filter],
           nusach:       selNusach,
@@ -627,16 +627,13 @@ export default function PrayerTimesScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   container:    { flex: 1, backgroundColor: Colors.background },
-  header:       { backgroundColor: Colors.primary, paddingTop: 56, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  title:        { fontSize: 26, fontWeight: '800', color: Colors.white },
-  subtitle:     { fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
   slotCount:    { fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: '600' },
 
-  dayToggle:      { flexDirection: 'row', borderRadius: Radius.full, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.5)', overflow: 'hidden' },
-  dayBtn:         { paddingHorizontal: 16, paddingVertical: 6 },
-  dayBtnActive:   { backgroundColor: Colors.white },
-  dayBtnTxt:      { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.8)' },
-  dayBtnTxtActive:{ color: Colors.primary },
+  dayToggle:      { flexDirection: 'row', borderRadius: Radius.full, borderWidth: 1.5, borderColor: Colors.primary, overflow: 'hidden' },
+  dayBtn:         { paddingHorizontal: 14, paddingVertical: 5 },
+  dayBtnActive:   { backgroundColor: Colors.primary },
+  dayBtnTxt:      { fontSize: 13, fontWeight: '700', color: Colors.primary },
+  dayBtnTxtActive:{ color: Colors.white },
 
   sortGroup:    { flexDirection: 'row', borderRadius: Radius.full, borderWidth: 1.5, borderColor: Colors.primary, overflow: 'hidden' },
   sortBtn:      { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, paddingVertical: 7 },

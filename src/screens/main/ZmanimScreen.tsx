@@ -5,7 +5,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   ActivityIndicator, LayoutChangeEvent,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import ScreenHeader, { HeaderButton } from '../../components/ScreenHeader';
 import { Colors, Spacing, Radius } from '../../utils/theme';
 import { formatHebrewDate } from '../../utils/hebrewDate';
 import { withCityCandles } from '../../utils/zmanimProfile';
@@ -187,7 +187,6 @@ export default function ZmanimScreen() {
     return () => clearTimeout(timer);
   }, [nextKey]));
 
-  const curPreset  = activePreset(settings);
   const today      = now;
 
   /** A row's label, spelled from the method in use where the method decides it. */
@@ -215,40 +214,31 @@ export default function ZmanimScreen() {
 
   return (
     <View style={s.root}>
-      <LinearGradient colors={[Colors.primaryDark, Colors.primary]} style={[s.header, { paddingTop: top + 16 }]}>
-        <View style={s.headerRow}>
-          <View style={s.titleCol}>
-            <Text style={s.screenTitle}>זמני היום</Text>
-            <Text style={s.hebrewDate}>{formatHebrewDate(today)}</Text>
-            <Text style={s.gregDate}>
-              {today.toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </Text>
-            <Text style={s.locName}>📍 {locationName}</Text>
-          </View>
-
-          {/* While the method is locked the badge still names the opinion in use —
-              people need to know WHICH shita they are reading, they just can't
-              change it yet. */}
-          <TouchableOpacity
-            style={s.methodBadge}
+      <ScreenHeader
+        color={Colors.primary}
+        title="זמני היום"
+        subtitle={`📍 ${locationName}`}
+        actions={
+          /* While the method is locked the gear still shows, and explains why
+              the method can't be changed yet. */
+          <HeaderButton
+            icon="settings-outline"
+            label="הגדרות זמנים"
             onPress={() => (methodLocked
               ? comingSoonAlert(
                   'שינוי שיטת הזמנים',
                   'בשלב הפיילוט הזמנים מחושבים לפי שיטה אחידה לכל העיר.\nבחירת שיטה אישית תיפתח בקרוב.',
                 )
               : navigation.navigate('ZmanimSettings' as never))}
-            activeOpacity={0.75}
-          >
-            <Text style={s.methodBadgeLabel}>{curPreset ? curPreset.label : 'הגדרות זמנים'}</Text>
-            <Text style={s.methodBadgePosek}>
-              {methodLocked
-                ? (curPreset ? curPreset.posek : 'מותאם אישית')
-                : (curPreset ? curPreset.posek : 'מותאם אישית · לחץ לשינוי')}
-            </Text>
-            {methodLocked && <Text style={s.methodBadgeSoon}>שינוי שיטה · בקרוב</Text>}
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+          />
+        }
+      >
+        {/* Date strip: one line, same as the home screen's — Hebrew date, then
+            the Gregorian date as d.m.yy. */}
+        <Text style={s.dateStrip} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+          {`${formatHebrewDate(today)} · ${today.getDate()}.${today.getMonth() + 1}.${String(today.getFullYear()).slice(-2)}`}
+        </Text>
+      </ScreenHeader>
 
       <ScrollView
         ref={scrollRef}
@@ -305,24 +295,7 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
 
   // Header
-  header:      { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.xl },
-  headerRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  titleCol:    { flex: 1, marginRight: Spacing.sm },
-  screenTitle: { fontSize: 22, fontWeight: '800', color: Colors.white },
-  hebrewDate:  { fontSize: 15, color: Colors.goldMuted, fontWeight: '700', marginTop: 2 },
-  gregDate:    { fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 2 },
-  locName:     { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 4 },
-  methodBadge: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 10,
-    alignItems: 'center',
-    minWidth: 118,
-  },
-  methodBadgeLabel: { fontSize: 13, fontWeight: '800', color: Colors.white, textAlign: 'center' },
-  methodBadgePosek: { fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 3, textAlign: 'center' },
-  methodBadgeSoon:  { fontSize: 9.5, fontWeight: '700', color: 'rgba(255,255,255,0.45)', marginTop: 4, textAlign: 'center' },
+  dateStrip: { fontSize: 14, fontWeight: '700', color: Colors.white, marginTop: Spacing.sm },
 
   // List
   list: { padding: Spacing.sm, gap: 6, paddingBottom: 32 },

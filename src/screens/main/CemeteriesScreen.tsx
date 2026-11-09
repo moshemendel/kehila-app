@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, ActivityIndicator, Linking,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import ScreenHeader from '../../components/ScreenHeader';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -123,13 +123,11 @@ export default function CemeteriesScreen() {
 
   return (
     <View style={s.container}>
-      <LinearGradient
-        colors={[Colors.cemetery, '#454D56']}
-        style={[s.header, { paddingTop: top + 16 }]}
-      >
-        <Text style={s.title}>קבורה ובית עלמין</Text>
-        <Text style={s.subtitle}>אנשי קשר ובתי עלמין באזור</Text>
-      </LinearGradient>
+      <ScreenHeader
+        color={Colors.cemetery}
+        title="קבורה ובית עלמין"
+        subtitle="אנשי קשר ובתי עלמין באזור"
+      />
 
       {loading ? (
         <ActivityIndicator color={Colors.cemetery} style={{ marginTop: 60 }} size="large" />
@@ -160,10 +158,6 @@ export default function CemeteriesScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-
-  header:   { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.lg },
-  title:    { fontSize: 22, fontWeight: '800', color: Colors.white },
-  subtitle: { fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 3 },
 
   list: { padding: Spacing.md },
 

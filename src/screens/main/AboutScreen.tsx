@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ScreenHeader from '../../components/ScreenHeader';
 import Constants from 'expo-constants';
 import * as Updates from 'expo-updates';
 import { AppAlert as Alert } from '../../components/AppAlert';
@@ -74,7 +74,6 @@ async function open(url: string) {
 
 export default function AboutScreen() {
   const navigation = useNavigation<any>();
-  const { top } = useSafeAreaInsets();
   const cityId = useCityId();
   const { city } = useCity(cityId);
 
@@ -114,14 +113,8 @@ export default function AboutScreen() {
   }
 
   return (
-    <View style={[s.screen, { paddingTop: top }]}>
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-          <Ionicons name="chevron-forward" size={26} color={Colors.text} />
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>אודות</Text>
-        <View style={{ width: 26 }} />
-      </View>
+    <View style={s.screen}>
+      <ScreenHeader color={Colors.primary} title="אודות" onBack={() => navigation.goBack()} />
 
       <ScrollView contentContainerStyle={s.body}>
         <View style={s.hero}>
@@ -196,12 +189,6 @@ export default function AboutScreen() {
 
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
-    backgroundColor: Colors.cardBackground, borderBottomWidth: 1, borderBottomColor: Colors.border,
-  },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: Colors.text },
   body: { padding: Spacing.md, paddingBottom: Spacing.xl },
 
   hero: { alignItems: 'center', paddingVertical: Spacing.lg, gap: Spacing.sm },

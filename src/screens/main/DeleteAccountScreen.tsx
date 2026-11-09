@@ -7,7 +7,7 @@ import { AppAlert as Alert } from '../../components/AppAlert';
 
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ScreenHeader from '../../components/ScreenHeader';
 import { Colors, Spacing, Radius } from '../../utils/theme';
 import { useAuth } from '../../context/AuthContext';
 import { logout } from '../../services/auth';
@@ -51,7 +51,6 @@ function Row({ icon, color, children }: {
 
 export default function DeleteAccountScreen() {
   const navigation = useNavigation<any>();
-  const { top } = useSafeAreaInsets();
   const { appUser } = useAuth();
   const [typed, setTyped] = useState('');
   const [busy, setBusy] = useState(false);
@@ -80,14 +79,8 @@ export default function DeleteAccountScreen() {
   }
 
   return (
-    <View style={[s.screen, { paddingTop: top }]}>
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-          <Ionicons name="chevron-forward" size={26} color={Colors.text} />
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>מחיקת חשבון</Text>
-        <View style={{ width: 26 }} />
-      </View>
+    <View style={s.screen}>
+      <ScreenHeader color={Colors.danger} title="מחיקת חשבון" onBack={() => navigation.goBack()} />
 
       <ScrollView contentContainerStyle={s.body} keyboardShouldPersistTaps="handled">
         <View style={s.card}>
@@ -157,12 +150,6 @@ export default function DeleteAccountScreen() {
 
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
-    backgroundColor: Colors.cardBackground, borderBottomWidth: 1, borderBottomColor: Colors.border,
-  },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: Colors.text },
   body: { padding: Spacing.md, paddingBottom: Spacing.xl },
 
   card: {

@@ -18,6 +18,7 @@ import {
   collectCityShiurim, audienceFits, defaultAudienceFor, SHIUR_TOPICS, AUDIENCE_LABEL, ShiurItem,
 } from '../../utils/shiurim';
 import FilterBar from '../../components/FilterBar';
+import ScreenHeader from '../../components/ScreenHeader';
 
 type View_ = 'today' | 'tomorrow' | 'week';
 
@@ -182,25 +183,26 @@ export default function ShiurimScreen() {
 
   return (
     <View style={s.container}>
-      <View style={[s.header, { paddingTop: top + 16 }]}>
-        <View>
-          <Text style={s.headerTitle}>שיעורי תורה</Text>
-          <Text style={s.headerSub}>{subtitle}</Text>
-        </View>
-        <View style={s.viewToggle}>
-          {(['today', 'tomorrow', 'week'] as View_[]).map((v) => (
-            <TouchableOpacity
-              key={v}
-              style={[s.viewBtn, view === v && s.viewBtnOn]}
-              onPress={() => setView(v)}
-            >
-              <Text style={[s.viewBtnTxt, view === v && s.viewBtnTxtOn]}>{VIEW_LABEL[v]}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
+      <ScreenHeader
+        color={Colors.events}
+        title="שיעורי תורה"
+        subtitle={subtitle}
+      />
 
       <FilterBar
+        toggleSlot={
+          <View style={s.viewToggle}>
+            {(['today', 'tomorrow', 'week'] as View_[]).map((v) => (
+              <TouchableOpacity
+                key={v}
+                style={[s.viewBtn, view === v && s.viewBtnOn]}
+                onPress={() => setView(v)}
+              >
+                <Text style={[s.viewBtnTxt, view === v && s.viewBtnTxtOn]}>{VIEW_LABEL[v]}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        }
         values={filters}
         onChange={(key, val) => {
           if (key === 'audience') audienceTouched.current = true;
@@ -277,15 +279,12 @@ export default function ShiurimScreen() {
 
 const s = StyleSheet.create({
   container:   { flex: 1, backgroundColor: Colors.background },
-  header:      { backgroundColor: Colors.events, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  headerTitle: { fontSize: 26, fontWeight: '800', color: Colors.white },
-  headerSub:   { fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
 
-  viewToggle:   { flexDirection: 'row', borderRadius: Radius.full, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.5)', overflow: 'hidden' },
-  viewBtn:      { paddingHorizontal: 12, paddingVertical: 6 },
-  viewBtnOn:    { backgroundColor: Colors.white },
-  viewBtnTxt:   { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.8)' },
-  viewBtnTxtOn: { color: Colors.events },
+  viewToggle:   { flexDirection: 'row', borderRadius: Radius.full, borderWidth: 1.5, borderColor: Colors.events, overflow: 'hidden' },
+  viewBtn:      { paddingHorizontal: 12, paddingVertical: 5 },
+  viewBtnOn:    { backgroundColor: Colors.events },
+  viewBtnTxt:   { fontSize: 13, fontWeight: '700', color: Colors.events },
+  viewBtnTxtOn: { color: Colors.white },
 
   card:     { ...CardShellFlush, flexDirection: 'row', alignItems: 'center' },
   colorBar: { width: 4, alignSelf: 'stretch', backgroundColor: Colors.events },

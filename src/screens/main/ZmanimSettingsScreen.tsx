@@ -6,7 +6,7 @@ import {
 import { AppAlert as Alert } from '../../components/AppAlert';
 
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
+import ScreenHeader from '../../components/ScreenHeader';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
@@ -90,20 +90,12 @@ export default function ZmanimSettingsScreen() {
   return (
     <View style={s.root}>
       {/* ── Header ── */}
-      <LinearGradient
-        colors={[Colors.primaryDark, Colors.primary]}
-        style={[s.header, { paddingTop: top + 10 }]}
-      >
-        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()} hitSlop={12}>
-          <Ionicons name="chevron-forward" size={24} color={Colors.white} />
-        </TouchableOpacity>
-        <View>
-          <Text style={s.headerTitle}>הגדרות זמנים</Text>
-          {activePreset && (
-            <Text style={s.headerSub}>{activePreset.label} · {activePreset.posek}</Text>
-          )}
-        </View>
-      </LinearGradient>
+      <ScreenHeader
+        color={Colors.primary}
+        title="הגדרות זמנים"
+        subtitle={activePreset ? `${activePreset.label} · ${activePreset.posek}` : undefined}
+        onBack={() => navigation.goBack()}
+      />
 
       <ScrollView
         contentContainerStyle={[s.list, { paddingBottom: bottom + 40 }]}
@@ -327,10 +319,6 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
 
   // Header
-  header:      { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  backBtn:     { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: Colors.white },
-  headerSub:   { fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 1 },
 
   // List
   list:         { padding: Spacing.md, paddingTop: Spacing.lg },
