@@ -93,6 +93,9 @@ export function getUpcomingYomTov(date: Date = new Date(), maxLookAheadDays = 30
 
     let name = '';
     try { name = fmt.formatYomTov(cal) ?? ''; } catch {}
+    // The formatter gives both the first and the seventh day the one name
+    // "פסח", so "פסח · בעוד 3 ימים" on Chol Hamoed pointed at the wrong day.
+    if (name === 'פסח' && cal.getJewishDayOfMonth() === 21) name = 'שביעי של פסח';
 
     // Find the last consecutive assur-bemelacha Yom Tov day (skip Shabbat in the middle)
     let lastDay = new Date(checkDate);

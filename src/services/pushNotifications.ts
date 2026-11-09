@@ -100,6 +100,8 @@ export async function clearPushToken(): Promise<void> {
 interface SendPushArgs {
   cityId: string; title: string; body: string;
   data?: Record<string, unknown>; areaIds?: string[]; roles?: string[];
+  /** Leave out the other gender: 'women' skips men, 'men' skips women. */
+  audience?: 'men' | 'women';
 }
 
 // The send runs in the sendPush Cloud Function, not here: the browser blocks a
@@ -121,9 +123,10 @@ export async function sendPushToCity(
   body: string,
   data?: Record<string, unknown>,
   areaIds?: string[],
+  audience?: 'men' | 'women',
 ): Promise<void> {
   try {
-    await callSendPush({ cityId, title, body, data, areaIds });
+    await callSendPush({ cityId, title, body, data, areaIds, audience });
   } catch (e) {
     console.warn('[Push] sendPushToCity failed:', e);
   }

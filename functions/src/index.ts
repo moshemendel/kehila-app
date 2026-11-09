@@ -539,10 +539,11 @@ export const sendPush = onCall({ region: REGION }, async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError('unauthenticated', 'יש להתחבר.');
 
-  const { cityId, title, body, data, areaIds, roles, excludeGuests, channelId } = (request.data ?? {}) as {
+  const { cityId, title, body, data, areaIds, roles, excludeGuests, channelId, audience } = (request.data ?? {}) as {
     cityId?: string; title?: string; body?: string;
     data?: Record<string, unknown>; areaIds?: string[] | null; roles?: string[] | null;
     excludeGuests?: boolean; channelId?: string;
+    audience?: 'men' | 'women';
   };
   if (!cityId || !title) throw new HttpsError('invalid-argument', 'cityId ו-title נדרשים.');
 
@@ -563,6 +564,22 @@ export const sendPush = onCall({ region: REGION }, async (request) => {
   // developers' own phones don't receive — or inflate the count of — every
   // announcement. The console's recipient count applies the same rule.
   const testUids = new Set((await db.collection('users').where('isTestAccount', '==', true).get()).docs.map((d) => d.id));
+  // Audience targeting: a women's-only notice skips accounts that said "גבר",
+  // and vice versa. Only a stated opposite excludes — "לא משנה", an account from
+  // before the question existed, and a guest (no profile) all still receive it,
+  // because dropping people on a missing answer would silently under-deliver.
+  const skipGender = audience === 'women' ? 'male' : audience === 'men' ? 'female' : null;
+  const genderOf = new Map<string, string>();
+  if (skipGender) {
+    const uids = Array.from(new Set(snap.docs.map((d) => d.data().uid).filter(Boolean))) as string[];
+    for (let i = 0; i < uids.length; i += 300) {
+      const refs = uids.slice(i, i + 300).map((u) => db.collection('users').doc(u));
+      for (const u of await db.getAll(...refs)) {
+        const g = u.data()?.gender;
+        if (g) genderOf.set(u.id, g);
+      }
+    }
+  }
   const entries: TokenEntry[] = [];
   snap.forEach((d) => {
     const t = d.data();
@@ -570,6 +587,7 @@ export const sendPush = onCall({ region: REGION }, async (request) => {
     const heldRoles: string[] = t.roles ?? [t.role];
     if (heldRoles.some((r) => r === 'super_admin' || r === 'dev') || testUids.has(t.uid)) return;
     if (excludeGuests && t.role === 'guest') return;
+    if (skipGender && genderOf.get(t.uid) === skipGender) return;
     if (areaIds && !areaIds.includes(t.homeAreaId)) return;
     if (roles) {
       const tokenRoles: string[] = t.roles ?? [t.role];

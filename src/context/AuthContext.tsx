@@ -3,10 +3,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
 import { auth } from '../services/firebase';
 import { getUserDoc, reloadAuthUser, appUserCacheKey } from '../services/auth';
-import { updateUserCity, updateUserHomeCity, updateUserHomeArea } from '../services/users';
+import { updateUserCity, updateUserHomeCity, updateUserHomeArea, updateUserGender } from '../services/users';
 import { getGuestCityId, setGuestCityId } from '../services/guestCity';
 import { initAnalytics, clearAnalytics } from '../services/analytics';
-import { AppUser } from '../types';
+import { AppUser, Gender } from '../types';
 import { mark } from '../utils/startupTrace';
 
 export const DEMO_USER: AppUser = {
@@ -39,6 +39,7 @@ interface AuthContextValue {
   switchCity: (cityId: string) => Promise<void>;
   updateHomeCity: (cityId: string) => Promise<void>;
   updateHomeArea: (areaId: string) => Promise<void>;
+  updateGender: (gender: Gender) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -57,6 +58,7 @@ const AuthContext = createContext<AuthContextValue>({
   switchCity: async () => {},
   updateHomeCity: async () => {},
   updateHomeArea: async () => {},
+  updateGender: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -187,6 +189,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await updateUserHomeArea(firebaseUser.uid, areaId);
   }
 
+  async function updateGender(gender: Gender) {
+    setAppUser((u) => u ? { ...u, gender } : u);
+    if (isDemo || !firebaseUser) return;
+    await updateUserGender(firebaseUser.uid, gender);
+  }
+
   useEffect(() => {
     let unsub: (() => void) | undefined;
     try {
@@ -254,7 +262,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Guests have no address to confirm, and demo mode isn't a real account.
         needsEmailVerification: !!firebaseUser && !firebaseUser.isAnonymous && !isDemo && !emailVerified,
         refreshAuthState,
-        loginAsDemo, exitDemo, refreshUser, switchCity, updateHomeCity, updateHomeArea,
+        loginAsDemo, exitDemo, refreshUser, switchCity, updateHomeCity, updateHomeArea, updateGender,
       }}
     >
       {children}

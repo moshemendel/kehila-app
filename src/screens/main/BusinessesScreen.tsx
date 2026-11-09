@@ -184,9 +184,13 @@ export default function BusinessesScreen() {
       <View style={[s.header, { paddingTop: top + 16 }]}>
         <View style={s.headerRow}>
           <View style={{ flex: 1 }}>
-            <Text style={s.title}>עסקים כשרים</Text>
-            <Text style={s.subtitle}>
-              {loading ? '...' : `${visible.length} מתוך ${businesses.filter((r) => !r.isHidden).length} עסקים`}
+            <Text style={s.title} numberOfLines={1}>
+              עסקים כשרים
+              {!loading && (
+                <Text style={s.titleCount}>
+                  {`  (${visible.length} מתוך ${businesses.filter((r) => !r.isHidden).length})`}
+                </Text>
+              )}
             </Text>
           </View>
           <View style={s.headerActions}>
@@ -390,6 +394,7 @@ const s = StyleSheet.create({
   },
   headerRow:    { flexDirection: 'row', alignItems: 'flex-end' },
   title:        { fontSize: 26, fontWeight: '800', color: Colors.white },
+  titleCount:   { fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.75)' },
   subtitle:     { fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
   headerActions:{ flexDirection: 'row', gap: 8, paddingBottom: 2 },
   headerBtn: {

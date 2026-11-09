@@ -42,6 +42,8 @@ export interface PendingGemach {
 import type { UserRole } from '../utils/roleKeys';
 export type { UserRole };
 
+export type Gender = 'male' | 'female' | 'any';
+
 export interface AppUser {
   uid: string;
   email: string;
@@ -61,6 +63,15 @@ export interface AppUser {
   // area-aware code that reads it falls back to the tenant's one isDefault
   // area, which is exactly the coordinates cityId already pointed at.
   homeAreaId?: string;
+  /**
+   * Asked once at sign-up so content and, later, notifications can be tailored
+   * (a men's-mikveh closing is noise to a woman; a challah-baking evening is
+   * noise to a man). 'any' is an answer in its own right — "don't tailor for
+   * me" — and an absent field means the account predates the question. Both
+   * mean the same to every reader: no gender targeting. A plain personal fact,
+   * freely self-editable (the users rule only blocks the privileged fields).
+   */
+  gender?: Gender;
   role: UserRole;
   roles?: UserRole[];
   managedSynagogueIds?: string[];
@@ -125,6 +136,10 @@ export interface City {
   /** The city's burial society register is copied into `deceased` (see
    *  functions/src/deceasedSync.ts): the cemeteries tab offers a search. */
   deceasedSearch?: boolean;
+  /** The religious council's emblem (https image): the home screen, so the app
+   *  reads as the council's own, and the headers of the section lists. Nothing
+   *  is drawn when absent. */
+  religiousCouncilLogoUrl?: string;
   /**
    * The method the city's council publishes its zmanim by — what residents see
    * until they pick their own, and what every synagogue's anchored prayer times
@@ -268,7 +283,15 @@ export interface Shiur {
   days: number[] | "daily"; // 1=Sunday, 2=Monday, ..., 7=Shabbat or 'daily'
   time: string;
   description?: string;
+  /** Subject, one of SHIUR_TOPICS (utils/shiurim.ts). Absent on every shiur
+   *  written before the field existed — the Torah-classes screen then infers it
+   *  from the title, so old data is still filterable. */
+  topic?: string;
+  /** Who the shiur is for. Absent = not stated, treated as open to everyone. */
+  audience?: ShiurAudience;
 }
+
+export type ShiurAudience = 'men' | 'women' | 'all';
 
 export interface Synagogue {
   id: string;
@@ -642,6 +665,7 @@ export type MainTabParamList = {
   Gemach: undefined;
   Cemeteries: undefined;
   Selichot: undefined;
+  Shiurim: undefined;
   Profile: undefined;
 };
 

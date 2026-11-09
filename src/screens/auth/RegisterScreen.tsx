@@ -14,7 +14,8 @@ import { registerWithEmail } from '../../services/auth';
 import { getAllCities } from '../../services/cities';
 import { useAuth } from '../../context/AuthContext';
 import { Colors, Spacing, Radius } from '../../utils/theme';
-import { AuthStackParamList, City } from '../../types';
+import { AuthStackParamList, City, Gender } from '../../types';
+import GenderPicker from '../../components/GenderPicker';
 import CityPicker from '../../components/CityPicker';
 import PasswordStrength from '../../components/PasswordStrength';
 import { checkPassword, MIN_LENGTH } from '../../utils/passwordPolicy';
@@ -32,6 +33,7 @@ export default function RegisterScreen({ navigation }: Props) {
   const [selectedCity,   setSelectedCity]   = useState<City | null>(null);
   const [cityPickerOpen, setCityPickerOpen] = useState(false);
   const [detectingCity,  setDetectingCity]  = useState(false);
+  const [gender, setGender] = useState<Gender | null>(null);
 
   // Checked against the name/email too, so a password built out of the account
   // it protects is refused.
@@ -82,6 +84,10 @@ export default function RegisterScreen({ navigation }: Props) {
       Alert.alert('שגיאה', 'יש לבחור עיר');
       return;
     }
+    if (!gender) {
+      Alert.alert('שגיאה', 'יש לבחור גבר / אישה / לא משנה');
+      return;
+    }
     if (password !== confirmPass) {
       Alert.alert('שגיאה', 'הסיסמאות אינן תואמות');
       return;
@@ -98,7 +104,7 @@ export default function RegisterScreen({ navigation }: Props) {
     }
     setLoading(true);
     try {
-      const user = await registerWithEmail(email.trim(), password, name.trim(), selectedCity.id);
+      const user = await registerWithEmail(email.trim(), password, name.trim(), selectedCity.id, gender);
       // AuthGate closes this modal as soon as firebaseUser becomes non-anonymous,
       // which can race ahead of the user doc actually finishing its Firestore
       // write above — force a reload now that it's guaranteed to exist, so the
@@ -158,6 +164,15 @@ export default function RegisterScreen({ navigation }: Props) {
                 </View>
               </View>
             ))}
+
+            {/* Gender — lets content and, later, notifications fit the reader
+                (a men's-mikveh notice means nothing to a woman). "לא משנה"
+                opts out of tailoring. */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>אני</Text>
+              <GenderPicker value={gender} onChange={setGender} />
+              <Text style={styles.hint}>כדי להתאים לך שיעורים, התראות ופרסומים</Text>
+            </View>
 
             {/* City picker */}
             <View style={styles.inputGroup}>
@@ -298,6 +313,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   inputError: { borderColor: Colors.danger },
+  hint: { fontSize: 11.5, color: Colors.textMuted, marginTop: 5 },
   mismatchTxt: { fontSize: 12, color: Colors.danger, marginTop: 4 },
   input: { flex: 1, fontSize: 15, color: Colors.text },
   registerBtn: {

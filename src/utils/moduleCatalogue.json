@@ -90,6 +90,15 @@
     "soonText": "זמני הסליחות בבתי הכנסת ייפתחו לקראת חודש אלול."
   },
   {
+    "key": "Shiurim",
+    "kind": "section",
+    "label": "שיעורי תורה",
+    "hint": "שיעורים מכל בתי הכנסת, לפי שכונה, נושא וקהל יעד",
+    "icon": "book-outline",
+    "color": "events",
+    "soonText": "לוח שיעורי התורה בעיר ייפתח בקרוב."
+  },
+  {
     "key": "mikvehBooking",
     "kind": "feature",
     "label": "קביעת תורים למקווה",

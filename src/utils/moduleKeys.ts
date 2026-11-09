@@ -14,5 +14,6 @@ export type ModuleKey =
   | 'Gemach'
   | 'Cemeteries'
   | 'Selichot'
+  | 'Shiurim'
   | 'mikvehBooking'
   | 'zmanimSettings';

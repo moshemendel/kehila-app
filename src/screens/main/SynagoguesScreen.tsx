@@ -357,8 +357,10 @@ export default function SynagoguesScreen() {
       <View style={[s.header, { paddingTop: top + 16 }]}>
         <View style={s.headerRow}>
           <View style={{ flex: 1 }}>
-            <Text style={s.title}>בתי כנסת</Text>
-            <Text style={s.subtitle}>{loading ? '...' : `${visible.length} בתי כנסת`}</Text>
+            <Text style={s.title} numberOfLines={1}>
+              בתי כנסת
+              {!loading && <Text style={s.titleCount}>{`  (${visible.length})`}</Text>}
+            </Text>
           </View>
           <View style={s.headerActions}>
             {/* Map / List toggle */}
@@ -573,6 +575,7 @@ const s = StyleSheet.create({
   header: { backgroundColor: Colors.primary, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
   headerRow:     { flexDirection: 'row', alignItems: 'flex-end' },
   title:         { fontSize: 26, fontWeight: '800', color: Colors.white },
+  titleCount:    { fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.75)' },
   subtitle:      { fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
   headerActions: { flexDirection: 'row', gap: 8, paddingBottom: 2 },
   headerBtn: {

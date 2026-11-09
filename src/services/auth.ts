@@ -14,7 +14,7 @@ import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth, db } from './firebase';
-import { AppUser, UserRole } from '../types';
+import { AppUser, UserRole, Gender } from '../types';
 
 /**
  * Where AuthContext keeps the last-known account document, so a cold start
@@ -29,11 +29,12 @@ export async function registerWithEmail(
   email: string,
   password: string,
   displayName: string,
-  cityId: string
+  cityId: string,
+  gender?: Gender,
 ): Promise<User> {
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(cred.user, { displayName });
-  await createUserDoc(cred.user, cityId, 'user');
+  await createUserDoc(cred.user, cityId, 'user', gender);
   // Fire-and-forget: a bounced or throttled verification mail must not fail a
   // registration that already succeeded. The user can resend from the banner.
   sendEmailVerification(cred.user).catch(() => {});
@@ -127,7 +128,7 @@ export async function logout(): Promise<void> {
   await GoogleSignin.signOut().catch(() => {});
 }
 
-async function createUserDoc(user: User, cityId: string, role: UserRole): Promise<void> {
+async function createUserDoc(user: User, cityId: string, role: UserRole, gender?: Gender): Promise<void> {
   await setDoc(doc(db, 'users', user.uid), {
     uid: user.uid,
     email: user.email,
@@ -139,6 +140,9 @@ async function createUserDoc(user: User, cityId: string, role: UserRole): Promis
     // by the personal "switch city" browsing preference.
     homeCityId: cityId,
     role,
+    // Omitted rather than null when not asked (the Google path asks on the
+    // next screen) so "never answered" stays distinguishable from "any".
+    ...(gender ? { gender } : {}),
     managedSynagogueIds: [],
     managedRestaurantIds: [],
     createdAt: serverTimestamp(),

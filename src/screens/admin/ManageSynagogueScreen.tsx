@@ -20,7 +20,8 @@ import { useNeighborhoodOptions } from '../../hooks/useNeighborhoodOptions';
 import NeighborhoodPickerModal from '../../components/NeighborhoodPickerModal';
 import { updateSynagogue, addSynagogue, deleteSynagogue } from '../../services/synagogues';
 import { submitPendingEvent } from '../../services/pendingEvents';
-import { Synagogue, PrayerTimeSlot, ZmanimAnchor, Shiur, EventCategory, SynagogueAnnouncement } from '../../types';
+import { Synagogue, PrayerTimeSlot, ZmanimAnchor, Shiur, ShiurAudience, EventCategory, SynagogueAnnouncement } from '../../types';
+import { SHIUR_TOPICS, AUDIENCE_LABEL } from '../../utils/shiurim';
 import { gabbaimOf } from '../../utils/synagogueContacts';
 import LocationEditModal from '../../components/LocationEditModal';
 import AddItemModal from '../../components/AddItemModal';
@@ -551,9 +552,13 @@ function ShiurEditModal({ visible, shiur, isNew, onSave, onDelete, onClose }: {
   const [days,        setDays]        = useState<number[]>([1, 2, 3, 4, 5, 6]);
   const [daily,       setDaily]       = useState(false);
   const [description, setDescription] = useState('');
+  const [topic,       setTopic]       = useState<string | undefined>(undefined);
+  const [audience,    setAudience]    = useState<ShiurAudience>('all');
 
   useEffect(() => {
     if (!visible) return;
+    setTopic(shiur.topic);
+    setAudience(shiur.audience ?? 'all');
     setTitle(shiur.title ?? '');
     setRabbi(shiur.rabbi ?? '');
     setTime(shiur.time ?? '');
@@ -579,6 +584,8 @@ function ShiurEditModal({ visible, shiur, isNew, onSave, onDelete, onClose }: {
       time:        `${h.padStart(2, '0')}:${m.padStart(2, '0')}`,
       days:        daily ? 'daily' : days,
       description: description.trim() || undefined,
+      topic,
+      audience,
     });
     onClose();
   }
@@ -650,6 +657,37 @@ function ShiurEditModal({ visible, shiur, isNew, onSave, onDelete, onClose }: {
               })}
             </View>
           )}
+
+          {/* Topic + audience — feed the city-wide Torah-classes filters */}
+          <Text style={sm.label}>נושא</Text>
+          <View style={sm.daysRow}>
+            {SHIUR_TOPICS.map((t) => {
+              const active = topic === t;
+              return (
+                <TouchableOpacity key={t}
+                  style={[sm.typeChip, { paddingHorizontal: 12 },
+                    active && { borderColor: Colors.primary, backgroundColor: Colors.primary + '18' }]}
+                  onPress={() => setTopic(active ? undefined : t)}>
+                  <Text style={[sm.typeChipTxt, active && { color: Colors.primary }]}>{t}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <Text style={sm.label}>קהל יעד</Text>
+          <View style={sm.daysRow}>
+            {(['all', 'men', 'women'] as ShiurAudience[]).map((a) => {
+              const active = audience === a;
+              return (
+                <TouchableOpacity key={a}
+                  style={[sm.typeChip, { paddingHorizontal: 16 },
+                    active && { borderColor: Colors.primary, backgroundColor: Colors.primary + '18' }]}
+                  onPress={() => setAudience(a)}>
+                  <Text style={[sm.typeChipTxt, active && { color: Colors.primary }]}>{AUDIENCE_LABEL[a]}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
           {/* Description */}
           <Text style={sm.label}>תיאור (אופציונלי)</Text>

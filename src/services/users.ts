@@ -1,6 +1,6 @@
 import { collection, getDocs, doc, updateDoc, query, where } from 'firebase/firestore';
 import { db } from './firebase';
-import { AppUser, UserRole } from '../types';
+import { AppUser, UserRole, Gender } from '../types';
 
 export async function setUserRoles(
   uid: string,
@@ -72,6 +72,10 @@ export async function updateUserHomeCity(uid: string, cityId: string): Promise<v
 // a plain personal fact, freely self-editable by anyone (the Firestore rule's
 // self-edit branch blocks a fixed list of privileged fields and allows
 // everything else, so this needed no rule change to be writable).
+export async function updateUserGender(uid: string, gender: Gender): Promise<void> {
+  await updateDoc(doc(db, 'users', uid), { gender });
+}
+
 export async function updateUserHomeArea(uid: string, areaId: string): Promise<void> {
   await updateDoc(doc(db, 'users', uid), { homeAreaId: areaId });
 }

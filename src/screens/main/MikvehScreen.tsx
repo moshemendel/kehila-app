@@ -165,8 +165,10 @@ export default function MikvehScreen() {
       <View style={[s.header, { paddingTop: top + 16 }]}>
         <View style={s.headerRow}>
           <View style={{ flex: 1 }}>
-            <Text style={s.title}>מקוואות</Text>
-            <Text style={s.subtitle}>{loading ? '...' : `${visible.length} מקוואות`}</Text>
+            <Text style={s.title} numberOfLines={1}>
+              מקוואות
+              {!loading && <Text style={s.titleCount}>{`  (${visible.length})`}</Text>}
+            </Text>
           </View>
           <View style={s.headerActions}>
             {/* Map / List toggle */}
@@ -322,6 +324,7 @@ const s = StyleSheet.create({
   header:        { backgroundColor: Colors.mikveh, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
   headerRow:     { flexDirection: 'row', alignItems: 'flex-end' },
   title:         { fontSize: 26, fontWeight: '800', color: Colors.white },
+  titleCount:    { fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.75)' },
   subtitle:      { fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
   headerActions: { flexDirection: 'row', gap: 8, paddingBottom: 2 },
   headerBtn: {

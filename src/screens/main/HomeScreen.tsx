@@ -22,6 +22,7 @@ import MikvahsIcon from '../../assets/icons/Mikvahs.png';
 import EventsIcon from '../../assets/icons/Events.png';
 import EruvIcon from '../../assets/icons/Eruv.png';
 import GemachIcon from '../../assets/icons/Gemach.png';
+import TorahClassesIcon from '../../assets/icons/TorahClasses.png';
 
 import { useAuth }           from '../../context/AuthContext';
 import { useCityId }         from '../../hooks/useCityId';
@@ -51,6 +52,8 @@ import { useModules, isOffered, isComingSoon, ModuleKey } from '../../utils/modu
 import { ComingSoonBadge } from '../../components/ComingSoon';
 import EmailVerificationBanner from '../../components/EmailVerificationBanner';
 import CityPicker from '../../components/CityPicker';
+import CouncilLogo from '../../components/CouncilLogo';
+import OmerCard from '../../components/OmerCard';
 
 // ─────────────────────────────────────────────────────────────────
 type Nav = BottomTabNavigationProp<MainTabParamList>;
@@ -59,7 +62,8 @@ type Nav = BottomTabNavigationProp<MainTabParamList>;
 const QUICK_LINKS = [
   { icon: 'business-outline',      customIcon: SynagoguesIcon,          label: 'בתי כנסת',   tab: 'Synagogues'  as const, color: Colors.primary   },
   { icon: 'time-outline',          customIcon: PrayersIcon,             label: 'מניינים', tab: 'PrayerTimes' as const, color: Colors.shacharit },
-  { icon: 'sunny-outline',         customIcon: ZmanimIcon,              label: 'זמנים',       tab: 'Zmanim'      as const, color: Colors.gold      },
+  { icon: 'book-outline',          customIcon: TorahClassesIcon,        label: 'שיעורים',     tab: 'Shiurim'     as const, color: Colors.events   },
+  { icon: 'sunny-outline',         customIcon: ZmanimIcon,             label: 'זמנים',       tab: 'Zmanim'      as const, color: Colors.gold      },
   { icon: 'restaurant-outline',    customIcon: KosherCertificationIcon, label: 'כשרות',       tab: 'Businesses' as const, color: Colors.kosher    },
   { icon: 'water-outline',         customIcon: MikvahsIcon,             label: 'מקווה',        tab: 'Mikveh'      as const, color: Colors.mikveh   },
   { icon: 'calendar-outline',      customIcon: EventsIcon,              label: 'אירועים',      tab: 'Events'      as const, color: Colors.events   },
@@ -433,7 +437,7 @@ export default function HomeScreen() {
       {/* ── Gradient header ──────────────────────────────────────── */}
       <LinearGradient
         colors={[Colors.primaryDark, Colors.primary]}
-        style={[styles.header, { paddingTop: 16 }]}
+        style={[styles.header, { paddingTop: 16, paddingBottom: 0 }]}
       >
         <View style={styles.headerRow}>
           {/* Greeting */}
@@ -451,26 +455,27 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Date badge */}
-          <View style={styles.dayBadge}>
-            <Text style={styles.dayText}>יום {hebrewDayOfWeek()}</Text>
-            <Text style={styles.dateHebrew}>{formatHebrewDate(now)}</Text>
-            <Text style={styles.dateGregorian}>
-              {now.toLocaleDateString('he-IL', { day: 'numeric', month: 'long' })}
-            </Text>
-            {!!jewishInfo.yomTov && (
-              <Text style={styles.yomTovBadge}>{jewishInfo.yomTov}</Text>
-            )}
-            {!jewishInfo.yomTov && !!jewishInfo.roshChodesh && (
-              <Text style={styles.yomTovBadge}>{jewishInfo.roshChodesh}</Text>
-            )}
-            {!!jewishInfo.parasha && (
-              <Text style={styles.parashaBadge}>פ׳ {jewishInfo.parasha}</Text>
-            )}
-            {!!jewishInfo.omer && (
-              <Text style={styles.omerBadge}>{jewishInfo.omer}</Text>
-            )}
-          </View>
+          {/* The religious council's emblem: identifies this as the council's own
+              app. Draws nothing for a city that has not supplied one. */}
+          <CouncilLogo size={88} />
+        </View>
+        {/* Date strip: what used to be a badge beside the greeting. One line
+            across the full width, leaving the header's right side to the
+            greeting and its left to the council's emblem. */}
+        <View style={styles.dateStrip}>
+          {/* One line, always: the day as a letter, the Gregorian date numeric,
+              and the font shrinks before it would ever wrap. */}
+          <Text style={styles.dateStripTxt} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+            {[
+              hebrewDayOfWeek() === 'שבת' ? 'שבת' : `יום ${'אבגדהוש'[now.getDay()]}׳`,
+              formatHebrewDate(now),
+              `${now.getDate()}.${now.getMonth() + 1}`,
+              // One label, not two: a holiday or Rosh Chodesh takes the slot the
+              // parasha would have, so the line never grows past one row.
+              jewishInfo.yomTov || jewishInfo.roshChodesh
+                || (jewishInfo.parasha ? `פ׳ ${jewishInfo.parasha}` : ''),
+            ].filter(Boolean).join(' · ')}
+          </Text>
         </View>
       </LinearGradient>
 
@@ -533,6 +538,10 @@ export default function HomeScreen() {
         {/* Above everything else — an unverified address means no password
             recovery, and the user needs to know that before they need it. */}
         <EmailVerificationBanner compact />
+
+        {/* Sefirat HaOmer leads while it is on: it is the one card with a
+            deadline tonight. Renders nothing outside the season. */}
+        <OmerCard now={now} />
 
         {/* ── Prayer countdown card ────────────────────────── */}
         {!synLoad && nextPrayer && earliestSyn ? (
@@ -867,6 +876,16 @@ const styles = StyleSheet.create({
   userName:   { fontSize: 22, fontWeight: '800', color: Colors.white, marginTop: 2 },
   cityRow:    { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4, alignSelf: 'flex-start' },
   cityName:   { fontSize: 13, color: 'rgba(255,255,255,0.7)' },
+
+  dateStrip: {
+    marginHorizontal: -Spacing.lg,
+    marginTop: Spacing.md,
+    paddingVertical: 9,
+    paddingHorizontal: Spacing.lg,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+  },
+  dateStripTxt: { fontSize: 13, fontWeight: '700', color: Colors.white, textAlign: 'center' },
 
   dayBadge: {
     backgroundColor: 'rgba(255,255,255,0.15)',

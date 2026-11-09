@@ -77,7 +77,7 @@ async function openLink(url: string) {
 }
 
 export default function ProfileScreen() {
-  const { appUser, firebaseUser, isDemo, isGuest, exitDemo, switchCity, updateHomeCity } = useAuth();
+  const { appUser, firebaseUser, isDemo, isGuest, exitDemo, switchCity, updateHomeCity, updateGender } = useAuth();
   const navigation = useNavigation<any>();
   const { top } = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
@@ -109,6 +109,16 @@ export default function ProfileScreen() {
 
   const homeCityId = appUser?.homeCityId ?? cityId;
   const { city: homeCity } = useCity(homeCityId);
+
+  const GENDER_LABEL = { male: 'גבר', female: 'אישה', any: 'לא משנה' } as const;
+  function openGenderChoice() {
+    Alert.alert('אני', 'כדי להתאים לך שיעורים, התראות ופרסומים', [
+      { text: 'גבר',      onPress: () => updateGender('male').catch(() => {}) },
+      { text: 'אישה',     onPress: () => updateGender('female').catch(() => {}) },
+      { text: 'לא משנה',  onPress: () => updateGender('any').catch(() => {}) },
+      { text: 'ביטול', style: 'cancel' },
+    ]);
+  }
 
   function openHomeCityPicker() {
     if (role === 'city_admin') {
@@ -468,6 +478,14 @@ export default function ProfileScreen() {
               onPress={() => setCityPickerOpen(true)}
               badge={city?.name ?? '…'}
             />
+            {!isGuest && (
+              <MenuRow
+                icon="person-outline"
+                label="התאמה אישית"
+                onPress={openGenderChoice}
+                badge={appUser?.gender ? GENDER_LABEL[appUser.gender] : 'לא הוגדר'}
+              />
+            )}
             {!isGuest && (
               <MenuRow
                 icon="home-outline"
