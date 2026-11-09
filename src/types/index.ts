@@ -615,6 +615,7 @@ export interface CommunityEvent {
   isAlert: boolean; // urgent/pinned announcements
   /** Who it is for. Absent reads as 'all'. Drives who a push is sent to. */
   audience?: ShiurAudience;
+  lastPushAt?: string | { toMillis?: () => number } | null;
   createdBy: string; // uid
   createdAt: Date;
   expiresAt?: any;  // Firestore Timestamp — auto-deleted by TTL policy

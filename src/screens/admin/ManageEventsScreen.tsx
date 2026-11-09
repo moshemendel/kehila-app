@@ -15,7 +15,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useEvents } from '../../hooks/useEvents';
 import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
-import { createEvent, deleteEvent } from '../../services/events';
+import { createEvent, updateEvent, deleteEvent } from '../../services/events';
 import { sendPushToCity } from '../../services/pushNotifications';
 import { subscribeToPendingEvents, approvePendingEvent, rejectPendingEvent } from '../../services/pendingEvents';
 import { CommunityEvent, EventCategory, PendingCommunityEvent, ShiurAudience } from '../../types';
@@ -72,6 +72,7 @@ export default function ManageEventsScreen() {
 
   const [creating, setCreating] = useState(false);
   const [saving,   setSaving]   = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   // Arriving from the profile badge means they came for the pending queue.
   const route = useRoute<any>();
   const [activeTab, setActiveTab] = useState<'events' | 'pending' | 'expired'>(
@@ -176,7 +177,44 @@ export default function ManageEventsScreen() {
     setTitle(''); setDescription(''); setCategory('announcement');
     setLocation(''); setOrganizer(''); setIsAlert(false); setAudience('all');
     setStartDt(defaultStart()); setHasEndDate(false); setEndDt(null);
+    setSubmitAttempted(false); setEditingId(null);
+  }
+
+  function startEdit(ev: CommunityEvent) {
+    setEditingId(ev.id);
+    setTitle(ev.title ?? ''); setDescription(ev.description ?? '');
+    setCategory(ev.category ?? 'announcement');
+    setLocation(ev.location ?? ''); setOrganizer(ev.organizer ?? '');
+    setIsAlert(!!ev.isAlert); setAudience(ev.audience ?? 'all');
+    setStartDt(ev.startDate ? new Date(ev.startDate) : defaultStart());
+    setHasEndDate(!!ev.endDate); setEndDt(ev.endDate ? new Date(ev.endDate) : null);
     setSubmitAttempted(false);
+    setCreating(true);
+  }
+
+  function handleSendPush(ev: CommunityEvent) {
+    const sentBefore = ev.lastPushAt ? '\n\nשים לב: כבר נשלחה התראה על אירוע זה.' : '';
+    const who = ev.audience === 'men' ? ' (לגברים בלבד)' : ev.audience === 'women' ? ' (לנשים בלבד)' : '';
+    Alert.alert('שליחת התראה', `לשלוח התראה על "${ev.title}" לתושבי העיר${who}? לא ניתן לבטל לאחר השליחה.${sentBefore}`, [
+      { text: 'ביטול', style: 'cancel' },
+      {
+        text: 'שלח',
+        onPress: async () => {
+          try {
+            await sendPushToCity(
+              cityId, `📢 ${ev.title}`,
+              (ev.description || ev.location || '').slice(0, 120),
+              { screen: 'EventDetail', params: { eventId: ev.id } },
+              undefined, pushAudience(ev.audience),
+            );
+            await updateEvent(ev.id, { lastPushAt: new Date().toISOString() });
+            Alert.alert('✓ נשלח', 'ההתראה נשלחה');
+          } catch (e: any) {
+            Alert.alert('שגיאה', e.message);
+          }
+        },
+      },
+    ]);
   }
 
   async function handlePublish() {
@@ -186,6 +224,23 @@ export default function ManageEventsScreen() {
     }
     setSaving(true);
     try {
+      if (editingId) {
+        await updateEvent(editingId, {
+          title:       title.trim(),
+          description: description.trim(),
+          category,
+          startDate:   startDt.toISOString(),
+          endDate:     hasEndDate && endDt ? endDt.toISOString() : '',
+          location:    location.trim(),
+          organizer:   organizer.trim(),
+          isAlert,
+          audience,
+        });
+        resetForm();
+        setCreating(false);
+        Alert.alert('✓ נשמר', 'האירוע עודכן');
+        return;
+      }
       await createEvent({
         cityId,
         title:       title.trim(),
@@ -435,7 +490,7 @@ export default function ManageEventsScreen() {
                 ? <ActivityIndicator color={Colors.white} />
                 : <>
                     <Ionicons name="megaphone-outline" size={20} color={Colors.white} />
-                    <Text style={styles.publishBtnText}>פרסם</Text>
+                    <Text style={styles.publishBtnText}>{editingId ? 'שמור שינויים' : 'פרסם'}</Text>
                   </>
               }
             </TouchableOpacity>
@@ -500,6 +555,12 @@ export default function ManageEventsScreen() {
                           <Text style={styles.eventDate}>{formatEventDate(ev.startDate)}</Text>
                           {ev.location && <Text style={styles.eventMeta}>📍 {ev.location}</Text>}
                         </View>
+                        <TouchableOpacity onPress={() => handleSendPush(ev)} style={styles.deleteBtn} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+                          <Ionicons name="notifications-outline" size={18} color={Colors.events} />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => startEdit(ev)} style={styles.deleteBtn} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+                          <Ionicons name="create-outline" size={18} color={Colors.textSecondary} />
+                        </TouchableOpacity>
                         <TouchableOpacity onPress={() => handleDelete(ev.id, ev.title)} style={styles.deleteBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                           <Ionicons name="trash-outline" size={18} color={Colors.danger} />
                         </TouchableOpacity>
@@ -571,6 +632,12 @@ export default function ManageEventsScreen() {
                           <Text style={styles.eventDate}>{formatEventDate(ev.startDate)}</Text>
                           {ev.location && <Text style={styles.eventMeta}>📍 {ev.location}</Text>}
                         </View>
+                        <TouchableOpacity onPress={() => handleSendPush(ev)} style={styles.deleteBtn} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+                          <Ionicons name="notifications-outline" size={18} color={Colors.events} />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => startEdit(ev)} style={styles.deleteBtn} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+                          <Ionicons name="create-outline" size={18} color={Colors.textSecondary} />
+                        </TouchableOpacity>
                         <TouchableOpacity onPress={() => handleDelete(ev.id, ev.title)} style={styles.deleteBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                           <Ionicons name="trash-outline" size={18} color={Colors.danger} />
                         </TouchableOpacity>
