@@ -161,7 +161,13 @@ export function AppAlertHost() {
           ) : (
             <View style={current.buttons.length > 2 ? s.buttonColumn : s.buttonRow}>
               {current.buttons.map((btn, i) => (
-                <AlertButtonView key={i} style={btn.style ?? 'default'} text={btn.text} onPress={() => pressButton(btn)} />
+                <AlertButtonView
+                  key={i}
+                  style={btn.style ?? 'default'}
+                  text={btn.text}
+                  stacked={current.buttons.length > 2}
+                  onPress={() => pressButton(btn)}
+                />
               ))}
             </View>
           )}
@@ -171,10 +177,10 @@ export function AppAlertHost() {
   );
 }
 
-function AlertButtonView({ style, text, onPress }: { style: NonNullable<AppAlertButton['style']>; text: string; onPress: () => void }) {
+function AlertButtonView({ style, text, onPress, stacked }: { style: NonNullable<AppAlertButton['style']>; text: string; onPress: () => void; stacked?: boolean }) {
   return (
     <TouchableOpacity
-      style={[s.button, style === 'destructive' ? s.destructiveButton : style === 'cancel' ? s.cancelButton : s.primaryButton]}
+      style={[s.button, stacked && s.buttonStacked, style === 'destructive' ? s.destructiveButton : style === 'cancel' ? s.cancelButton : s.primaryButton]}
       onPress={onPress}
       activeOpacity={0.75}
     >
@@ -199,6 +205,10 @@ const s = StyleSheet.create({
   buttonRow: { flexDirection: 'row', gap: 10 },
   buttonColumn: { flexDirection: 'column', gap: 10 },
   button: { flex: 1, borderRadius: Radius.sm, paddingVertical: 13, alignItems: 'center' },
+  // In a column `flex: 1` means "share the height", and the column has no height
+  // of its own to share — the buttons collapsed to bare coloured bars with their
+  // labels clipped away. Stacked buttons take their natural height instead.
+  buttonStacked: { flex: 0, flexGrow: 0, flexShrink: 0, flexBasis: 'auto', alignSelf: 'stretch' },
   primaryButton: { backgroundColor: Colors.primary },
   destructiveButton: { backgroundColor: Colors.danger },
   cancelButton: { backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.border },

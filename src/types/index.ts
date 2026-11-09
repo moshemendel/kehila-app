@@ -591,6 +591,8 @@ export interface SynagogueAnnouncement {
   startDate: string;   // ISO datetime
   location?: string;
   isAlert: boolean;
+  /** Who it is for. Absent reads as 'all'. Drives who a push is sent to. */
+  audience?: ShiurAudience;
   createdAt: string;   // ISO datetime (client-generated)
 }
 
@@ -611,6 +613,8 @@ export interface CommunityEvent {
   imageUrl?: string;
   synagogueId?: string; // linked synagogue — enables navigation to its detail page
   isAlert: boolean; // urgent/pinned announcements
+  /** Who it is for. Absent reads as 'all'. Drives who a push is sent to. */
+  audience?: ShiurAudience;
   createdBy: string; // uid
   createdAt: Date;
   expiresAt?: any;  // Firestore Timestamp — auto-deleted by TTL policy
@@ -638,6 +642,7 @@ export interface PendingCommunityEvent {
   location?: string;
   organizer?: string;
   isAlert: boolean;
+  audience?: ShiurAudience;
 }
 
 // ---- Navigation types ----

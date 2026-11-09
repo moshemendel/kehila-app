@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { Synagogue, Shiur } from '../types';
+import { Synagogue, Shiur, Gender } from '../types';
+import { shiurAudience, audienceFits, defaultAudienceFor } from './shiurim';
 import { ZmanimResult } from './zmanim';
 import { resolveSlotTime, slotRunsInSeason, todayDayNumber, parseTimeToMinutes } from './prayerUtils';
 import {
@@ -164,8 +165,13 @@ export async function schedulePrayerNotifications(
   zmanimFor:  (synagogue: Synagogue) => ZmanimResult | null,
   settings:   NotifSettings,
   favorites:  FavoritesMap,
+  gender?:    Gender,
 ): Promise<void> {
   const dayNum = todayDayNumber();
+  // A women's shiur does not remind a man, and the reverse. 'any' / unset → no
+  // filter, so nobody is silently left out for not having answered.
+  const wantAudience = defaultAudienceFor(gender);
+  const suits = (sh: Shiur) => !wantAudience || audienceFits(shiurAudience(sh), wantAudience);
   const now    = new Date();
   const nowMs  = now.getTime();
 
@@ -205,7 +211,7 @@ export async function schedulePrayerNotifications(
       // Shiurim
       const allShiurim = collectShiurim(syn);
       for (const sh of allShiurim) {
-        if (!shiurAppliesToday(sh, dayNum)) continue;
+        if (!shiurAppliesToday(sh, dayNum) || !suits(sh)) continue;
         const timeMin = parseTimeToMinutes(sh.time);
         if (timeMin < 0) continue;
         enqueue(
@@ -248,7 +254,7 @@ export async function schedulePrayerNotifications(
     const selIndices = shiurIndices(custom, allShiurim.length);
     for (const idx of selIndices) {
       const sh = allShiurim[idx];
-      if (!sh || !shiurAppliesToday(sh, dayNum)) continue;
+      if (!sh || !shiurAppliesToday(sh, dayNum) || !suits(sh)) continue;
       const timeMin = parseTimeToMinutes(sh.time);
       if (timeMin < 0) continue;
       enqueue(

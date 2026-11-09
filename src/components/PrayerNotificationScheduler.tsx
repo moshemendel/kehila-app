@@ -136,7 +136,7 @@ export default function PrayerNotificationScheduler() {
         return point ? cachedZmanim(now, point, synagogueZmanimSettings(syn, city)) : null;
       };
 
-      await schedulePrayerNotifications(synagogues, zmanimFor, notifSettings, favorites);
+      await schedulePrayerNotifications(synagogues, zmanimFor, notifSettings, favorites, appUser?.gender);
     } catch (e) {
       // Notification errors should never crash the app
       console.warn('[PrayerNotifications]', e);
@@ -144,7 +144,7 @@ export default function PrayerNotificationScheduler() {
   }
 
   // Reschedule whenever settings, favorites, or data change
-  useEffect(() => { reschedule(); }, [enabled, synagogues, city, areas, notifSettings, favorites]);
+  useEffect(() => { reschedule(); }, [enabled, synagogues, city, areas, notifSettings, favorites, appUser?.gender]);
 
   // Reschedule when app comes to foreground (handles day rollover)
   useEffect(() => {
@@ -153,7 +153,7 @@ export default function PrayerNotificationScheduler() {
     };
     const sub = AppState.addEventListener('change', handler);
     return () => sub.remove();
-  }, [enabled, synagogues, city, areas, notifSettings, favorites]);
+  }, [enabled, synagogues, city, areas, notifSettings, favorites, appUser?.gender]);
 
   return null;
 }

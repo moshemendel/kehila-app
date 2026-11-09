@@ -11,7 +11,7 @@ import {
   query, where, onSnapshot, serverTimestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { PendingCommunityEvent, EventCategory } from '../types';
+import { PendingCommunityEvent, EventCategory, ShiurAudience } from '../types';
 import { createEvent } from './events';
 
 const COL = 'pending_events';
@@ -33,6 +33,7 @@ export async function submitPendingEvent(
     location?: string;
     organizer?: string;
     isAlert: boolean;
+    audience?: ShiurAudience;
   },
 ): Promise<string> {
   const payload: Record<string, any> = {
@@ -82,6 +83,7 @@ export async function approvePendingEvent(
     organizer:   pending.organizer ?? pending.synagogueName,
     synagogueId: pending.synagogueId,
     isAlert:     pending.isAlert,
+    audience:    pending.audience,
     createdBy:   approvingUid,
   });
   // Mark as approved

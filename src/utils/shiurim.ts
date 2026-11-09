@@ -50,6 +50,11 @@ export function audienceFits(audience: ShiurAudience, want: 'men' | 'women'): bo
   return audience === 'all' || audience === want;
 }
 
+/** What sendPushToCity wants for an item's audience: 'all'/absent → no gender filter. */
+export function pushAudience(audience?: ShiurAudience): 'men' | 'women' | undefined {
+  return audience === 'men' || audience === 'women' ? audience : undefined;
+}
+
 /** The audience filter an account should start with. 'any'/absent → none. */
 export function defaultAudienceFor(gender?: Gender): 'men' | 'women' | null {
   return gender === 'male' ? 'men' : gender === 'female' ? 'women' : null;

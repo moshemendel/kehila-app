@@ -660,12 +660,15 @@ function ShiurEditModal({ visible, shiur, isNew, onSave, onDelete, onClose }: {
 
           {/* Topic + audience — feed the city-wide Torah-classes filters */}
           <Text style={sm.label}>נושא</Text>
-          <View style={sm.daysRow}>
+          {/* Wrapping row, chips at their natural width: eight topics in the
+              single-line row the days use were squeezed into columns so narrow
+              the labels ran vertically, one letter per line. */}
+          <View style={sm.wrapRow}>
             {SHIUR_TOPICS.map((t) => {
               const active = topic === t;
               return (
                 <TouchableOpacity key={t}
-                  style={[sm.typeChip, { paddingHorizontal: 12 },
+                  style={[sm.typeChip, { flex: 0, paddingHorizontal: 14 },
                     active && { borderColor: Colors.primary, backgroundColor: Colors.primary + '18' }]}
                   onPress={() => setTopic(active ? undefined : t)}>
                   <Text style={[sm.typeChipTxt, active && { color: Colors.primary }]}>{t}</Text>
@@ -791,6 +794,7 @@ function SubmitEventModal({ visible, initial, onSave, onClose }: {
   const [category,           setCategory]           = useState<EventCategory>('announcement');
   const [location,           setLocation]           = useState('');
   const [isAlert,            setIsAlert]            = useState(false);
+  const [evAudience,         setEvAudience]         = useState<ShiurAudience>('all');
   const [submitForApproval,  setSubmitForApproval]  = useState(false);
   const [startDt,     setStartDt]     = useState<Date>(() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(20, 0, 0, 0); return d; });
   const [pickerOpen,  setPickerOpen]  = useState(false);
@@ -810,10 +814,11 @@ function SubmitEventModal({ visible, initial, onSave, onClose }: {
         : new Date(initial.startDate);
       setTitle(initial.title); setDescription(initial.description); setCategory(initial.category);
       setLocation(initial.location ?? ''); setIsAlert(initial.isAlert); setSubmitForApproval(false);
+      setEvAudience(initial.audience ?? 'all');
       setStartDt(d);
     } else {
       setTitle(''); setDescription(''); setCategory('announcement');
-      setLocation(''); setIsAlert(false); setSubmitForApproval(false);
+      setLocation(''); setIsAlert(false); setSubmitForApproval(false); setEvAudience('all');
       const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(20, 0, 0, 0);
       setStartDt(d);
     }
@@ -842,6 +847,7 @@ function SubmitEventModal({ visible, initial, onSave, onClose }: {
         category,
         startDate:   startDt.toISOString(),
         isAlert,
+        audience:    evAudience,
         createdAt:   initial?.createdAt ?? new Date().toISOString(),
         // omit location entirely when empty — Firestore rejects undefined values
         ...(location.trim() ? { location: location.trim() } : {}),
@@ -961,6 +967,22 @@ function SubmitEventModal({ visible, initial, onSave, onClose }: {
             placeholder="כתובת / שם האולם"
             placeholderTextColor={Colors.textMuted} textAlign="right"
           />
+
+          {/* Audience — who it is for; also who a published copy's push goes to */}
+          <Text style={sm.label}>קהל יעד</Text>
+          <View style={sm.daysRow}>
+            {(['all', 'men', 'women'] as ShiurAudience[]).map((a) => {
+              const active = evAudience === a;
+              return (
+                <TouchableOpacity key={a}
+                  style={[sm.typeChip, { paddingHorizontal: 16 },
+                    active && { borderColor: Colors.primary, backgroundColor: Colors.primary + '18' }]}
+                  onPress={() => setEvAudience(a)}>
+                  <Text style={[sm.typeChipTxt, active && { color: Colors.primary }]}>{AUDIENCE_LABEL[a]}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
           {/* Alert toggle */}
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 }}>
@@ -1130,6 +1152,7 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
         location:        ann.location,
         organizer:       form.name,
         isAlert:         ann.isAlert,
+        audience:        ann.audience ?? 'all',
       });
       Alert.alert('✓ נשלח', isEdit
         ? 'האירוע עודכן ונשלח לאישור מנהל הקהילה לפרסום קהילתי.'
@@ -2000,6 +2023,7 @@ const sm = StyleSheet.create({
 
   // Prayer type selector
   typeRow:      { flexDirection: 'row', gap: 8, marginTop: 4 },
+  wrapRow:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   typeChip:     { flex: 1, paddingVertical: 10, borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.border, alignItems: 'center', backgroundColor: Colors.background },
   typeChipTxt:  { fontSize: 14, fontWeight: '700', color: Colors.textMuted },
 

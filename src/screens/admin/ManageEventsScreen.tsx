@@ -18,7 +18,8 @@ import { useAuth } from '../../context/AuthContext';
 import { createEvent, deleteEvent } from '../../services/events';
 import { sendPushToCity } from '../../services/pushNotifications';
 import { subscribeToPendingEvents, approvePendingEvent, rejectPendingEvent } from '../../services/pendingEvents';
-import { CommunityEvent, EventCategory, PendingCommunityEvent } from '../../types';
+import { CommunityEvent, EventCategory, PendingCommunityEvent, ShiurAudience } from '../../types';
+import { AUDIENCE_LABEL, pushAudience } from '../../utils/shiurim';
 
 // ── Category config ───────────────────────────────────────────────────────────
 
@@ -100,7 +101,8 @@ export default function ManageEventsScreen() {
   const [location,    setLocation]    = useState('');
   const [organizer,   setOrganizer]   = useState('');
   const [isAlert,     setIsAlert]     = useState(false);
-  const [startDt,     setStartDt]     = useState<Date>(defaultStart);
+  const [audience,    setAudience]    = useState<ShiurAudience>('all');
+  const [startDt,    setStartDt]     = useState<Date>(defaultStart);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [hasEndDate,  setHasEndDate]  = useState(false);
   const [endDt,       setEndDt]       = useState<Date | null>(null);
@@ -172,7 +174,7 @@ export default function ManageEventsScreen() {
 
   function resetForm() {
     setTitle(''); setDescription(''); setCategory('announcement');
-    setLocation(''); setOrganizer(''); setIsAlert(false);
+    setLocation(''); setOrganizer(''); setIsAlert(false); setAudience('all');
     setStartDt(defaultStart()); setHasEndDate(false); setEndDt(null);
     setSubmitAttempted(false);
   }
@@ -194,6 +196,7 @@ export default function ManageEventsScreen() {
         location:    location.trim()  || undefined,
         organizer:   organizer.trim() || undefined,
         isAlert,
+        audience,
         createdBy:   appUser?.uid ?? 'unknown',
       });
       resetForm();
@@ -202,7 +205,8 @@ export default function ManageEventsScreen() {
       // Only urgent (isAlert) events broadcast a push to the whole city — regular
       // events used to push everyone regardless, which felt spammy for the pilot.
       if (isAlert) {
-        sendPushToCity(cityId, `📢 ${title.trim()}`, description.trim().slice(0, 120)).catch(() => {});
+        // A men's-only or women's-only event skips the other gender's devices.
+        sendPushToCity(cityId, `📢 ${title.trim()}`, description.trim().slice(0, 120), undefined, undefined, pushAudience(audience)).catch(() => {});
       }
     } catch (e: any) {
       Alert.alert('שגיאה', e.message);
@@ -228,7 +232,7 @@ export default function ManageEventsScreen() {
             .then(() => {
               Alert.alert('✓ פורסם', 'האירוע פורסם בהצלחה');
               if (ev.isAlert) {
-                sendPushToCity(ev.cityId, `📢 ${ev.title}`, ev.description.slice(0, 120)).catch(() => {});
+                sendPushToCity(ev.cityId, `📢 ${ev.title}`, ev.description.slice(0, 120), undefined, undefined, pushAudience(ev.audience)).catch(() => {});
               }
             })
             .catch((e) => Alert.alert('שגיאה', e.message)),
@@ -325,6 +329,26 @@ export default function ManageEventsScreen() {
                   );
                 })}
               </ScrollView>
+            </View>
+
+            {/* Audience — who the event is for; also who its push goes to */}
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>למי מיועד</Text>
+              <View style={styles.catRow}>
+                {(['all', 'men', 'women'] as ShiurAudience[]).map((a) => {
+                  const active = audience === a;
+                  return (
+                    <TouchableOpacity
+                      key={a}
+                      style={[styles.catChip, active && { backgroundColor: Colors.events, borderColor: Colors.events }]}
+                      onPress={() => setAudience(a)}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={[styles.catChipText, active && { color: Colors.white }]}>{AUDIENCE_LABEL[a]}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
 
             {/* Start date & time */}

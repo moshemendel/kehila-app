@@ -252,7 +252,7 @@ export default function FavoritePrayerModal({
         {draft.mode === 'custom' && (
           <View style={st.customSection}>
 
-            {/* ── כל האירועים (all shiurim shortcut) ── */}
+            {/* ── כל השיעורים (select-all shortcut) ── */}
             {options.shiurim.length > 0 && (
               <TouchableOpacity
                 style={[st.allEventsRow, draft.allShiurim && st.allEventsRowOn]}
@@ -265,7 +265,7 @@ export default function FavoritePrayerModal({
                   color={draft.allShiurim ? Colors.white : Colors.textSecondary}
                 />
                 <Text style={[st.allEventsTxt, draft.allShiurim && st.allEventsTxtOn]}>
-                  כל האירועים
+                  כל השיעורים
                 </Text>
                 <Text style={[st.allEventsCount, draft.allShiurim && { color: 'rgba(255,255,255,0.75)' }]}>
                   {options.shiurim.length} שיעורים
@@ -273,8 +273,11 @@ export default function FavoritePrayerModal({
               </TouchableOpacity>
             )}
 
-            {/* ── שיעורים (individual) — shown when not "all events" ── */}
-            {options.shiurim.length > 0 && !draft.allShiurim && (
+            {/* ── שיעורים (individual) — always listed in custom mode. It used to
+                be hidden while "all" was on, and "all" is what you start with,
+                so the per-shiur choice was never visible unless you first
+                thought to untick the shortcut above it. ── */}
+            {options.shiurim.length > 0 && (
               <ShiurBlock
                 shiurim={options.shiurim}
                 selected={draft.shiurim}
