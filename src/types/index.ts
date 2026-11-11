@@ -140,6 +140,14 @@ export interface City {
    *  reads as the council's own, and the headers of the section lists. Nothing
    *  is drawn when absent. */
   religiousCouncilLogoUrl?: string;
+  /** How the emblem sits in the home header: a white disc (absent = 'disc') or
+   *  as-is with no frame — for a logo that brings its own background. */
+  religiousCouncilLogoFrame?: 'disc' | 'none';
+  /** Emblem size multiplier inside its box, 0.6–1.3. Absent = 1. */
+  religiousCouncilLogoScale?: number;
+  /** Home header colour, '#RRGGBB'. Must keep white text readable (see
+   *  utils/cityHeader.ts); absent or unusable = the default blue. */
+  headerColor?: string;
   /**
    * The method the city's council publishes its zmanim by — what residents see
    * until they pick their own, and what every synagogue's anchored prayer times

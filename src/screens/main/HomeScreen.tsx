@@ -53,6 +53,7 @@ import { ComingSoonBadge } from '../../components/ComingSoon';
 import EmailVerificationBanner from '../../components/EmailVerificationBanner';
 import CityPicker from '../../components/CityPicker';
 import CouncilLogo from '../../components/CouncilLogo';
+import { resolveHeaderColors } from '../../utils/cityHeader';
 import OmerCard from '../../components/OmerCard';
 
 // ─────────────────────────────────────────────────────────────────
@@ -328,6 +329,9 @@ export default function HomeScreen() {
     : now.getHours() < 17 ? 'צהריים טובים'
     : 'ערב טוב';
   const cityName   = city?.name ?? '';
+  // The council can colour the header; see utils/cityHeader.ts for the rules
+  // (a colour too light for the white text falls back to the default blue).
+  const headerColors = resolveHeaderColors(city?.headerColor);
   const accentColor = nextPrayer ? prayerAccent(nextPrayer.type) : Colors.primary;
 
   // ── Shabbat widget helpers ──────────────────────────────────────
@@ -420,7 +424,7 @@ export default function HomeScreen() {
       {/* Fixed colour cap: same shade as the gradient start.
           Stays behind the transparent status bar even when the user scrolls,
           so the white icons stay visible at all times. */}
-      <View style={{ height: top, backgroundColor: Colors.primaryDark }} />
+      <View style={{ height: top, backgroundColor: headerColors.top }} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -436,7 +440,7 @@ export default function HomeScreen() {
       >
       {/* ── Gradient header ──────────────────────────────────────── */}
       <LinearGradient
-        colors={[Colors.primaryDark, Colors.primary]}
+        colors={[headerColors.top, headerColors.bottom]}
         style={[styles.header, { paddingTop: 16, paddingBottom: 0 }]}
       >
         <View style={styles.headerRow}>
