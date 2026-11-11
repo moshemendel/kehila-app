@@ -7,7 +7,7 @@
  */
 
 import {
-  collection, doc, getDocs, addDoc, updateDoc, deleteDoc,
+  collection, doc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
   query, where, orderBy, serverTimestamp, Timestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -41,8 +41,18 @@ export async function getEventsByCity(cityId: string): Promise<CommunityEvent[]>
   return snap.docs.map((d) => ({ id: d.id, ...d.data() } as CommunityEvent));
 }
 
+/**
+ * An event id allocated before the document exists, so a picture can be
+ * uploaded to `events/<id>/image/` while the form is still open — backing out
+ * of the form then leaves no document behind. Pass it to createEvent.
+ */
+export function newEventId(): string {
+  return doc(collection(db, COL)).id;
+}
+
 export async function createEvent(
   data: Omit<CommunityEvent, 'id' | 'createdAt' | 'expiresAt'>,
+  id?: string,
 ): Promise<string> {
   // Firestore rejects undefined values — strip optional fields that weren't set
   const payload: Record<string, any> = {
@@ -51,6 +61,10 @@ export async function createEvent(
   };
   for (const [k, v] of Object.entries(data)) {
     if (v !== undefined) payload[k] = v;
+  }
+  if (id) {
+    await setDoc(doc(db, COL, id), payload);
+    return id;
   }
   const ref = await addDoc(collection(db, COL), payload);
   return ref.id;

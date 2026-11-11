@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet,
+  View, Text, ScrollView, StyleSheet, Image,
   TouchableOpacity, Share, Linking, Platform,
 } from 'react-native';
 import { AppAlert as Alert } from '../../components/AppAlert';
@@ -211,6 +211,16 @@ export default function EventDetailScreen() {
         style={styles.scroll}
         contentContainerStyle={{ padding: Spacing.md, paddingBottom: bottom + 120 }}
       >
+        {/* Picture the organizer attached, if any */}
+        {!!event.imageUrl && (
+          <Image
+            source={{ uri: event.imageUrl }}
+            style={styles.eventImage}
+            resizeMode="cover"
+            accessibilityLabel={event.title}
+          />
+        )}
+
         {/* Date card */}
         <InfoCard icon="calendar-outline" iconColor={cfg.color} label="תאריך ושעה">
           <Text style={styles.infoMain}>{formatFullDate(event.startDate)}</Text>
@@ -324,6 +334,10 @@ function InfoCard({
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  eventImage: {
+    width: '100%', height: 200, borderRadius: Radius.lg,
+    backgroundColor: Colors.border, marginBottom: Spacing.md,
+  },
   root: { flex: 1, backgroundColor: Colors.background },
 
   // Not found

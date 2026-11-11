@@ -141,6 +141,34 @@ service firebase.storage {
       allow delete: if isSignedIn() && (request.auth.uid == userId || reviewsEruvReports());
     }
 
+    // ── City logo (religious council emblem) ──────────────────────────────────
+    // Unlike the folders above, the city is in the path and the caller's own
+    // profile carries it, so a city_admin is scoped to their city with the same
+    // one-document read (mirrors isCityAdminOf() in firestore.rules). Logos
+    // are shown to everyone, signed in or not, hence public read.
+    function managesCityLogo(cityId) {
+      return isSignedIn() && (
+        hasRole('super_admin') || hasRole('dev') ||
+        (hasRole('city_admin') && userDoc().get('homeCityId', '') == cityId));
+    }
+    match /cities/{cityId}/logo/{file} {
+      allow read: if true;
+      allow create, update: if managesCityLogo(cityId) && isImage();
+      allow delete: if managesCityLogo(cityId);
+    }
+
+    // ── Event picture ─────────────────────────────────────────────────────────
+    // events/<eventId>/image/<file>, written from the event form. The id is
+    // allocated client-side before the document exists (same reason as the
+    // business and mikveh galleries above), so no second document can be read
+    // here; city scoping stays with firestore.rules on the event itself. Only
+    // content management posts events, so only content management uploads.
+    match /events/{eventId}/image/{file} {
+      allow read: if true;
+      allow create, update: if isContentManager() && isImage();
+      allow delete: if isContentManager();
+    }
+
     // No catch-all. The previous `match /{allPaths=**} { allow read: if true }`
     // published every object in the bucket, including any path added later by
     // someone who never thought about this file. Anything not matched above is
