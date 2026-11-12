@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Shadow, CardShell } from '../utils/theme';
 import { useNavigateTo } from '../hooks/useNavigateTo';
 import { Business } from '../types';
-import { updateBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../services/businesses';
+import { updateBusiness, businessCategories, businessTypeLabel, CATEGORY_ICONS, CATEGORY_LABELS } from '../services/businesses';
 import LocationEditModal from './LocationEditModal';
 import {
   businessHoursForDay, openStatus, openStatusLabel, type OpenStatus,
@@ -61,7 +61,7 @@ export default function BusinessCard({ business, distLabel, canManage, onPress, 
       : openStatusLabel(status);
   const activeCert    = business.kosherCertificates.find((c) => c.isActive);
   const cats          = businessCategories(business);
-  const bizTypeLabel  = business.businessType === 'factory' ? '🏭 מפעל' : '🍴 בית אוכל';
+  const bizTypeLabel  = businessTypeLabel(business.businessType);
   const [editingLoc, setEditingLoc] = useState(false);
 
   return (
@@ -108,6 +108,21 @@ export default function BusinessCard({ business, distLabel, canManage, onPress, 
               {activeCert.kosherLevel.map((l) => KOSHER_LABELS[l] ?? l).join(' · ')}
               {' — '}{activeCert.issuedBy}
             </Text>
+          </View>
+        )}
+
+        {!!business.departments?.length && (
+          <View style={styles.deptWrap}>
+            {business.departments.map((d) => {
+              const mehadrin = d.kosherLevel.includes('mehadrin');
+              return (
+                <View key={d.id} style={[styles.deptChip, mehadrin && styles.deptChipMehadrin]}>
+                  <Text style={styles.deptTxt}>
+                    {CATEGORY_ICONS[d.categories?.[0] ?? ''] ?? ''} {d.name} · {d.kosherLevel.map((l) => KOSHER_LABELS[l] ?? l).join(', ')}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         )}
 
@@ -177,6 +192,10 @@ const styles = StyleSheet.create({
   hoursOpen:     { color: Colors.success },
   hoursLater:    { color: Colors.goldDeep },
   certRow:       { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, backgroundColor: '#EAF7EE', borderRadius: Radius.sm, paddingHorizontal: 8, paddingVertical: 5 },
+  deptWrap:      { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
+  deptChip:      { backgroundColor: Colors.background, borderRadius: Radius.sm, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: Colors.border },
+  deptChipMehadrin: { backgroundColor: '#EAF7EE', borderColor: Colors.success + '55' },
+  deptTxt:       { fontSize: 11, color: Colors.text, fontWeight: '500' },
   certText:      { fontSize: 12, color: Colors.success, fontWeight: '500', flex: 1 },
   actions:       { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.sm, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: Spacing.sm },
   actionBtn:     { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full, borderWidth: 1, borderColor: Colors.kosher },

@@ -301,6 +301,19 @@ export interface Shiur {
 
 export type ShiurAudience = 'men' | 'women' | 'all';
 
+/**
+ * How the primary picture sits in its frame (see utils/moodCrop.ts): the point of
+ * the original image shown at the frame's centre (`fx`, `fy`, 0–1 of its width and
+ * height) and a zoom of 1–4 relative to "cover". `url` is the picture it was made
+ * for, so a replaced picture never inherits it.
+ */
+export interface ImageCrop {
+  url: string;
+  zoom: number;
+  fx: number;
+  fy: number;
+}
+
 export interface Synagogue {
   id: string;
   cityId: string;
@@ -355,6 +368,8 @@ export interface Synagogue {
   notes?: string;
   imageUrl?: string;              // primary / mood image
   images?: string[];              // additional gallery images
+  /** Pan/zoom of the primary image in its frame; used only while `url` equals `imageUrl`. */
+  imageCrop?: ImageCrop;
   synagogueEvents?: SynagogueAnnouncement[]; // gabay-posted events/announcements
   updatedAt?: Date;
 }
@@ -395,7 +410,25 @@ export interface OpeningHours {
   saturday?: string;
 }
 
-export type BusinessType = "serving" | "factory"; // dine-in vs production (bakery/dairy/factory)
+export type BusinessType = "serving" | "store" | "catering" | "hall" | "factory" | "other";
+// serving = restaurant/fast food/café; store = butcher, fish, produce, deli, supermarket;
+// catering; hall = event hall; factory = production; other = hotel, leisure, institutions.
+
+/**
+ * A section of a larger business (supermarket, grocery chain) that has its own
+ * kashrut — produce, deli, meat, fish, bakery. Listed inside the one business
+ * card instead of as a separate business per department.
+ */
+export interface BusinessDepartment {
+  id: string;
+  name: string;                 // e.g. "פירות וירקות"
+  categories?: string[];        // CATEGORY_META keys
+  kosherLevel: KosherLevel[];
+  issuedBy?: string;            // defaults to the business's primary certifier
+  mashgiachName?: string;
+  mashgiachPhone?: string;
+  notes?: string;
+}
 
 export interface Business {
   id: string;
@@ -404,8 +437,8 @@ export interface Business {
   areaId?: string;
   name: string;
   category: string;        // legacy single value (kept = categories[0] for back-compat)
-  categories?: string[];   // multi-choice kashrut types: meat | dairy | pareve | vegan | cafe | bakery
-  businessType?: BusinessType; // serving (בית אוכל) vs factory (מפעל) — defaults to serving
+  categories?: string[];   // multi-choice kinds — see CATEGORY_META in services/businesses.ts
+  businessType?: BusinessType; // see BusinessType — defaults to serving
   neighborhood?: string;
   address: string;
   phone?: string;
@@ -425,10 +458,14 @@ export interface Business {
    */
   hoursSchedule?: HoursBlock[];
   kosherCertificates: KosherCertificate[];
+  /** Departments with their own kashrut level (supermarkets etc.). */
+  departments?: BusinessDepartment[];
   latitude?: number;
   longitude?: number;
   imageUrl?: string;           // primary / legacy single image
   images?: string[];           // additional gallery images (uploaded by manager)
+  /** Pan/zoom of the primary image; once set (even the default) it is shown as a framed crop, not whole. */
+  imageCrop?: ImageCrop;
   contacts?: { name: string; phone?: string }[];
   mashgiachName?: string;
   mashgiachPhone?: string;
@@ -512,6 +549,8 @@ export interface Mikveh {
   description?: string;
   imageUrl?: string;          // primary / mood image
   images?: string[];          // additional gallery images
+  /** Pan/zoom of the primary image in its frame; used only while `url` equals `imageUrl`. */
+  imageCrop?: ImageCrop;
   latitude?: number;
   longitude?: number;
   updatedAt?: Date;
@@ -619,6 +658,8 @@ export interface CommunityEvent {
   longitude?: number;
   organizer?: string;
   imageUrl?: string;
+  /** Pan/zoom of the picture in its 200-high frame on the event page. */
+  imageCrop?: ImageCrop;
   synagogueId?: string; // linked synagogue — enables navigation to its detail page
   isAlert: boolean; // urgent/pinned announcements
   /** Who it is for. Absent reads as 'all'. Drives who a push is sent to. */

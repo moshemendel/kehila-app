@@ -14,11 +14,12 @@ import { useNavigateTo } from '../../hooks/useNavigateTo';
 import { resolveNavTarget } from '../../utils/navigationApps';
 import { useAreas } from '../../hooks/useAreas';
 import { Business, KosherCertificate, DayKey } from '../../types';
-import { getBusiness, businessCategories, CATEGORY_ICONS, CATEGORY_LABELS } from '../../services/businesses';
+import { getBusiness, businessCategories, businessTypeLabel, CATEGORY_ICONS, CATEGORY_LABELS } from '../../services/businesses';
 import {
   businessHoursForDay, hasPublishedHours, openStatus,
 } from '../../utils/appointmentSlots';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
+import MoodImage from '../../components/MoodImage';
 import { useAppForegroundTick } from '../../hooks/useAppForegroundTick';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
@@ -167,7 +168,7 @@ export default function BusinessDetailScreen() {
   // Tag line: businessType first, then the kashrut categories (each tag is its own
   // <Text> rendered in a flex-wrap row, so emoji + word always wrap together).
   const categoryTags = [
-    business.businessType === 'factory' ? '🏭 מפעל' : '🍴 בית אוכל',
+    businessTypeLabel(business.businessType),
     ...businessCategories(business).map((c) => `${CATEGORY_ICONS[c] ?? '🍽️'} ${CATEGORY_LABELS[c] ?? c}`),
   ];
 
@@ -216,11 +217,7 @@ export default function BusinessDetailScreen() {
           {/* ── Mood / cover photo ─────────────────────────────────────── */}
           <View style={styles.moodWrap}>
             {moodImage ? (
-              <Image
-                source={{ uri: moodImage }}
-                style={StyleSheet.absoluteFillObject}
-                resizeMode="contain"
-              />
+              <MoodImage uri={moodImage} crop={business.imageCrop} legacyFit="contain" />
             ) : (
               /* Emoji placeholder when no images exist */
               <View style={styles.moodPlaceholder}>
@@ -386,6 +383,35 @@ export default function BusinessDetailScreen() {
                 cert={cert}
                 onViewImage={(url) => setCertModal(url)}
               />
+            ))}
+          </View>
+        )}
+
+        {/* ── Departments with their own kashrut ─────────────────────────── */}
+        {!!business.departments?.length && (
+          <View style={styles.section}>
+            <View style={styles.sectionHdr}>
+              <Ionicons name="layers-outline" size={18} color={Colors.success} />
+              <Text style={styles.sectionTitle}>כשרות לפי מחלקות</Text>
+            </View>
+            {business.departments.map((d) => (
+              <View key={d.id} style={styles.mashgiachCard}>
+                <Text style={{ fontSize: 22 }}>{CATEGORY_ICONS[d.categories?.[0] ?? ''] ?? '🍽️'}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.mashgiachName}>{d.name}</Text>
+                  <Text style={styles.mashgiachLabel}>
+                    {d.kosherLevel.map((l) => KOSHER_LABELS[l] ?? l).join(' · ')}
+                    {d.issuedBy ? ` — ${d.issuedBy}` : ''}
+                  </Text>
+                  {!!d.mashgiachName && <Text style={styles.mashgiachLabel}>משגיח: {d.mashgiachName}</Text>}
+                </View>
+                {!!d.mashgiachPhone && (
+                  <TouchableOpacity style={styles.mashgiachCallBtn} onPress={() => Linking.openURL(`tel:${d.mashgiachPhone}`)}>
+                    <Ionicons name="call" size={13} color="#fff" />
+                    <Text style={styles.mashgiachCallTxt}>{d.mashgiachPhone}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             ))}
           </View>
         )}

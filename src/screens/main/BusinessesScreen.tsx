@@ -12,7 +12,7 @@ import * as Location from 'expo-location';
 import BusinessCard from '../../components/BusinessCard';
 import FilterBar from '../../components/FilterBar';
 import ScreenHeader, { HeaderButton } from '../../components/ScreenHeader';
-import { businessCategories, certificationTags, sortCertTags } from '../../services/businesses';
+import { businessCategories, certificationTags, sortCertTags, CATEGORY_META, BUSINESS_TYPE_META } from '../../services/businesses';
 import { useBusinessesFeed } from '../../context/BusinessesContext';
 import { useCityId } from '../../hooks/useCityId';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,19 +24,9 @@ import { haversineKm, formatDist } from '../../utils/location';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CATEGORY_OPTIONS = [
-  { key: 'meat',   label: '🥩 בשרי' },
-  { key: 'dairy',  label: '🧀 חלבי' },
-  { key: 'pareve', label: '🌿 פרווה' },
-  { key: 'vegan',  label: '🌱 טבעוני' },
-  { key: 'cafe',   label: '☕ קפה' },
-  { key: 'bakery', label: '🥐 מאפייה' },
-];
+const CATEGORY_OPTIONS = CATEGORY_META.map((c) => ({ key: c.key, label: `${c.icon} ${c.label}` }));
 
-const BUSINESS_TYPE_OPTIONS = [
-  { key: 'serving', label: '🍴 בתי אוכל' },
-  { key: 'factory', label: '🏭 מפעלים' },
-];
+const BUSINESS_TYPE_OPTIONS = BUSINESS_TYPE_META.map((t) => ({ key: t.key, label: `${t.icon} ${t.plural}` }));
 
 const DEFAULT_REGION: Region = {
   latitude: 31.7767, longitude: 35.2988, latitudeDelta: 0.018, longitudeDelta: 0.018,

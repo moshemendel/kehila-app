@@ -26,6 +26,7 @@ import { gabbaimOf } from '../../utils/synagogueContacts';
 import LocationEditModal from '../../components/LocationEditModal';
 import AddItemModal from '../../components/AddItemModal';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
+import MoodCropField from '../../components/MoodCropField';
 import TimePicker from '../../components/TimePicker';
 import MultiDateCalendar from '../../components/MultiDateCalendar';
 import { synagogueSelichotStart } from '../../utils/selichot';
@@ -1290,6 +1291,11 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
               onChange={(imgs) => setForm((p) => ({ ...p, imageUrl: imgs[0] ?? undefined, images: imgs.slice(1) }))}
               storagePath={`synagogues/${form.id}/gallery`}
               maxImages={4}
+            />
+            <MoodCropField
+              uri={form.imageUrl}
+              crop={form.imageCrop}
+              onChange={(imageCrop) => setForm((p) => ({ ...p, imageCrop }))}
             />
           </View>
         </View>

@@ -17,6 +17,7 @@ import { Mikveh } from '../../types';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import LocationEditModal from '../../components/LocationEditModal';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
+import MoodCropField from '../../components/MoodCropField';
 import AddItemModal from '../../components/AddItemModal';
 import HoursScheduleEditor from '../../components/HoursScheduleEditor';
 import { useNeighborhoodOptions } from '../../hooks/useNeighborhoodOptions';
@@ -119,12 +120,19 @@ function EditForm({ mikveh, onBack }: { mikveh: Mikveh; onBack: () => void }) {
               {(() => {
                 const allImages = [form.imageUrl, ...(form.images ?? [])].filter(Boolean) as string[];
                 return (
-                  <ImageGalleryEditor
-                    images={allImages}
-                    onChange={(imgs) => setForm((p) => ({ ...p, imageUrl: imgs[0] ?? undefined, images: imgs.slice(1) }))}
-                    storagePath={`mikvaot/${form.id}/gallery`}
-                    maxImages={3}
-                  />
+                  <>
+                    <ImageGalleryEditor
+                      images={allImages}
+                      onChange={(imgs) => setForm((p) => ({ ...p, imageUrl: imgs[0] ?? undefined, images: imgs.slice(1) }))}
+                      storagePath={`mikvaot/${form.id}/gallery`}
+                      maxImages={3}
+                    />
+                    <MoodCropField
+                      uri={form.imageUrl}
+                      crop={form.imageCrop}
+                      onChange={(imageCrop) => setForm((p) => ({ ...p, imageCrop }))}
+                    />
+                  </>
                 );
               })()}
             </View>

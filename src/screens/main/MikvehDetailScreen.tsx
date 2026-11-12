@@ -22,6 +22,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTodayZmanim } from '../../hooks/useTodayZmanim';
 import { useModule } from '../../utils/modules';
 import { comingSoonAlert } from '../../components/ComingSoon';
+import MoodImage from '../../components/MoodImage';
 
 // ─── Layout constants (identical to BusinessDetailScreen) ───────────────────
 
@@ -191,11 +192,7 @@ export default function MikvehDetailScreen() {
           {/* ── Mood / cover image ──────────────────────────────────────── */}
           <View style={styles.moodWrap}>
             {moodImage ? (
-              <Image
-                source={{ uri: moodImage }}
-                style={StyleSheet.absoluteFillObject}
-                resizeMode="cover"
-              />
+              <MoodImage uri={moodImage} crop={mikveh.imageCrop} />
             ) : (
               <View style={styles.moodPlaceholder}>
                 <Text style={styles.moodEmoji}>

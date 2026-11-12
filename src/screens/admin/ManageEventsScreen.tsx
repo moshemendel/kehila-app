@@ -16,10 +16,11 @@ import { useEvents } from '../../hooks/useEvents';
 import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
+import MoodCropField from '../../components/MoodCropField';
 import { createEvent, updateEvent, deleteEvent, newEventId } from '../../services/events';
 import { sendPushToCity } from '../../services/pushNotifications';
 import { subscribeToPendingEvents, approvePendingEvent, rejectPendingEvent } from '../../services/pendingEvents';
-import { CommunityEvent, EventCategory, PendingCommunityEvent, ShiurAudience } from '../../types';
+import { CommunityEvent, EventCategory, ImageCrop, PendingCommunityEvent, ShiurAudience } from '../../types';
 import { AUDIENCE_LABEL, pushAudience } from '../../utils/shiurim';
 
 // ── Category config ───────────────────────────────────────────────────────────
@@ -107,6 +108,7 @@ export default function ManageEventsScreen() {
   // The event's picture. `formEventId` is the id its Storage folder uses: the
   // event's own id when editing, a pre-allocated one when creating (see newEventId).
   const [imageUrl,    setImageUrl]    = useState<string | undefined>(undefined);
+  const [imageCrop,   setImageCrop]   = useState<ImageCrop | undefined>(undefined);
   const [formEventId, setFormEventId] = useState<string>(() => newEventId());
   const [startDt,    setStartDt]     = useState<Date>(defaultStart);
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -183,12 +185,12 @@ export default function ManageEventsScreen() {
     setLocation(''); setOrganizer(''); setIsAlert(false); setAudience('all');
     setStartDt(defaultStart()); setHasEndDate(false); setEndDt(null);
     setSubmitAttempted(false); setEditingId(null);
-    setImageUrl(undefined); setFormEventId(newEventId());
+    setImageUrl(undefined); setImageCrop(undefined); setFormEventId(newEventId());
   }
 
   function startEdit(ev: CommunityEvent) {
     setEditingId(ev.id);
-    setFormEventId(ev.id); setImageUrl(ev.imageUrl || undefined);
+    setFormEventId(ev.id); setImageUrl(ev.imageUrl || undefined); setImageCrop(ev.imageCrop);
     setTitle(ev.title ?? ''); setDescription(ev.description ?? '');
     setCategory(ev.category ?? 'announcement');
     setLocation(ev.location ?? ''); setOrganizer(ev.organizer ?? '');
@@ -244,6 +246,7 @@ export default function ManageEventsScreen() {
           audience,
           // '' (not undefined) so removing the picture actually clears the field.
           imageUrl:    imageUrl ?? '',
+          imageCrop,
         });
         resetForm();
         setCreating(false);
@@ -262,6 +265,7 @@ export default function ManageEventsScreen() {
         isAlert,
         audience,
         imageUrl:    imageUrl || undefined,
+        imageCrop:   imageUrl ? imageCrop : undefined,
         createdBy:   appUser?.uid ?? 'unknown',
       }, formEventId);
       resetForm();
@@ -489,6 +493,12 @@ export default function ManageEventsScreen() {
                 onChange={(imgs) => setImageUrl(imgs[0] || undefined)}
                 storagePath={`events/${formEventId}/image`}
                 maxImages={1}
+              />
+              <MoodCropField
+                uri={imageUrl}
+                crop={imageCrop}
+                frameHeight={200}
+                onChange={setImageCrop}
               />
             </View>
 

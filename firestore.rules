@@ -184,12 +184,12 @@ service cloud.firestore {
       // isHidden belongs here: ManageKosherScreen drives it from the rabbanut
       // certificate's active state, so an owner able to write it could unhide a
       // business the rabbanut had pulled.
-      return ['kosherCertificates', 'mashgiachName', 'mashgiachPhone', 'isHidden'];
+      return ['kosherCertificates', 'departments', 'mashgiachName', 'mashgiachPhone', 'isHidden'];
     }
     // The shop's own day-to-day: what an owner runs and a kashrut reviewer has
     // no reason to touch.
     function bizOperationsKeys() {
-      return ['openingHours', 'hoursSchedule', 'imageUrl', 'images', 'phone',
+      return ['openingHours', 'hoursSchedule', 'imageUrl', 'images', 'imageCrop', 'phone',
               'website', 'description', 'contacts', 'isOpen', 'activeAlert'];
     }
     // updateBusiness() stamps this on every write, so any permitted change
@@ -244,7 +244,14 @@ service cloud.firestore {
     // ── Cities — public read; super_admin writes any city, city_admin only their own ──
     match /cities/{cityId} {
       allow read: if true;
-      allow write: if isSuperAdminRole() || isCityAdminOf(cityId);
+      allow create, delete: if isSuperAdminRole() || isCityAdminOf(cityId);
+      // `hidden` decides whether residents see the city at all — opening or
+      // closing it is a super_admin decision, so a city_admin's update may not
+      // change it (an unchanged value is not in affectedKeys, so a full-form
+      // save that merely rewrites the same flag still passes).
+      allow update: if isSuperAdminRole() ||
+        (isCityAdminOf(cityId) &&
+         !('hidden' in request.resource.data.diff(resource.data).affectedKeys()));
     }
 
     // ── Areas — a regional council's settlements, or a plain city's own one ──

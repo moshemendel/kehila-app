@@ -12,18 +12,17 @@ import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 import { useBusinessesFeed } from '../../context/BusinessesContext';
 import { useAuth } from '../../context/AuthContext';
 import { useCityId } from '../../hooks/useCityId';
-import { updateBusiness, deleteBusiness } from '../../services/businesses';
+import { updateBusiness, deleteBusiness, CATEGORY_META } from '../../services/businesses';
 import { Business } from '../../types';
 import LocationEditModal from '../../components/LocationEditModal';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
+import MoodCropField from '../../components/MoodCropField';
 import { managesContent } from '../../utils/roles';
 import HoursScheduleEditor from '../../components/HoursScheduleEditor';
 import { scheduleToOpeningHours } from '../../utils/appointmentSlots';
 
 
-const CATEGORY_LABELS: Record<string, string> = {
-  meat: '🥩 בשרי', dairy: '🧀 חלבי', pareve: '🌿 פרווה', cafe: '☕ קפה', bakery: '🥐 מאפייה',
-};
+const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(CATEGORY_META.map((c) => [c.key, `${c.icon} ${c.label}`]));
 
 // ─── Edit form ────────────────────────────────────────────────────────────────
 function EditForm({ rest, onBack, canEditIdentity }: {
@@ -147,6 +146,12 @@ function EditForm({ rest, onBack, canEditIdentity }: {
               onChange={handleImagesChange}
               storagePath={`businesses/${form.id}/gallery`}
               maxImages={3}
+            />
+            <MoodCropField
+              uri={form.imageUrl}
+              crop={form.imageCrop}
+              keepDefault
+              onChange={(imageCrop) => setForm((p) => ({ ...p, imageCrop }))}
             />
           </View>
         </View>

@@ -13,12 +13,16 @@ import { useNotifications } from '../../context/NotificationsContext';
 import EventReminderModal from '../../components/EventReminderModal';
 import { DEFAULT_EVENT_LEAD_TIMES, formatLead } from '../../utils/eventReminders';
 import ReportListingButton from '../../components/ReportListingButton';
+import MoodImage from '../../components/MoodImage';
 import { useNavigateTo } from '../../hooks/useNavigateTo';
 import { CommunityEvent, EventCategory } from '../../types';
 import { formatHebrewDate } from '../../utils/hebrewDate';
 import { Colors, Spacing, Radius, Shadow } from '../../utils/theme';
 
 // ── Category config ───────────────────────────────────────────────────────────
+
+/** Height of the picture frame on the event page; the crop editor uses the same. */
+const EVENT_IMAGE_H = 200;
 
 const CATEGORY_CFG: Record<EventCategory, { icon: string; color: string; label: string }> = {
   shiur:        { icon: 'book',          color: Colors.primary,      label: 'שיעור'  },
@@ -213,12 +217,9 @@ export default function EventDetailScreen() {
       >
         {/* Picture the organizer attached, if any */}
         {!!event.imageUrl && (
-          <Image
-            source={{ uri: event.imageUrl }}
-            style={styles.eventImage}
-            resizeMode="cover"
-            accessibilityLabel={event.title}
-          />
+          <View style={styles.eventImage} accessibilityLabel={event.title}>
+            <MoodImage uri={event.imageUrl} crop={event.imageCrop} />
+          </View>
         )}
 
         {/* Date card */}
@@ -335,7 +336,7 @@ function InfoCard({
 
 const styles = StyleSheet.create({
   eventImage: {
-    width: '100%', height: 200, borderRadius: Radius.lg,
+    width: '100%', height: EVENT_IMAGE_H, borderRadius: Radius.lg, overflow: 'hidden',
     backgroundColor: Colors.border, marginBottom: Spacing.md,
   },
   root: { flex: 1, backgroundColor: Colors.background },

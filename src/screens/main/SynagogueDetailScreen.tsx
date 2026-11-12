@@ -28,6 +28,7 @@ import FavoritePrayerModal, { ModalOptions } from '../../components/FavoritePray
 import EventReminderModal from '../../components/EventReminderModal';
 import { getSlotLabel, slotRuleLabel, slotRunsInSeason, SEASON_LABEL } from '../../utils/prayerUtils';
 import { collectShiurim } from '../../utils/prayerNotifications';
+import MoodImage from '../../components/MoodImage';
 import { gabbaimOf, contactPhoneOf } from '../../utils/synagogueContacts';
 import {
   getTodaySchedule, getNextPrayerTodayOrTomorrow, formatPrayerLabel, formatDays,
@@ -491,11 +492,7 @@ export default function SynagogueDetailScreen() {
           {/* ── Mood / cover image (or nusach-tinted emoji placeholder) ── */}
           <View style={[st.moodWrap, { backgroundColor: nusachColor + '28' }]}>
             {moodImage ? (
-              <Image
-                source={{ uri: moodImage }}
-                style={StyleSheet.absoluteFillObject}
-                resizeMode="cover"
-              />
+              <MoodImage uri={moodImage} crop={syn.imageCrop} />
             ) : (
               <View style={st.moodPlaceholder}>
                 <Text style={st.moodEmoji}>{nusachEmoji}</Text>

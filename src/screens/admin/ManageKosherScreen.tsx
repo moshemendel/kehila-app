@@ -12,18 +12,19 @@ import { useBusinessesFeed } from '../../context/BusinessesContext';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCityId } from '../../hooks/useCityId';
 import { useAuth } from '../../context/AuthContext';
-import { updateBusiness, addBusiness, deleteBusiness, businessCategories, detectCertChanges, CertChange, BADATZ_LIST, isLocalRabbanut } from '../../services/businesses';
+import { updateBusiness, addBusiness, deleteBusiness, businessCategories, detectCertChanges, CertChange, BADATZ_LIST, isLocalRabbanut, CATEGORY_META, BUSINESS_TYPE_META } from '../../services/businesses';
 import { getUserByEmail, getBusinessManagers, setManagedRestaurants, setUserRole } from '../../services/users';
 import { createKashrutUpdate, formatKashrutUpdateTitle, formatKashrutUpdateDetail } from '../../services/kashrutUpdates';
 import { sendPushToCity } from '../../services/pushNotifications';
 import { addBadatz, addRabbanut } from '../../services/kashrutConfig';
 import { useCity } from '../../hooks/useCity';
 import { useKashrutConfig } from '../../hooks/useKashrutConfig';
-import { Business, KosherCertificate, KosherLevel, BusinessType, AppUser } from '../../types';
+import { Business, BusinessDepartment, KosherCertificate, KosherLevel, BusinessType, AppUser } from '../../types';
 import ImageGalleryEditor from '../../components/ImageGalleryEditor';
 import AddItemModal from '../../components/AddItemModal';
 import BottomSheetModal from '../../components/BottomSheetModal';
 import Dropdown from '../../components/Dropdown';
+import DepartmentsEditor, { cleanDepartments } from '../../components/DepartmentsEditor';
 import { managesContent } from '../../utils/roles';
 
 const KOSHER_LEVELS: { key: KosherLevel; label: string }[] = [
@@ -34,23 +35,11 @@ const KOSHER_LEVELS: { key: KosherLevel; label: string }[] = [
   { key: 'glatt',          label: 'גלאט' },
 ];
 
-const CATEGORY_LABELS: Record<string, string> = {
-  meat: '🥩 בשרי', dairy: '🧀 חלבי', pareve: '🌿 פרווה', vegan: '🌱 טבעוני', cafe: '☕ קפה', bakery: '🥐 מאפייה',
-};
+const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(CATEGORY_META.map((c) => [c.key, `${c.icon} ${c.label}`]));
 
-const CAT_OPTIONS = [
-  { value: 'meat',   label: '🥩 בשרי' },
-  { value: 'dairy',  label: '🧀 חלבי' },
-  { value: 'pareve', label: '🌿 פרווה' },
-  { value: 'vegan',  label: '🌱 טבעוני' },
-  { value: 'cafe',   label: '☕ קפה' },
-  { value: 'bakery', label: '🥐 מאפייה' },
-];
+const CAT_OPTIONS = CATEGORY_META.map((c) => ({ value: c.key, label: `${c.icon} ${c.label}` }));
 
-const BUSINESS_TYPE_CHIPS: { key: BusinessType; label: string }[] = [
-  { key: 'serving', label: '🍴 בית אוכל' },
-  { key: 'factory', label: '🏭 מפעל' },
-];
+const BUSINESS_TYPE_CHIPS: { key: BusinessType; label: string }[] = BUSINESS_TYPE_META.map((t) => ({ key: t.key, label: `${t.icon} ${t.label}` }));
 
 // ─── Cert editor ──────────────────────────────────────────────────────────────
 function CertEditor({ rest, onBack, onDelete }: { rest: Business; onBack: () => void; onDelete: () => void }) {
@@ -60,6 +49,7 @@ function CertEditor({ rest, onBack, onDelete }: { rest: Business; onBack: () => 
   const [mashgiachName, setMashgiachName]   = useState(rest.mashgiachName ?? '');
   const [mashgiachPhone, setMashgiachPhone] = useState(rest.mashgiachPhone ?? '');
   const [businessType, setBusinessType]     = useState<BusinessType>(rest.businessType ?? 'serving');
+  const [departments, setDepartments]         = useState<BusinessDepartment[]>(rest.departments ?? []);
   const [categories, setCategories]         = useState<string[]>(businessCategories(rest));
   const [saving, setSaving]         = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -290,6 +280,7 @@ function CertEditor({ rest, onBack, onDelete }: { rest: Business; onBack: () => 
         mashgiachName:  mashgiachName.trim()  || undefined,
         mashgiachPhone: mashgiachPhone.trim() || undefined,
         businessType,
+        departments: cleanDepartments(departments),
         categories,
         category: categories[0] ?? rest.category ?? 'meat',
         ...(rabbanutDeactivated ? { isHidden: true  } : {}),
@@ -383,6 +374,14 @@ function CertEditor({ rest, onBack, onDelete }: { rest: Business; onBack: () => 
                 );
               })}
             </View>
+          </View>
+        </View>
+
+        {/* Departments — a supermarket/chain whose sections have different kashrut */}
+        <Text style={[s.sectionTitle, { marginTop: Spacing.lg }]}>מחלקות עם כשרות נפרדת</Text>
+        <View style={s.certCard}>
+          <View style={s.certBody}>
+            <DepartmentsEditor value={departments} onChange={setDepartments} />
           </View>
         </View>
 

@@ -2,7 +2,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Business, KosherCertificate } from '../types';
+import { Business, BusinessDepartment, BusinessType, KosherCertificate } from '../types';
 
 const COL = 'businesses';
 
@@ -16,13 +16,36 @@ function sanitize(value: any): any {
 
 // ── Kashrut category metadata (shared across screens) ───────────────────────
 export const CATEGORY_META: { key: string; label: string; icon: string }[] = [
-  { key: 'meat',   label: 'בשרי',   icon: '🥩' },
-  { key: 'dairy',  label: 'חלבי',   icon: '🧀' },
-  { key: 'pareve', label: 'פרווה',  icon: '🌿' },
-  { key: 'vegan',  label: 'טבעוני', icon: '🌱' },
-  { key: 'cafe',   label: 'קפה',    icon: '☕' },
-  { key: 'bakery', label: 'מאפייה', icon: '🥐' },
+  { key: 'meat',     label: 'בשרי',          icon: '🥩' },
+  { key: 'dairy',    label: 'חלבי',          icon: '🧀' },
+  { key: 'pareve',   label: 'פרווה',         icon: '🌿' },
+  { key: 'vegan',    label: 'טבעוני',        icon: '🌱' },
+  { key: 'fish',     label: 'דגים',          icon: '🐟' },
+  { key: 'produce',  label: 'פירות וירקות',  icon: '🥬' },
+  { key: 'deli',     label: 'מעדנייה',       icon: '🧈' },
+  { key: 'grocery',  label: 'סופר ומכולת',   icon: '🛒' },
+  { key: 'nuts',     label: 'פיצוחים',       icon: '🥜' },
+  { key: 'cafe',     label: 'קפה',           icon: '☕' },
+  { key: 'bakery',   label: 'מאפייה',        icon: '🥐' },
+  { key: 'pizza',    label: 'פיצה',          icon: '🍕' },
+  { key: 'fastfood', label: 'מזון מהיר',     icon: '🍔' },
+  { key: 'icecream', label: 'גלידה וקינוחים', icon: '🍦' },
+  { key: 'wine',     label: 'יין',           icon: '🍷' },
 ];
+
+/** What kind of place it is — drives the main filter and the badge on the card. */
+export const BUSINESS_TYPE_META: { key: BusinessType; label: string; plural: string; icon: string }[] = [
+  { key: 'serving',  label: 'מסעדה / מזון מהיר', plural: 'מסעדות ומזון מהיר', icon: '🍴' },
+  { key: 'store',    label: 'חנות מזון',          plural: 'חנויות מזון',        icon: '🛒' },
+  { key: 'catering', label: 'קייטרינג',           plural: 'קייטרינג',           icon: '🍱' },
+  { key: 'hall',     label: 'אולם אירועים',       plural: 'אולמות אירועים',     icon: '🎉' },
+  { key: 'factory',  label: 'מפעל',               plural: 'מפעלים',             icon: '🏭' },
+  { key: 'other',    label: 'אחר (מלון, בילוי, מוסדות)', plural: 'אחר',        icon: '🏨' },
+];
+export function businessTypeLabel(t?: BusinessType): string {
+  const m = BUSINESS_TYPE_META.find((x) => x.key === (t ?? 'serving')) ?? BUSINESS_TYPE_META[0];
+  return `${m.icon} ${m.label}`;
+}
 export const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(CATEGORY_META.map((c) => [c.key, c.label]));
 export const CATEGORY_ICONS:  Record<string, string> = Object.fromEntries(CATEGORY_META.map((c) => [c.key, c.icon]));
 
@@ -68,8 +91,12 @@ export function isLocalRabbanut(c: KosherCertificate): boolean {
  *  • each badatz              → its name
  *  • attributes              → "חלב ישראל" / "בישול ישראל" / "גלאט"
  */
-export function certificationTags(r: { kosherCertificates?: KosherCertificate[] }): string[] {
+export function certificationTags(r: { kosherCertificates?: KosherCertificate[]; departments?: BusinessDepartment[] }): string[] {
   const tags = new Set<string>();
+  for (const d of r.departments ?? []) {
+    tags.add(d.kosherLevel.includes('mehadrin') ? 'מהדרין' : 'רבנות');
+    for (const lvl of d.kosherLevel) if (ATTR_TAGS[lvl]) tags.add(ATTR_TAGS[lvl]);
+  }
   for (const c of r.kosherCertificates ?? []) {
     if (!c.isActive) continue;
     if (isLocalRabbanut(c)) {
