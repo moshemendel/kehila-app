@@ -89,3 +89,6 @@ data/travel/*.sample.json
 
 # JetBrains IDE settings
 .idea/
+
+# Graphify output
+graphify-out/
