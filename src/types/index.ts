@@ -92,7 +92,7 @@ export interface NusachOption {
   label: string;
 }
 
-import type { CityModules } from '../utils/modules';
+import type { CityModules } from '../utils/moduleTypes';
 export type { CityModules };
 import type { ZmanimSettings } from '../utils/zmanim';
 import type { PlotShape } from '../utils/graveLocator';

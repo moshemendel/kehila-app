@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { Synagogue, Shiur, Gender } from '../types';
-import { shiurAudience, audienceFits, defaultAudienceFor } from './shiurim';
+import { shiurAudience, audienceFits, defaultAudienceFor, collectShiurim } from './shiurim';
 import { ZmanimResult } from './zmanim';
 import { resolveSlotTime, slotRunsInSeason, todayDayNumber, parseTimeToMinutes } from './prayerUtils';
 import {
@@ -113,17 +113,10 @@ export interface NotifSettings {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Collect all shiurim from every location they can appear in a synagogue.
- *  Handles null values that Firestore can return for missing array fields. */
-export function collectShiurim(syn: Synagogue): Shiur[] {
-  const map = new Map<string, Shiur>();
-  const add = (list?: Shiur[] | null) =>
-    (list ?? []).forEach((sh) => sh && map.set(sh.id, sh));
-  add(syn.weeklySchedule?.shiurim);
-  add(syn.shabbatSchedule?.shiurim);
-  add(syn.shiurim);
-  return Array.from(map.values());
-}
+// collectShiurim lives in ./shiurim (it is pure, and shiurim.ts needs it, so
+// defining it here made the two files import each other). Re-exported so
+// existing imports from this module keep working.
+export { collectShiurim };
 
 /** True if a shiur applies on today's day number (1=Sun…7=Sat). */
 function shiurAppliesToday(sh: Shiur, dayNum: number): boolean {

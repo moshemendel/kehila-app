@@ -49,9 +49,9 @@ interface CatalogueEntry {
 // with this one.
 export type { ModuleKey } from './moduleKeys';
 
-export type ModuleState = 'live' | 'soon' | 'off';
-
-export type CityModules = Partial<Record<ModuleKey, ModuleState>>;
+// Defined in moduleTypes.ts so src/types can import them without pulling in the hooks.
+import type { ModuleState, CityModules } from './moduleTypes';
+export type { ModuleState, CityModules };
 
 /**
  * What a held-back section says for itself, read off the catalogue rather than

@@ -1,5 +1,16 @@
 import type { Shiur, ShiurAudience, Synagogue, Gender } from '../types';
-import { collectShiurim } from './prayerNotifications';
+
+/** Collect all shiurim from every location they can appear in a synagogue.
+ *  Handles null values that Firestore can return for missing array fields. */
+export function collectShiurim(syn: Synagogue): Shiur[] {
+  const map = new Map<string, Shiur>();
+  const add = (list?: Shiur[] | null) =>
+    (list ?? []).forEach((sh) => sh && map.set(sh.id, sh));
+  add(syn.weeklySchedule?.shiurim);
+  add(syn.shabbatSchedule?.shiurim);
+  add(syn.shiurim);
+  return Array.from(map.values());
+}
 
 /**
  * Subjects a shiur can be filed under. Fixed rather than free text so the filter
