@@ -30,6 +30,7 @@ import FavoriteFilterChip from '../../components/FavoriteFilterChip';
 import FavoritePrayerModal, { ModalOptions } from '../../components/FavoritePrayerModal';
 import { collectShiurim } from '../../utils/prayerNotifications';
 import { formatDays } from '../../utils/prayerUtils';
+import { shiurRuleLabel } from '../../utils/shiurim';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -212,7 +213,7 @@ export default function SynagoguesScreen() {
         notes: slot.notes ?? undefined,
       }));
     const shiurim = collectShiurim(modalSyn).map((sh, i) => ({
-      index: i, title: sh.title, rabbi: sh.rabbi, time: sh.time,
+      index: i, title: sh.title, rabbi: sh.rabbi, time: shiurRuleLabel(sh),
       daysLabel: sh.days === 'daily' ? 'יומי' : formatDays(sh.days as number[]),
     }));
     return { shacharit: buildSlots('shacharit'), mincha: buildSlots('mincha'), maariv: buildSlots('maariv'), shiurim };

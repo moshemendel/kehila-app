@@ -17,7 +17,7 @@ import { Colors, Spacing, Radius, Shadow, CardShellFlush } from '../../utils/the
 import { Synagogue } from '../../types';
 import {
   parseTimeToMinutes, nowInMinutes, hebrewDayOfWeek, tomorrowDayOfWeek,
-  todayDayNumber, tomorrowDayNumber, resolveSlotTime, slotRunsInSeason,
+  todayDayNumber, tomorrowDayNumber, resolveSlotTime, slotRunsInSeason, fridayMinchaSlots,
 } from '../../utils/prayerUtils';
 import FilterBar from '../../components/FilterBar';
 import ScreenHeader from '../../components/ScreenHeader';
@@ -33,6 +33,8 @@ interface PrayerSlot {
   timeMinutes: number;
   distanceKm: number | null;
   isPast: boolean;
+  /** Read from the erev Shabbat board rather than the weekday one. */
+  erevShabbat?: boolean;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -130,7 +132,7 @@ const PrayerSlotRow = React.memo(function PrayerSlotRow({
         <View style={s.cardTop}>
           <Text style={s.synName} numberOfLines={1}>{slot.synagogue.name}</Text>
           <View style={[s.prayerChip, { backgroundColor: color + '20', borderColor: color + '50' }]}>
-            <Text style={[s.prayerChipTxt, { color }]}>{PRAYER_HE[slot.type]}</Text>
+            <Text style={[s.prayerChipTxt, { color }]}>{slot.erevShabbat ? 'מנחה ע״ש' : PRAYER_HE[slot.type]}</Text>
           </View>
         </View>
 
@@ -321,6 +323,20 @@ export default function PrayerTimesScreen() {
         ? haversineKm(userLoc.lat, userLoc.lon, syn.latitude, syn.longitude)
         : null;
       const ws = syn.weeklySchedule;
+      // Friday's mincha is on the Shabbat board; a shul may have only that.
+      if (dayNum === 6) {
+        const seen = new Set<string>();
+        for (const slot of fridayMinchaSlots(syn.shabbatSchedule, day)) {
+          const resolvedTime = resolveSlotTime(slot, zmanim);
+          const minutes = parseTimeToMinutes(resolvedTime);
+          if (!resolvedTime || minutes < 0 || seen.has(resolvedTime)) continue;
+          seen.add(resolvedTime);
+          slots.push({
+            synagogue: syn, type: 'mincha', time: resolvedTime, timeMinutes: minutes,
+            distanceKm: distKm, isPast: isTomorrow ? false : minutes <= nowMin, erevShabbat: true,
+          });
+        }
+      }
       if (!ws) continue;
       for (const type of ['shacharit', 'mincha', 'maariv'] as PrayerType[]) {
         for (const slot of ws[type] ?? []) {
@@ -329,6 +345,9 @@ export default function PrayerTimesScreen() {
           if (!resolvedTime) continue;
           const minutes = parseTimeToMinutes(resolvedTime);
           if (minutes < 0) continue;
+          // Already listed from the erev Shabbat board at the same time.
+          if (dayNum === 6 && type === 'mincha' &&
+              slots.some((x) => x.erevShabbat && x.synagogue.id === syn.id && x.time === resolvedTime)) continue;
           slots.push({
             synagogue: syn, type, time: resolvedTime, timeMinutes: minutes,
             distanceKm: distKm,

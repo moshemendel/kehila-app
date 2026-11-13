@@ -289,7 +289,12 @@ export interface Shiur {
   title: string;
   rabbi: string;
   days: number[] | "daily"; // 1=Sunday, 2=Monday, ..., 7=Shabbat or 'daily'
+  /** "HH:MM" for a fixed time; '' when `anchor` is set. */
   time: string;
+  /** Start relative to a zman, same convention as PrayerTimeSlot. */
+  anchor?: ZmanimAnchor;
+  offsetMin?: number;
+  proportional?: boolean;
   description?: string;
   /** Subject, one of SHIUR_TOPICS (utils/shiurim.ts). Absent on every shiur
    *  written before the field existed — the Torah-classes screen then infers it

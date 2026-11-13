@@ -119,7 +119,10 @@ export function todayDayNumber(): number {
  * - Relative slots (anchor set): computes time from zmanim + offsetMin.
  *   Returns '' if zmanim not yet available.
  */
-export function resolveSlotTime(slot: PrayerTimeSlot, zmanim?: ZmanimResult | null): string {
+export function resolveSlotTime(
+  slot: Pick<PrayerTimeSlot, 'time' | 'anchor' | 'offsetMin' | 'proportional'>,
+  zmanim?: ZmanimResult | null,
+): string {
   if (!slot.anchor) return slot.time;
   if (!zmanim) return '';
   const field = ZMANIM_FIELD[slot.anchor] ?? (slot.anchor as unknown as keyof ZmanimResult);
@@ -149,7 +152,7 @@ export function getTodaySchedule(
 
   if (dayNum === 7) return shabbatTimes(shabbatSchedule, zmanim, today);
 
-  return weekdaySchedule(weeklySchedule, dayNum, zmanim, today);
+  return weekdaySchedule(weeklySchedule, dayNum, zmanim, today, shabbatSchedule);
 }
 
 /** One weekday's times from weeklySchedule (1=Sunday … 6=Friday). */
@@ -158,6 +161,7 @@ function weekdaySchedule(
   dayNum: number,
   zmanim?: ZmanimResult | null,
   date: Date = israelNow(),
+  shabbatSchedule?: ShabbatSchedule,
 ): PrayerTimes {
   const filter = (slots: PrayerTimeSlot[] = []) =>
     slots
@@ -165,11 +169,31 @@ function weekdaySchedule(
       .map((s) => resolveSlotTime(s, zmanim))
       .filter(Boolean);
 
+  const mincha = filter(weeklySchedule?.mincha);
+  // Erev Shabbat mincha lives in shabbatSchedule.minchaFriday, not in the
+  // weekday board, so Friday has to read it from there too. Same time in both
+  // places counts once.
+  if (dayNum === 6) {
+    for (const s of fridayMinchaSlots(shabbatSchedule, date)) {
+      const t = resolveSlotTime(s, zmanim);
+      if (t && !mincha.includes(t)) mincha.push(t);
+    }
+    mincha.sort((a, b) => parseTimeToMinutes(a) - parseTimeToMinutes(b));
+  }
+
   return {
     shacharit: filter(weeklySchedule?.shacharit),
-    mincha: filter(weeklySchedule?.mincha),
+    mincha,
     maariv: filter(weeklySchedule?.maariv),
   };
+}
+
+/** Erev Shabbat mincha / kabbalat Shabbat slots that run on `date`'s clock. */
+export function fridayMinchaSlots(
+  shabbatSchedule: ShabbatSchedule | undefined,
+  date: Date = israelNow(),
+): PrayerTimeSlot[] {
+  return (shabbatSchedule?.minchaFriday ?? []).filter((s) => slotRunsInSeason(s, date));
 }
 
 /** Shabbat's times from shabbatSchedule — not filtered by day; see getTodaySchedule. */
@@ -218,7 +242,7 @@ export function getNextPrayerTodayOrTomorrow(
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tmrw = dayNum === 7
     ? shabbatTimes(shabbatSchedule, zmanim, tomorrow)
-    : weekdaySchedule(weeklySchedule, dayNum, zmanim, tomorrow);
+    : weekdaySchedule(weeklySchedule, dayNum, zmanim, tomorrow, shabbatSchedule);
   if (!tmrw) return null;
   let first: { type: 'shacharit' | 'mincha' | 'maariv'; nextTime: string } | null = null;
   for (const type of ['shacharit', 'mincha', 'maariv'] as const) {

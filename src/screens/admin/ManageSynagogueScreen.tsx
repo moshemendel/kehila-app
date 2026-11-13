@@ -21,7 +21,7 @@ import NeighborhoodPickerModal from '../../components/NeighborhoodPickerModal';
 import { updateSynagogue, addSynagogue, deleteSynagogue } from '../../services/synagogues';
 import { submitPendingEvent } from '../../services/pendingEvents';
 import { Synagogue, PrayerTimeSlot, ZmanimAnchor, Shiur, ShiurAudience, EventCategory, SynagogueAnnouncement } from '../../types';
-import { SHIUR_TOPICS, AUDIENCE_LABEL } from '../../utils/shiurim';
+import { SHIUR_TOPICS, AUDIENCE_LABEL, shiurRuleLabel } from '../../utils/shiurim';
 import { gabbaimOf } from '../../utils/synagogueContacts';
 import LocationEditModal from '../../components/LocationEditModal';
 import AddItemModal from '../../components/AddItemModal';
@@ -37,7 +37,7 @@ import { cityZmanimSettings, zmanimPoint } from '../../utils/zmanimProfile';
 import { presetByKey } from '../../utils/zmanim';
 import { splitAnnouncements } from '../../utils/synagogueAnnouncements';
 import { managesContent } from '../../utils/roles';
-import { SEASON_LABEL } from '../../utils/prayerUtils';
+import { SEASON_LABEL, describeAnchor } from '../../utils/prayerUtils';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -555,9 +555,20 @@ function ShiurEditModal({ visible, shiur, isNew, onSave, onDelete, onClose }: {
   const [description, setDescription] = useState('');
   const [topic,       setTopic]       = useState<string | undefined>(undefined);
   const [audience,    setAudience]    = useState<ShiurAudience>('all');
+  // Fixed clock time, or relative to a zman (e.g. 20 min before sunset).
+  const [isRelative,  setIsRelative]  = useState(false);
+  const [anchor,      setAnchor]      = useState<ZmanimAnchor | undefined>(undefined);
+  const [offset,      setOffset]      = useState(0);
+  const [proportional, setProportional] = useState(false);
+  const [anchorOpen,   setAnchorOpen]  = useState(false);
 
   useEffect(() => {
     if (!visible) return;
+    setIsRelative(!!shiur.anchor);
+    setAnchor(shiur.anchor);
+    setOffset(shiur.offsetMin ?? 0);
+    setProportional(shiur.proportional ?? false);
+    setAnchorOpen(false);
     setTopic(shiur.topic);
     setAudience(shiur.audience ?? 'all');
     setTitle(shiur.title ?? '');
@@ -576,13 +587,17 @@ function ShiurEditModal({ visible, shiur, isNew, onSave, onDelete, onClose }: {
   function handleSave() {
     if (!title.trim()) { Alert.alert('שגיאה', 'יש להזין שם שיעור'); return; }
     if (!rabbi.trim()) { Alert.alert('שגיאה', 'יש להזין שם מוסר השיעור'); return; }
-    if (!isValidTime(time)) { Alert.alert('שגיאה', 'יש להזין שעה תקינה (לדוגמה: 20:00)'); return; }
-    const [h, m] = time.split(':');
+    if (isRelative && !anchor) { Alert.alert('שגיאה', 'יש לבחור עוגן זמן'); return; }
+    if (!isRelative && !isValidTime(time)) { Alert.alert('שגיאה', 'יש להזין שעה תקינה (לדוגמה: 20:00)'); return; }
+    const [h, m] = isRelative ? ['', ''] : time.split(':');
     onSave({
       id:          shiur.id ?? `sh_${Date.now()}`,
       title:       title.trim(),
       rabbi:       rabbi.trim(),
-      time:        `${h.padStart(2, '0')}:${m.padStart(2, '0')}`,
+      time:        isRelative ? '' : `${h.padStart(2, '0')}:${m.padStart(2, '0')}`,
+      anchor:      isRelative ? anchor : undefined,
+      offsetMin:   isRelative ? offset : undefined,
+      proportional: isRelative && proportional ? true : undefined,
       days:        daily ? 'daily' : days,
       description: description.trim() || undefined,
       topic,
@@ -635,7 +650,69 @@ function ShiurEditModal({ visible, shiur, isNew, onSave, onDelete, onClose }: {
 
           {/* Time */}
           <Text style={sm.label}>שעה</Text>
-          <TimePicker value={time} onChange={setTime} />
+          <View style={sm.modeRow}>
+            <TouchableOpacity style={[sm.modeBtn, !isRelative && sm.modeBtnActive]} onPress={() => setIsRelative(false)}>
+              <Text style={[sm.modeBtnTxt, !isRelative && sm.modeBtnTxtActive]}>שעה קבועה</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[sm.modeBtn, isRelative && sm.modeBtnActive]} onPress={() => setIsRelative(true)}>
+              <Text style={[sm.modeBtnTxt, isRelative && sm.modeBtnTxtActive]}>זמן יחסי</Text>
+            </TouchableOpacity>
+          </View>
+          {isRelative ? (
+            <>
+              <Text style={sm.label}>עוגן</Text>
+              <TouchableOpacity style={sm.anchorDropBtn} onPress={() => setAnchorOpen((v) => !v)} activeOpacity={0.8}>
+                <Text style={anchor ? sm.anchorDropTxt : sm.anchorDropPlaceholder}>
+                  {anchor ? ANCHOR_OPTIONS.find((a) => a.key === anchor)?.label ?? 'בחר עוגן' : 'בחר עוגן'}
+                </Text>
+                <Ionicons name={anchorOpen ? 'chevron-up' : 'chevron-down'} size={18} color={Colors.textSecondary} />
+              </TouchableOpacity>
+              {anchorOpen && (
+                <View style={sm.anchorDropList}>
+                  {ANCHOR_OPTIONS.map(({ key, label }) => {
+                    const active = anchor === key;
+                    return (
+                      <TouchableOpacity key={key} style={[sm.anchorDropItem, active && sm.anchorDropItemActive]}
+                        onPress={() => { setAnchor(key); setAnchorOpen(false); }}>
+                        <Text style={[sm.anchorDropItemTxt, active && sm.anchorDropItemTxtActive]}>{label}</Text>
+                        {active && <Ionicons name="checkmark" size={16} color={Colors.primary} />}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+              <Text style={sm.label}>הזזה (דקות)</Text>
+              <View style={sm.offsetRow}>
+                <TouchableOpacity style={sm.stepBtn} onPress={() => setOffset((v) => v - 5)}>
+                  <Ionicons name="remove" size={20} color={Colors.text} />
+                </TouchableOpacity>
+                <TouchableOpacity style={sm.stepBtn} onPress={() => setOffset((v) => v - 1)}>
+                  <Text style={sm.stepSmall}>-1</Text>
+                </TouchableOpacity>
+                <Text style={sm.offsetVal}>{offset > 0 ? `+${offset}` : offset}׳</Text>
+                <TouchableOpacity style={sm.stepBtn} onPress={() => setOffset((v) => v + 1)}>
+                  <Text style={sm.stepSmall}>+1</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={sm.stepBtn} onPress={() => setOffset((v) => v + 5)}>
+                  <Ionicons name="add" size={20} color={Colors.text} />
+                </TouchableOpacity>
+              </View>
+              <Text style={[sm.label, { marginTop: 12 }]}>סוג דקות</Text>
+              <View style={sm.modeRow}>
+                <TouchableOpacity style={[sm.modeBtn, !proportional && sm.modeBtnActive]} onPress={() => setProportional(false)}>
+                  <Text style={[sm.modeBtnTxt, !proportional && sm.modeBtnTxtActive]}>דקות שוות</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[sm.modeBtn, proportional && sm.modeBtnActive]} onPress={() => setProportional(true)}>
+                  <Text style={[sm.modeBtnTxt, proportional && sm.modeBtnTxtActive]}>דקות זמניות</Text>
+                </TouchableOpacity>
+              </View>
+              {!!anchor && (
+                <Text style={sm.relativePreview}>{describeAnchor(anchor, offset, proportional)}</Text>
+              )}
+            </>
+          ) : (
+            <TimePicker value={time} onChange={setTime} />
+          )}
 
           {/* Days */}
           <Text style={sm.label}>ימים</Text>
@@ -1577,7 +1654,7 @@ function EditForm({ syn, onBack, isDemo, userId, userName }: {
                 >
                   <View style={{ flex: 1 }}>
                     <Text style={sm.slotCardTime}>{sh.title}</Text>
-                    <Text style={sm.slotCardDays}>{sh.rabbi} · {sh.time}</Text>
+                    <Text style={sm.slotCardDays}>{sh.rabbi} · {shiurRuleLabel(sh)}</Text>
                     {!!sh.description && <Text style={sm.slotCardNote} numberOfLines={1}>{sh.description}</Text>}
                   </View>
                   <Text style={{ fontSize: 11, color: Colors.textMuted, textAlign: 'center', marginHorizontal: 6 }}>

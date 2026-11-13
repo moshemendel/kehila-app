@@ -8,6 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAnalyticsTrack } from '../../services/analytics';
 import { useSynagoguesFeed } from '../../context/SynagoguesContext';
 import { useAuth } from '../../context/AuthContext';
+import { useCityId } from '../../hooks/useCityId';
+import { useSynagogueZmanim } from '../../hooks/useSynagogueZmanim';
 import { Colors, Spacing, Radius, CardShellFlush } from '../../utils/theme';
 import { Synagogue } from '../../types';
 import {
@@ -68,6 +70,9 @@ const ShiurRow = React.memo(function ShiurRow({
 
         <View style={s.chips}>
           <View style={s.chip}><Text style={s.chipTxt}>{topic}</Text></View>
+          {!!item.rule && (
+            <View style={s.chipPlain}><Text style={s.chipPlainTxt}>{item.rule}</Text></View>
+          )}
           {audience !== 'all' && (
             <View style={[s.chip, audience === 'women' ? s.chipWomen : s.chipMen]}>
               <Text style={[s.chipTxt, audience === 'women' ? s.chipTxtWomen : s.chipTxtMen]}>
@@ -98,6 +103,8 @@ export default function ShiurimScreen() {
   const { synagogues, loading } = useSynagoguesFeed();
   const { appUser } = useAuth();
   const navigation = useNavigation<any>();
+  const cityId     = useCityId();
+  const zmanimFor  = useSynagogueZmanim(cityId);
 
   const [view,    setView]    = useState<View_>('today');
   const [nowMin,  setNowMin]  = useState(nowInMinutes());
@@ -121,10 +128,13 @@ export default function ShiurimScreen() {
     return () => clearInterval(id);
   }, []);
 
-  const all = useMemo(
-    () => collectCityShiurim(synagogues, parseTimeToMinutes),
-    [synagogues],
-  );
+  // Anchored shiurim resolve against the day on screen (tomorrow's zmanim for
+  // "tomorrow"; today's for today and the week view).
+  const all = useMemo(() => {
+    const day = new Date();
+    if (view === 'tomorrow') day.setDate(day.getDate() + 1);
+    return collectCityShiurim(synagogues, parseTimeToMinutes, (syn) => zmanimFor(syn, day));
+  }, [synagogues, zmanimFor, view]);
 
   const neighborhoods = useMemo(() => {
     const set = new Set<string>();

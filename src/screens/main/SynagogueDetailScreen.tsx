@@ -28,6 +28,7 @@ import FavoritePrayerModal, { ModalOptions } from '../../components/FavoritePray
 import EventReminderModal from '../../components/EventReminderModal';
 import { getSlotLabel, slotRuleLabel, slotRunsInSeason, SEASON_LABEL } from '../../utils/prayerUtils';
 import { collectShiurim } from '../../utils/prayerNotifications';
+import { resolveShiurTime, shiurRuleLabel } from '../../utils/shiurim';
 import MoodImage from '../../components/MoodImage';
 import { gabbaimOf, contactPhoneOf } from '../../utils/synagogueContacts';
 import {
@@ -249,10 +250,13 @@ function AnnouncementRow({ ann, synagogueId }: { ann: SynagogueAnnouncement; syn
 }
 
 /** `hideDay` is for the Shabbat board, where the day is the section, not the row. */
-function ShiurRow({ sh, hideDay = false }: { sh: Shiur; hideDay?: boolean }) {
-  const dayLabel = hideDay
+function ShiurRow({ sh, hideDay = false, zmanim }: { sh: Shiur; hideDay?: boolean; zmanim?: ZmanimResult | null }) {
+  const baseDay = hideDay
     ? ''
     : sh.days === 'daily' ? 'יומי' : formatDays(sh.days as number[]);
+  // Anchored: the day's resolved time big, the rule beneath it.
+  const timeLabel = sh.anchor ? (resolveShiurTime(sh, zmanim) || shiurRuleLabel(sh)) : sh.time;
+  const dayLabel = sh.anchor ? [baseDay, shiurRuleLabel(sh)].filter(Boolean).join(' · ') : baseDay;
   return (
     <View style={st.shiurRow}>
       <View style={st.shiurLeft}>
@@ -261,7 +265,7 @@ function ShiurRow({ sh, hideDay = false }: { sh: Shiur; hideDay?: boolean }) {
         {sh.description && <Text style={st.shiurDesc}>{sh.description}</Text>}
       </View>
       <View style={st.shiurRight}>
-        <Text style={st.shiurTime}>{sh.time}</Text>
+        <Text style={st.shiurTime}>{timeLabel}</Text>
         <Text style={st.shiurDay}>{dayLabel}</Text>
       </View>
     </View>
@@ -326,7 +330,7 @@ export default function SynagogueDetailScreen() {
       index:     i,
       title:     sh.title,
       rabbi:     sh.rabbi,
-      time:      sh.time,
+      time:      shiurRuleLabel(sh),
       daysLabel: sh.days === 'daily' ? 'יומי' : formatDays(sh.days as number[]),
     }));
     return {
@@ -723,7 +727,7 @@ export default function SynagogueDetailScreen() {
               {shabbatShiurim.length > 0 && (
                 <View style={st.prayerSection}>
                   <Text style={st.prayerSectionLabel}>שיעורים</Text>
-                  {shabbatShiurim.map((sh) => <ShiurRow key={sh.id} sh={sh} hideDay />)}
+                  {shabbatShiurim.map((sh) => <ShiurRow key={sh.id} sh={sh} hideDay zmanim={shabbatZmanim} />)}
                 </View>
               )}
               {!!syn.shabbatSchedule.notes && (
@@ -803,7 +807,7 @@ export default function SynagogueDetailScreen() {
               </Text>
             </View>
             <View style={st.sectionCard}>
-              {weekdayShiurim.map((sh) => <ShiurRow key={sh.id} sh={sh} />)}
+              {weekdayShiurim.map((sh) => <ShiurRow key={sh.id} sh={sh} zmanim={todayZmanim} />)}
             </View>
           </View>
         )}

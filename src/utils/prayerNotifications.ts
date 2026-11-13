@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { Synagogue, Shiur, Gender } from '../types';
-import { shiurAudience, audienceFits, defaultAudienceFor, collectShiurim } from './shiurim';
+import { shiurAudience, audienceFits, defaultAudienceFor, collectShiurim, resolveShiurTime } from './shiurim';
 import { ZmanimResult } from './zmanim';
 import { resolveSlotTime, slotRunsInSeason, todayDayNumber, parseTimeToMinutes } from './prayerUtils';
 import {
@@ -205,7 +205,7 @@ export async function schedulePrayerNotifications(
       const allShiurim = collectShiurim(syn);
       for (const sh of allShiurim) {
         if (!shiurAppliesToday(sh, dayNum) || !suits(sh)) continue;
-        const timeMin = parseTimeToMinutes(sh.time);
+        const timeMin = parseTimeToMinutes(resolveShiurTime(sh, zmanim));
         if (timeMin < 0) continue;
         enqueue(
           `shiur-${sh.id}-${timeMin}`,
@@ -248,7 +248,7 @@ export async function schedulePrayerNotifications(
     for (const idx of selIndices) {
       const sh = allShiurim[idx];
       if (!sh || !shiurAppliesToday(sh, dayNum) || !suits(sh)) continue;
-      const timeMin = parseTimeToMinutes(sh.time);
+      const timeMin = parseTimeToMinutes(resolveShiurTime(sh, zmanim));
       if (timeMin < 0) continue;
       enqueue(
         `shiur-${sh.id}-${timeMin}`,

@@ -1,4 +1,16 @@
 import type { Shiur, ShiurAudience, Synagogue, Gender } from '../types';
+import type { ZmanimResult } from './zmanim';
+import { describeAnchor, resolveSlotTime } from './prayerUtils';
+
+/** A shiur's start as "HH:MM" — computed from zmanim when anchored. '' if unresolvable. */
+export function resolveShiurTime(sh: Shiur, zmanim?: ZmanimResult | null): string {
+  return resolveSlotTime(sh, zmanim);
+}
+
+/** The shiur's time as the rule it follows: the clock time, or "20 דקות לפני השקיעה". */
+export function shiurRuleLabel(sh: Shiur): string {
+  return sh.anchor ? describeAnchor(sh.anchor, sh.offsetMin ?? 0, sh.proportional) : (sh.time ?? '');
+}
 
 /** Collect all shiurim from every location they can appear in a synagogue.
  *  Handles null values that Firestore can return for missing array fields. */
@@ -83,17 +95,22 @@ export interface ShiurItem {
   audience: ShiurAudience;
   days: number[];
   timeMinutes: number;
+  /** Set for an anchored shiur: the rule behind the resolved time. */
+  rule?: string;
 }
 
-/** Every shiur in the city as one flat list; rows with an unreadable time are dropped. */
+/** Every shiur in the city as one flat list; rows with an unreadable time are dropped.
+ *  `zmanimFor` resolves anchored shiurim against each shul's own zmanim. */
 export function collectCityShiurim(
   synagogues: Synagogue[],
   parseTime: (t: string) => number,
+  zmanimFor?: (synagogue: Synagogue) => ZmanimResult | null,
 ): ShiurItem[] {
   const out: ShiurItem[] = [];
   for (const synagogue of synagogues) {
+    const zmanim = zmanimFor ? zmanimFor(synagogue) : null;
     for (const shiur of collectShiurim(synagogue)) {
-      const timeMinutes = parseTime(shiur.time ?? '');
+      const timeMinutes = parseTime(resolveShiurTime(shiur, zmanim) ?? '');
       if (timeMinutes < 0) continue;
       out.push({
         key: `${synagogue.id}-${shiur.id}`,
@@ -102,6 +119,7 @@ export function collectCityShiurim(
         audience: shiurAudience(shiur),
         days: shiurDays(shiur),
         timeMinutes,
+        rule: shiur.anchor ? shiurRuleLabel(shiur) : undefined,
       });
     }
   }
