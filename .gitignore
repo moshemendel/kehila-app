@@ -92,3 +92,6 @@ data/travel/*.sample.json
 
 # Graphify output
 graphify-out/
+
+# Prposal folder
+proposal/
