@@ -85,6 +85,8 @@ export interface AppUser {
   managedMikvehIds?: string[];      // mikveh_attendant
   supervisedBusinessIds?: string[]; // mashgiach
   createdAt: Date;
+  /** Stamped about once a day by touchLastActive(); the console counts MAU and retention from it. */
+  lastActiveAt?: Date;
 }
 
 export interface NusachOption {

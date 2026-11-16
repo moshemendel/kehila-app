@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { AppState } from 'react-native';
+import { collection, addDoc, doc, updateDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from './firebase';
 
 // ─── Module-level context (set once at login) ─────────────────────────────────
@@ -17,6 +18,34 @@ export function clearAnalytics() {
   _uid    = '';
   _cityId = '';
 }
+
+// ─── Last-active stamp ────────────────────────────────────────────────────────
+// users/{uid}.lastActiveAt lets the console count monthly active users and
+// retention per city with cheap count() queries instead of scanning
+// analyticsEvents. Written at most about once a day per device.
+
+const TOUCH_EVERY_MS = 20 * 60 * 60 * 1000;
+let _lastTouch = 0;
+
+/** `stored` is the lastActiveAt already on the profile (Timestamp, Date, ISO string or missing). */
+export function touchLastActive(uid: string, stored?: unknown): void {
+  if (!uid) return;
+  const now = Date.now();
+  if (now - _lastTouch < TOUCH_EVERY_MS) return;
+  const s = stored as any;
+  const storedMs = s?.toMillis ? s.toMillis()
+    : s instanceof Date ? s.getTime()
+    : typeof s === 'string' ? Date.parse(s) : NaN;
+  if (Number.isFinite(storedMs) && now - storedMs < TOUCH_EVERY_MS) { _lastTouch = now; return; }
+  _lastTouch = now;
+  updateDoc(doc(db, 'users', uid), { lastActiveAt: serverTimestamp() })
+    .catch(() => { _lastTouch = 0; }); // never crash; retry on next foreground
+}
+
+// Long-lived sessions: count a return to the foreground as activity too.
+AppState.addEventListener('change', (state) => {
+  if (state === 'active' && _uid) touchLastActive(_uid);
+});
 
 // ─── Rate-limiting ────────────────────────────────────────────────────────────
 

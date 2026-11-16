@@ -5,7 +5,7 @@ import { auth } from '../services/firebase';
 import { getUserDoc, reloadAuthUser, appUserCacheKey } from '../services/auth';
 import { updateUserCity, updateUserHomeCity, updateUserHomeArea, updateUserGender } from '../services/users';
 import { getGuestCityId, setGuestCityId } from '../services/guestCity';
-import { initAnalytics, clearAnalytics } from '../services/analytics';
+import { initAnalytics, clearAnalytics, touchLastActive } from '../services/analytics';
 import { AppUser, Gender } from '../types';
 import { mark } from '../utils/startupTrace';
 
@@ -108,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAppUser(doc);
       if (doc) {
         initAnalytics(user.uid, doc.cityId);
+        touchLastActive(user.uid, (doc as any).lastActiveAt);
         AsyncStorage.setItem(appUserCacheKey(user.uid), JSON.stringify(doc)).catch(() => {});
       }
     } catch {
