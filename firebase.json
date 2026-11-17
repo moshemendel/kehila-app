@@ -30,6 +30,24 @@
       {
         "source": "/delete-account",
         "destination": "/delete-account.html"
+      },
+      {
+        "source": "/guides",
+        "destination": "/guides/index.html"
+      },
+      {
+        "source": "/guides/**",
+        "destination": "/guides/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "/guides/videos/**",
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+      },
+      {
+        "source": "/guides/guides.json",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
       }
     ]
   }
